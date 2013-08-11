@@ -75,15 +75,16 @@ class Batch(TaskType):
         "compilation",
         "",
         {"alone": "Submissions are self-sufficient",
-         "grader": "Submissions are compiled with a grader"})
+         "grader": "Submissions are compiled with a grader"},
+        "alone")
 
     _USE_FILE = ParameterTypeCollection(
         "I/O (blank for stdin/stdout)",
         "io",
         "",
         [
-            ParameterTypeString("Input file", "inputfile", ""),
-            ParameterTypeString("Output file", "outputfile", ""),
+            ParameterTypeString("Input file", "inputfile", "", "input.txt"),
+            ParameterTypeString("Output file", "outputfile", "", "output.txt"),
         ])
 
     _EVALUATION = ParameterTypeChoice(
@@ -91,7 +92,8 @@ class Batch(TaskType):
         "output_eval",
         "",
         {"diff": "Outputs compared with white diff",
-         "comparator": "Outputs are compared by a comparator"})
+         "comparator": "Outputs are compared by a comparator"},
+        "diff")
 
     ACCEPTED_PARAMETERS = [_COMPILATION, _USE_FILE, _EVALUATION]
 

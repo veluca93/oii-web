@@ -58,7 +58,8 @@ class OutputOnly(TaskType):
         "output_eval",
         "",
         {"diff": "Outputs compared with white diff",
-         "comparator": "Outputs are compared by a comparator"})
+         "comparator": "Outputs are compared by a comparator"},
+        "diff")
 
     ACCEPTED_PARAMETERS = [_EVALUATION]
 

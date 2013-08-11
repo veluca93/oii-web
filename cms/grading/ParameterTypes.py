@@ -5,6 +5,7 @@
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
+# Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -36,7 +37,10 @@ class ParameterType:
 
     """
 
-    def __init__(self, name, short_name, description):
+    _TYPE = None
+    _DEFAULT = None
+
+    def __init__(self, name, short_name, description, default=None):
         """Initialization.
 
         name (string): name of the parameter.
@@ -49,6 +53,7 @@ class ParameterType:
         self.name = name
         self.short_name = short_name
         self.description = description
+        self.default = self._DEFAULT if default is None else default
 
     def parse_string(self, value):
         """Parse the specified string and returns the parsed value.
@@ -75,6 +80,12 @@ class ParameterType:
     def render(self, prefix, previous_value=None):
         raise NotImplementedError("Please subclass this class.")
 
+    def describe(self):
+        return {"_type": self._TYPE,
+                "name": self.name,
+                "description": self.description,
+                "default": self.default}
+
 
 class ParameterTypeString(ParameterType):
     """String parameter type.
@@ -82,6 +93,9 @@ class ParameterTypeString(ParameterType):
 
     TEMPLATE = "<input type=\"text\" name=\"{{parameter_name}}\" " \
                         "value=\"{{parameter_value}}\" />"
+
+    _TYPE = "string"
+    _DEFAULT = ""
 
     def parse_string(self, value):
         """Returns the specified string.
@@ -100,6 +114,9 @@ class ParameterTypeFloat(ParameterType):
 
     TEMPLATE = "<input type=\"text\" name=\"{{parameter_name}} \"" \
                        "value=\"{{parameter_value}}\" />"
+
+    _TYPE = "float"
+    _DEFAULT = 0.0
 
     def parse_string(self, value):
         """Attempts to parse the specified string as a float and
@@ -120,6 +137,9 @@ class ParameterTypeInt(ParameterType):
     TEMPLATE = "<input type=\"text\" name=\"{{parameter_name}} \"" \
                         "value=\"{{parameter_value}}\" />"
 
+    _TYPE = "int"
+    _DEFAULT = 0
+
     def parse_string(self, value):
         """Attempts to parse the specified string as a float and
         returns the parsed value.
@@ -138,6 +158,9 @@ class ParameterTypeBoolean(ParameterType):
 
     TEMPLATE = "<input type=\"checkbox\" name=\"{{parameter_name}} \"" \
                         "{% if checked %}checked{% end %} />"
+
+    _TYPE = "bool"
+    _DEFAULT = False
 
     def parse_string(self, value):
         """Returns True if the value is not None.
@@ -166,13 +189,16 @@ class ParameterTypeChoice(ParameterType):
                "{% end %}" \
                "</select>"
 
-    def __init__(self, name, short_name, description, values):
+    _TYPE = "enum"
+
+    def __init__(self, name, short_name, description, values, default=None):
         """
         values (dict): Short descriptions of the accepted choices,
             indexed by their respective accepted choices.
         """
         ParameterType.__init__(self, name, short_name, description)
         self.values = values
+        self.default = values.keys()[0] if default is None else default
 
     def parse_string(self, value):
         """Tests whether the string is an accepted value.
@@ -191,6 +217,11 @@ class ParameterTypeChoice(ParameterType):
             choices=self.values,
             parameter_value=previous_value)
 
+    def describe(self):
+        res = ParameterType.describe(self)
+        res["values"] = self.values
+        return res
+
 
 class ParameterTypeArray(ParameterType):
     """Parameter type representing an arbitrary-size array of sub-parameters.
@@ -206,8 +237,11 @@ class ParameterTypeArray(ParameterType):
                "{% end %}" \
                "</table>"
 
-    def __init__(self, name, short_name, description, subparameter):
-        ParameterType.__init__(self, name, short_name, description)
+    _TYPE = "list"
+    _DEFAULT = []
+
+    def __init__(self, name, short_name, description, subparameter, default=None):
+        ParameterType.__init__(self, name, short_name, description, default)
         self.subparameter = subparameter
 
     def parse_string(self, value):
@@ -234,6 +268,11 @@ class ParameterTypeArray(ParameterType):
                     subparam_value)})
         return Template(self.TEMPLATE).generate(elements=elements)
 
+    def describe(self):
+        res = ParameterType.describe(self)
+        res["subparameter"] = self.subparameter.describe()
+        return res
+
 
 class ParameterTypeCollection(ParameterType):
     """A fixed-size list of subparameters.
@@ -246,8 +285,11 @@ class ParameterTypeCollection(ParameterType):
                "{% end %}" \
                "</table>"
 
-    def __init__(self, name, shortname, description, subparameters):
-        ParameterType.__init__(self, name, shortname, description)
+    _TYPE = "tuple"
+    _DEFAULT = []
+
+    def __init__(self, name, shortname, description, subparameters, default=None):
+        ParameterType.__init__(self, name, shortname, description, default)
         self.subparameters = subparameters
 
     def parse_string(self, value):
@@ -274,3 +316,8 @@ class ParameterTypeCollection(ParameterType):
                 "content": self.subparameters[i].render(new_prefix,
                     subparam_value)})
         return Template(self.TEMPLATE).generate(elements=elements)
+
+    def describe(self):
+        res = ParameterType.describe(self)
+        res["subparameters"] = list(p.describe() for p in self.subparameters)
+        return res
