@@ -665,7 +665,19 @@ class FileCacher:
         raise: KeyError if the file cannot be found.
 
         """
-        return self.backend.get_size(digest)
+        cache_file_path = os.path.join(self.file_dir, digest)
+
+        logger.debug("Getting size of file %s." % digest)
+
+        if not os.path.exists(cache_file_path):
+            logger.debug("File %s not in cache, downloading "
+                         "from database." % digest)
+
+            self.load(digest)
+
+            logger.debug("File %s downloaded." % digest)
+
+        return os.stat(cache_file_path).st_size
 
     def delete(self, digest):
         """Delete a file from the backend and the local cache.
