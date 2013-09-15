@@ -1,0 +1,111 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li><a href="#!/contests/{{contest._ref}}/users">Users</a></li>
+        <li class="active">{{master.username}}</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Properties of user {{master.username}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group pull-right">
+            <a class="btn btn-primary" ng-href="#!/submissions/?user_id={{master._ref}}">See submissions</a>
+        </div>
+    </div>
+
+    <form id="user_form" name="form" class="form-horizontal" ng-submit="submitUser();" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.first_name.$valid}">
+                <label for="user_first_name" class="col-md-3 control-label">First name</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_first_name" name="first_name" class="form-control" ng-model="user.first_name" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.last_name.$valid}">
+                <label for="user_last_name" class="col-md-3 control-label">Last name</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_last_name" name="last_name" class="form-control" ng-model="user.last_name" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.email.$valid}">
+                <label for="user_email" class="col-md-3 control-label">Email address</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_email" name="email" class="form-control" ng-model="user.email">
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Login</legend>
+            <div class="form-group" ng-class="{'has-error': !form.username.$valid}">
+                <label for="user_username" class="col-md-3 control-label">Username</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_username" name="username" class="form-control" ng-model="user.username" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.password.$valid}">
+                <label for="user_password" class="col-md-3 control-label">Password</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_password" name="password" class="form-control" ng-model="user.password" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.ip.$valid}">
+                <label for="user_ip" class="col-md-3 control-label">IP address</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_ip" name="ip" class="form-control" ng-model="user.ip">
+                    <p class="help-block">Used to block logins from unexpected IP addresses. Leave blank to not enforce.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.hidden.$valid}">
+                <label for="user_hidden" class="col-md-3 control-label">Hidden?</label>
+                <div class="col-md-9">
+                    <div class="checkbox">
+                        <input type="checkbox" id="user_hidden" name="hidden" ng-model="user.hidden">
+                    </div>
+                    <p class="help-block">Don't score and don't show in the rankings.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Statements</legend>
+            <div class="form-group" ng-class="{'has-error': !form.primary_statements.$valid}">
+                <label for="user_primary_statements" class="col-md-3 control-label">Primary statements</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_primary_statements" name="primary_statements" class="form-control" ng-model="user.primary_statements" required>
+                    <p class="help-block">JSON-encoded dict whose keys are task names and whose values are lists of language codes.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Timing</legend>
+            <div class="form-group" ng-class="{'has-error': !form.starting_time.$valid}">
+                <label for="user_starting_time" class="col-md-3 control-label">Starting time</label>
+                <div class="col-md-9">
+                    <input type="datetime" id="user_starting_time" name="starting_time" class="form-control" ng-model="user.starting_time" ng-datetime>
+                    <p class="help-block">For USACO-like contests, the start of the user's time-frame. As an ISO 8601 combined date and time representation in UTC (i.e. "<em>YYYY</em>-<em>MM</em>-<em>DD</em>T<em>hh</em>:<em>mm</em>:<em>ss</em>Z").</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.extra_time.$valid}">
+                <label for="user_extra_time" class="col-md-3 control-label">Extra time</label>
+                <div class="col-md-9">
+                    <input type="number" id="user_extra_time" name="extra_time" class="form-control" ng-model="user.extra_time" required>
+                    <p class="help-block">Amount of seconds the time-frame is extended for.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.timezone.$valid}">
+                <label for="user_timezone" class="col-md-3 control-label">Timezone</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_timezone" name="timezone" class="form-control" ng-model="user.timezone">
+                    <p class="help-block">For example "Europe/Rome", "America/New_York", etc. (actually, anything pytz understands). Leave blank to use contest or local server timezone.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="btn-toolbar">
+            <button type="submit" class="btn btn-primary pull-right" ng-disabled="!form.$valid || isUnchanged()">Save!</button>
+            <button class="btn btn-default pull-right" ng-disabled="isUnchanged()" ng-click="resetUser()">Reset</button>
+        </fieldset>
+    </form>
+</div>

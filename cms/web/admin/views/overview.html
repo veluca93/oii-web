@@ -1,0 +1,13 @@
+<div>
+    <h3>Submission status <span class="label label-default label-danger">{{submission_status_error}}</span></h3>
+    <submission-status data="submission_status" rpc-service="EvaluationService" rpc-shard="0" rpc-method="submissions_status" rpc-args="{}" rpc-poll="5" error="submission_status_error"></submission-status>
+
+    <h3>Queue status <span class="label label-default label-danger">{{queue_status_error}}</span></h3>
+    <queue-status data="queue_status" rpc-service="EvaluationService" rpc-shard="0" rpc-method="queue_status" rpc-args="{}" rpc-poll="5" error="queue_status_error"></queue-status>
+
+    <h3>Workers status <span class="label label-default label-danger">{{workers_status_error}}</span></h3>
+    <workers-status data="workers_status" rpc-service="EvaluationService" rpc-shard="0" rpc-method="workers_status" rpc-args="{}" rpc-poll="5" error="workers_status_error"></workers-status>
+
+    <h3>Recent log messages <span class="label label-default label-danger">{{recent_logs_error}}</span></h3>
+    <recent-logs data="recent_logs" rpc-service="LogService" rpc-shard="0" rpc-method="last_messages" rpc-args="{}" rpc-poll="5" error="recent_logs_error"></recent-logs>
+</div>

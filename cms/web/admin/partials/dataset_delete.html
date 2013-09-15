@@ -1,0 +1,11 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Delete a dataset</h4>
+</div>
+<div class="modal-body">
+    Are you sure you want to delete the dataset "{{dataset.description}}" and all associated test cases?
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close();">Cancel</button>
+    <button class="btn btn-danger" ng-click="delete();">Delete</button>
+</div>

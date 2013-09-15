@@ -1,0 +1,50 @@
+<div class="modal-header">
+    <button class="close" ng-click="close();">&times;</button>
+    <h4 class="modal-title">Manage attachments</h4>
+</div>
+<div class="modal-body">
+    <h4>Attachment list</h4>
+
+    <table class="table table-bordered" style="table-layout: fixed;">
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Operations</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="attachment in attachment_list | orderBy:'filename'">
+                <td>{{attachment.filename}}</td>
+                <td style="padding: 3px;">
+                    <button type="button" class="btn btn-sm btn-success" ng-click="download(attachment);">Download</a>
+                    <button type="button" class="btn btn-sm btn-danger" ng-click="delete(attachment);">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Create a new attachment</h4>
+
+    <form id="task_attachments_form" name="form" class="form-horizontal" ng-submit="create();" novalidate>
+        <div class="form-group" ng-class="{'has-error': !form.filename.$valid}">
+            <label for="task_attachments_filename" class="col-md-3 control-label">Filename</label>
+            <div class="col-md-9">
+                <input type="text" id="task_attachments_filename" name="filename" class="form-control" ng-model="new_filename" required>
+            </div>
+        </div>
+        <div class="form-group" ng-class="{'has-error': !form.file.$valid}">
+            <label for="task_attachments_file" class="col-md-3 control-label">File</label>
+            <div class="col-md-9">
+                <file id="task_attachments_file" name="file" class="form-control" ng-model="new_fileblob" required></file>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-3 col-md-9">
+                <button type="submit" class="btn btn-primary" ng-disabled="!form.$valid">Upload</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="close();">Close</button>
+</div>

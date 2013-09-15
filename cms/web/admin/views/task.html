@@ -1,0 +1,149 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li><a href="#!/contests/{{contest._ref}}/tasks">Tasks</a></li>
+        <li class="active">{{master.name}}</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Properties of task {{master.name}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group pull-right">
+            <a class="btn btn-primary" ng-href="#!/submissions/?task_id={{master._ref}}">See submissions</a>
+            <a class="btn btn-primary" ng-href="#!/tasks/{{task._ref}}/datasets">See datasets</a>
+        </div>
+    </div>
+
+    <form id="task_form" name="form" class="form-horizontal" ng-submit="submitTask();" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.name.$valid}">
+                <label for="task_name" class="col-md-3 control-label">Name</label>
+                <div class="col-md-9">
+                    <input type="text" id="task_name" name="name" class="form-control" ng-model="task.name" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.title.$valid}">
+                <label for="task_title" class="col-md-3 control-label">Title</label>
+                <div class="col-md-9">
+                    <input type="text" id="task_title" name="title" class="form-control" ng-model="task.title" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Statements</legend>
+            <div class="btn-toolbar">
+                <div class="btn-group pull-right">
+                    <a class="btn btn-success" ng-click="manageStatements();">Manage statements</a>
+                    <a class="btn btn-success" ng-click="manageAttachments();">Manage attachments</a>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.primary_statements.$valid}">
+                <label for="task_primary_statements" class="col-md-3 control-label">Primary statements</label>
+                <div class="col-md-9">
+                    <input type="text" id="task_primary_statements" name="primary_statements" class="form-control" ng-model="task.primary_statements" required>
+                    <p class="help-block">JSON-encoded list of language codes.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Submission format</legend>
+            <div class="form-group" ng-class="{'has-error': !form.submission_format.$valid}">
+                <label for="task_submission_format" class="col-md-3 control-label">Submission format</label>
+                <div class="col-md-9">
+                    <input id="task_submission_format" name="submission_format" class="form-control" ng-model="task.submission_format" ng-list>
+                    <p class="help-block">Comma-separated list of filenames, with optional "%l" wildcard.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Limitations</legend>
+            <div class="form-group" ng-class="{'has-error': !form.max_submission_number.$valid}">
+                <label for="task_max_submission_number" class="col-md-3 control-label">Maximum number of submissions</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_max_submission_number" name="max_submission_number" class="form-control" ng-model="task.max_submission_number">
+                    <p class="help-block">This is a local limit, only for this task.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.max_user_test_number.$valid}">
+                <label for="task_max_user_test_number" class="col-md-3 control-label">Maximum number of user tests</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_max_user_test_number" name="max_user_test_number" class="form-control" ng-model="task.max_user_test_number">
+                    <p class="help-block">This is a local limit, only for this task.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.min_submission_interval.$valid}">
+                <label for="task_min_submission_interval" class="col-md-3 control-label">Minimum interval between submissions</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_min_submission_interval" name="min_submission_interval" class="form-control" ng-model="task.min_submission_interval">
+                    <p class="help-block">In seconds. This is a local limit, only for this task.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.min_user_test_interval.$valid}">
+                <label for="task_min_user_test_interval" class="col-md-3 control-label">Minimum interval between user tests</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_min_user_test_interval" name="min_user_test_interval" class="form-control" ng-model="task.min_user_test_interval">
+                    <p class="help-block">In seconds. This is a local limit, only for this task.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Tokens</legend>
+            <div class="form-group" ng-class="{'has-error': !form.token_initial.$valid}">
+                <label for="task_token_initial" class="col-md-3 control-label">Initial number of tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_token_initial" name="token_initial" class="form-control" ng-model="task.token_initial">
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_max.$valid}">
+                <label for="task_token_max" class="col-md-3 control-label">Maximum number of tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_token_max" name="token_max" class="form-control" ng-model="task.token_max">
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_total.$valid}">
+                <label for="task_token_total" class="col-md-3 control-label">Total number of tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_token_total" name="token_total" class="form-control" ng-model="task.token_total">
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_min_interval.$valid}">
+                <label for="task_token_min_interval" class="col-md-3 control-label">Minimum interval between tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_token_min_interval" name="token_min_interval" class="form-control" ng-model="task.token_min_interval" required>
+                    <p class="help-block">In seconds.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_gen_time.$valid}">
+                <label for="task_token_gen_time" class="col-md-3 control-label">Interval between token generation</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_token_gen_time" name="token_gen_time" class="form-control" ng-model="task.token_gen_time" required>
+                    <p class="help-block">In seconds.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_gen_number.$valid}">
+                <label for="task_token_gen_number" class="col-md-3 control-label">Number of generated tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_token_gen_number" name="token_gen_number" class="form-control" ng-model="task.token_gen_number" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Scoring</legend>
+            <div class="form-group" ng-class="{'has-error': !form.score_precision.$valid}">
+                <label for="task_score_precision" class="col-md-3 control-label">Score precision</label>
+                <div class="col-md-9">
+                    <input type="number" id="task_score_precision" name="score_precision" class="form-control" ng-model="task.score_precision" required>
+                    <p class="help-block">The number of decimal places the scores will be rounded to.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="btn-toolbar">
+            <button type="submit" class="btn btn-primary pull-right" ng-disabled="!form.$valid || isUnchanged()">Save!</button>
+            <button class="btn btn-default pull-right" ng-disabled="isUnchanged()" ng-click="resetTask()">Reset</button>
+        </fieldset>
+    </form>
+</div>

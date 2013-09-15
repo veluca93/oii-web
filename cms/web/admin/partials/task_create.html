@@ -1,0 +1,27 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Create a task</h4>
+</div>
+<div class="modal-body">
+    <form id="task_create_form" name="form" class="form-horizontal" ng-submit="create()" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.name.$valid}">
+                <label for="task_create_name" class="col-md-3 control-label">Name</label>
+                <div class="col-md-9">
+                    <input type="text" id="task_create_name" name="name" class="form-control" ng-model="task.name" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.title.$valid}">
+                <label for="task_create_title" class="col-md-3 control-label">Title</label>
+                <div class="col-md-9">
+                    <input type="text" id="task_create_title" name="title" class="form-control" ng-model="task.title" required>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close()">Close</button>
+    <button type="submit" form="task_create_form" class="btn btn-primary" ng-disabled="!form.$valid">Create</button>
+</div>

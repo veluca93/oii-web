@@ -236,9 +236,9 @@ class StoreHandler(object):
 
 class DataWatcher(EventSource):
     """Receive the messages from the entities store and redirect them."""
-    def __init__(self):
+    def __init__(self, url):
         self._CACHE_SIZE = config.buffer_size
-        EventSource.__init__(self)
+        EventSource.__init__(self, url)
 
         Contest.store.add_create_callback(
             functools.partial(self.callback, "contest", "create"))
@@ -447,7 +447,7 @@ def main():
             print "Not removing directory %s." % config.lib_dir
         return
 
-    toplevel_handler = RoutingHandler(DataWatcher(), ImageHandler(
+    toplevel_handler = RoutingHandler(DataWatcher('/events'), ImageHandler(
         os.path.join(config.lib_dir, '%(name)s'),
         os.path.join(config.web_dir, 'img', 'logo.png')))
 

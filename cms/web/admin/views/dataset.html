@@ -1,0 +1,61 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li><a href="#!/contests/{{contest._ref}}/tasks">Tasks</a></li>
+        <li><a href="#!/tasks/{{task._ref}}">{{task.name}}</a></li>
+        <li><a href="#!/tasks/{{task._ref}}/datasets">Datasets</a></li>
+        <li class="active">{{master.description}}</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Properties of dataset {{master.description}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group pull-right">
+            <a class="btn btn-primary" ng-href="#!/submissions/?task_id={{task._ref}}&dataset_id={{master._ref}}">See submissions</a>
+        </div>
+    </div>
+
+    <form id="task_form" name="form" class="form-horizontal" ng-submit="submitDataset();" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.description.$valid}">
+                <label for="dataset_description" class="col-md-3 control-label">Description</label>
+                <div class="col-md-9">
+                    <input type="text" id="dataset_description" name="description" class="form-control" ng-model="dataset.description" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Resource limits</legend>
+            <div class="form-group" ng-class="{'has-error': !form.time_limit.$valid}">
+                <label for="dataset_time_limit" class="col-md-3 control-label">Time limit</label>
+                <div class="col-md-9">
+                    <input type="number" id="dataset_time_limit" name="time_limit" class="form-control" ng-model="dataset.time_limit" required>
+                    <p class="help-block">In seconds.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.memory_limit.$valid}">
+                <label for="dataset_memory_limit" class="col-md-3 control-label">Memory limit</label>
+                <div class="col-md-9">
+                    <input type="number" id="dataset_memory_limit" name="memory_limit" class="form-control" ng-model="dataset.memory_limit" required>
+                    <p class="help-block">In MiB.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Task type</legend>
+            <task-type name="dataset.task_type" parameters="dataset.task_type_parameters"></task-type>
+        </fieldset>
+        <fieldset>
+            <legend>Score type</legend>
+            <score-type name="dataset.score_type" parameters="dataset.score_type_parameters"></score-type>
+        </fieldset>
+        <fieldset class="btn-toolbar">
+            <button type="submit" class="btn btn-primary pull-right" ng-disabled="!form.$valid || isUnchanged()">Save!</button>
+            <button class="btn btn-default pull-right" ng-disabled="isUnchanged()" ng-click="resetDataset()">Reset</button>
+        </fieldset>
+    </form>
+</div>

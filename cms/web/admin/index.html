@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="aws">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AdminWebServer</title>
+        <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="css/app.css" rel="stylesheet">
+    </head>
+    <body>
+        <iframe id="fileDownload" style="position: absolute; top: 0; left: 0; width: 0; height: 0; margin: 0; border-width: 0; padding: 0;"></iframe>
+
+        <notification-box style="position: fixed; top: 0; right: 0; width: 200px; bottom: 0; overflow: hidden; padding: 20px;"></notification-box>
+
+        <navigation>
+        <ng-view></ng-view>
+        </navigation>
+
+        <script src="lib/jquery/jquery-2.0.3.min.js"></script>
+        <script src="lib/angular/angular-1.0.7.min.js"></script>
+        <script src="lib/angular-ui/ui-bootstrap-tpls-0.6.0git.min.js"></script>
+        <script src="js/app.js"></script>
+        <script src="js/controllers.js"></script>
+        <script src="js/filters.js"></script>
+        <script src="js/directives.js"></script>
+        <script src="js/navigation.js"></script>
+        <script src="js/parameter_types.js"></script>
+        <script src="js/notifications.js"></script>
+        <script src="js/files.js"></script>
+        <script src="js/data.js"></script>
+        <script src="js/contest.js"></script>
+        <script src="js/user.js"></script>
+        <script src="js/task.js"></script>
+        <script src="js/ranking.js"></script>
+        <script src="js/submission.js"></script>
+        <script src="js/rpc.js"></script>
+        <script src="js/overview.js"></script>
+        <script src="js/communication.js"></script>
+        <script src="js/dataset.js"></script>
+    </body>
+</html>

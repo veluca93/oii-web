@@ -1,0 +1,51 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li class="active">Tasks</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Task list for contest {{contest.name}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <button type="button" class="btn btn-success" ng-click="createTask()">Create a task</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped task-list">
+        <col class="position">
+        <col class="short-name">
+        <col class="full-name">
+        <col class="reevaluate">
+        <thead>
+            <tr>
+                <th>Pos.</th>
+                <th>Short name</th>
+                <th>Full name</th>
+                <th>Reevaluate</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="task in tasks | orderBy: 'num'">
+                <td style="padding: 3px;"><!-- ↑↓⬆⬇⇧⇩🔺🔻▲▼△▽▴▾▵▿ -->
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-sm btn-default" ng-disabled="$first">▲</a>
+                        <a class="btn btn-sm btn-default" ng-disabled="$last">▼</a>
+                    </div>
+                </td>
+                <td><a ng-href="#!/tasks/{{task._ref}}">{{task.name}}</a></td>
+                <td><a ng-href="#!/tasks/{{task._ref}}">{{task.title}}</a></td>
+                <td style="padding: 3px;">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-sm btn-warning" ng-click="recompile(task._ref)"><abbr title="Compilation">C</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="reevaluate(task._ref)"><abbr title="Evaluation">E</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="rescore(task._ref)"><abbr title="Score">S</abbr></a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

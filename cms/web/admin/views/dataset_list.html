@@ -1,0 +1,59 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li><a href="#!/contests/{{contest._ref}}/tasks">Tasks</a></li>
+        <li><a href="#!/tasks/{{task._ref}}">{{task.name}}</a></li>
+        <li class="active">Datasets</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Dataset list for task {{task.name}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <button type="button" class="btn btn-success" ng-click="promptCreateDataset()">Create a dataset</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped task-list">
+        <col class="description">
+        <col class="live">
+        <col class="background">
+        <col class="operations">
+        <col class="reevaluate">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Live</th>
+                <th>Background judging</th>
+                <th>Operations</th>
+                <th>Reevaluate</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="dataset in datasets | orderBy:'description'">
+                <td><a ng-href="#!/datasets/{{dataset._ref}}">{{dataset.description}}</a></td>
+                <td style="padding: 3px;">
+                    <a class="btn btn-sm btn-default" ng-class="{'btn-warning': dataset._ref != task.active_dataset}" ng-disabled="dataset._ref == task.active_dataset" ng-href="#!/datasets/{{dataset._ref}}/activate">Make Live</button>
+                </td>
+                <td style="padding: 3px;">
+                    <button class="btn btn-sm btn-warning" ng-hide="dataset.autojudge || dataset._ref == task.active_dataset" ng-click="enableDataset(dataset);">Enable</button>
+                    <button class="btn btn-sm btn-default" ng-show="dataset.autojudge || dataset._ref == task.active_dataset" ng-disabled="dataset._ref == task.active_dataset" ng-click="disableDataset(dataset);">Disable</button>
+                </td>
+                <td style="padding: 3px;">
+                    <button class="btn btn-sm btn-success" ng-click="promptCloneDataset(dataset);">Clone</button>
+                    <button class="btn btn-sm btn-danger" ng-disabled="dataset._ref == task.active_dataset" ng-click="promptDeleteDataset(dataset);">Delete</button>
+                </td>
+                <td style="padding: 3px;">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-sm btn-warning" ng-click="recompileDataset(dataset);"><abbr title="Compilation">C</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="reevaluateDataset(dataset);"><abbr title="Evaluation">E</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="rescoreDataset(dataset);"><abbr title="Score">S</abbr></a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

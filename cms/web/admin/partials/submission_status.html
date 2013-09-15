@@ -1,0 +1,36 @@
+<table class="table table-bordered table-striped">
+    <tbody>
+        <tr ng-show="isNotZero('scored')" class="success">
+            <th>Evaluated and scored</th>
+            <td>{{stats.scored}}</td>
+        </tr>
+        <tr ng-show="isNotZero('evaluated')">
+            <th>Evaluated</th>
+            <td>{{stats.evaluated}}</td>
+        </tr>
+        <tr ng-show="isNotZero('compilation_fail')" class="success">
+            <th>Compilation failed</th>
+            <td>{{stats.compilation_fail}}</td>
+        </tr>
+        <tr ng-show="isNotZero('compiling')">
+            <th>Compiling...</th>
+            <td>{{stats.compiling}}</td>
+        </tr>
+        <tr ng-show="isNotZero('evaluating')">
+            <th>Evaluating...</th>
+            <td>{{stats.evaluating}}</td>
+        </tr>
+        <tr ng-show="isNotZero('max_compilations')" class="danger">
+            <th>Cannot compile (please check)</th>
+            <td>{{stats.max_compilations}}</td>
+        </tr>
+        <tr ng-show="isNotZero('max_evaluations')" class="danger">
+            <th>Cannot evaluate (please check)</th>
+            <td>{{stats.max_evaluations}}</td>
+        </tr>
+        <tr ng-show="isNotZero('invalid')" class="danger">
+            <th>Invalid (please check)</th>
+            <td>{{stats.invalid}}</td>
+        </tr>
+    </tbody>
+</table>

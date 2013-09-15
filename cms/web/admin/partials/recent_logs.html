@@ -1,0 +1,24 @@
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Severity</th>
+            <th>Timestamp</th>
+            <th>Service</th>
+            <th>Operation</th>
+            <th>Message</th>
+    </thead>
+    <tbody>
+        <tr ng-hide="areLogsAvailable()">
+            <td colspan="5">
+                No log messages available.
+            </td>
+        </tr>
+        <tr ng-repeat="item in logs | orderBy:'-timestamp'">
+            <td>{{item.severity | logSeverity}}</td>
+            <td>{{item.timestamp *1000 | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td>{{item.coord}}</td>
+            <td>{{item.operation}}</td>
+            <td style="white-space: pre-wrap">{{item.message}}</td>
+        </tr>
+    </tbody>
+</table>

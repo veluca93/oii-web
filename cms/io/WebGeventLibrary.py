@@ -180,12 +180,16 @@ class WebService(Service):
         # from. But, to use it, we need to be sure we can trust it
         # (i.e., if we are not behind a proxy that sets that header,
         # we must not use it).
-        real_application = self.application
         if parameters.get('is_proxy_used', False):
-            real_application = WSGIXheadersMiddleware(real_application)
+            self.wsgi_app = WSGIXheadersMiddleware(self.wsgi_app)
 
-        self.web_server = WSGIServer((listen_address, listen_port),
-                                     real_application)
+        def callback(environ, start_response):
+            return self.wsgi_app(environ, start_response)
+
+        self.web_server = WSGIServer((listen_address, listen_port), callback)
+
+    def wsgi_app(self, environ, start_response):
+        return self.application(environ, start_response)
 
     def run(self):
         """Start the WebService.

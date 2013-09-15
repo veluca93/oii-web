@@ -1,0 +1,19 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li class="active">Questions</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Questions for contest {{contest.name}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <button type="button" class="btn btn-success" ng-click="load()">Reload</button>
+        </div>
+    </div>
+
+    <question ng-repeat="question in question_list | orderBy:'-question_timestamp'" data="question" users="users"></question>
+</div>

@@ -214,10 +214,16 @@ class EventSource(object):
 
     _CACHE_SIZE = 250
 
-    def __init__(self):
-        """Create an event source.
+    def __init__(self, url):
+        """Create an event source on the given URL.
+
+        All requests for other URLs will be dropped with a 404.
+
+        url (string): the one and only URL this application handles.
 
         """
+        self._router = Map([Rule(url, methods=["GET"], endpoint="get")],
+                           encoding_errors="strict")
         self._pub = Publisher(self._CACHE_SIZE)
 
     def send(self, event, data):
@@ -248,6 +254,14 @@ class EventSource(object):
         __call__ and wsgi_app eases the insertion of middlewares.
 
         """
+        route = self._router.bind_to_environ(environ)
+        try:
+            endpoint, args = route.match()
+        except HTTPException as exc:
+            return exc(environ, start_response)
+
+        assert endpoint == "get"
+
         request = Request(environ)
         request.encoding_errors = "strict"
 

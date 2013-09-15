@@ -1,0 +1,41 @@
+<div>
+    <ul class="breadcrumb">
+        <li class="active">Contests</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Contest list</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <button type="button" class="btn btn-success" ng-click="createContest()">Create a contest</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped contest-list">
+        <col class="short-name">
+        <col class="full-name">
+        <col class="reevaluate">
+        <thead>
+            <tr>
+                <th>Short name</th>
+                <th>Full name</th>
+                <th>Reevaluate</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="contest in contests | orderBy: 'begin'">
+                <td><a ng-href="#!/contests/{{contest._ref}}">{{contest.name}}</a></td>
+                <td><a ng-href="#!/contests/{{contest._ref}}">{{contest.description}}</a></td>
+                <td style="padding: 3px;">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-sm btn-warning" ng-click="recompile(contest._ref)"><abbr title="Compilation">C</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="reevaluate(contest._ref)"><abbr title="Evaluation">E</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="rescore(contest._ref)"><abbr title="Score">S</abbr></a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

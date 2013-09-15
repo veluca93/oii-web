@@ -33,11 +33,15 @@ import re
 import traceback
 from datetime import datetime, timedelta
 
-from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload, subqueryload
 
 import tornado.web
 import tornado.locale
+
+import gevent
+
+from werkzeug.wsgi import SharedDataMiddleware, DispatcherMiddleware
 
 from cms import config
 from cms.log import initialize_logging
@@ -45,13 +49,20 @@ from cms.io.WebGeventLibrary import WebService
 from cms.io import ServiceCoord, get_service_shards, get_service_address
 from cms.db import Session, Contest, User, Announcement, Question, Message, \
     Submission, SubmissionResult, File, Task, Dataset, Attachment, Manager, \
-    Testcase, SubmissionFormatElement, Statement
+    Testcase, SubmissionFormatElement, Statement, Watcher, SessionGen
 from cms.db.filecacher import FileCacher
-from cms.grading import compute_changes_for_dataset
+from cms.grading import compute_changes_for_dataset, task_score
 from cms.grading.tasktypes import get_task_type_class
 from cms.server import file_handler_gen, get_url_root, \
     CommonRequestHandler
 from cmscommon.DateTime import make_datetime, make_timestamp
+
+from cms.web.rpc_api import RPCAPIMiddleware
+from cms.web.file_api import FileAPIMiddleware
+from cms.web.data_api import DataAPIMiddleware
+from cms.web.data_watcher import DataWatcherMiddleware
+from cms.web.task_type_api import TaskTypeAPIMiddleware
+from cms.web.submission_api import SubmissionAPIMiddleware
 
 
 logger = logging.getLogger(__name__)
@@ -316,6 +327,22 @@ class AdminWebServer(WebService):
             self.resource_services.append(self.connect_to(
                 ServiceCoord("ResourceService", i)))
         self.logservice = self.connect_to(ServiceCoord("LogService", 0))
+
+        self.watcher = Watcher()
+
+        self.wsgi_app = DispatcherMiddleware(self.wsgi_app, {
+            '/api': DataAPIMiddleware(),
+            '/rpc': RPCAPIMiddleware(self),
+            '/files': FileAPIMiddleware(self.file_cacher),
+            '/notify': DataWatcherMiddleware(self.watcher),
+            '/task_types': TaskTypeAPIMiddleware(),
+            '/submissions': SubmissionAPIMiddleware(),
+        })
+
+        self.wsgi_app = SharedDataMiddleware(self.wsgi_app,
+                                             {'/': ('cms.web', 'admin')})
+
+        gevent.spawn(self.watcher.run)
 
     @staticmethod
     def authorized_rpc(service, method, arguments):
@@ -871,32 +898,34 @@ class DeleteManagerHandler(BaseHandler):
 
 
 # TODO: Move this somewhere more appropriate?
-def copy_dataset(
-        new_dataset, old_dataset, clone_results, clone_managers, sql_session):
-    """Copy an existing dataset's test cases, and optionally
-    submission results and managers.
+def copy_dataset(new_dataset, old_dataset, clone_managers,
+                 clone_testcases, clone_results, session):
+    """Clone related object from a dataset to another.
 
     new_dataset (Dataset): target dataset to copy into.
     old_dataset (Dataset): original dataset to copy from.
-    clone_results (bool): copy submission results.
     clone_managers (bool): copy dataset managers.
-    sql_session (Session): the session to commit.
+    clone_testcases (bool): copy dataset testcases.
+    clone_results (bool): copy submission results (will also copy
+        testcases).
+    session (Session): the session to commit (needs to be the one to
+        which the new_dataset is attached).
 
     """
     new_testcases = dict()
-    for old_t in old_dataset.testcases.itervalues():
-        new_t = old_t.clone()
-        new_t.dataset = new_dataset
-        new_testcases[new_t.codename] = new_t
+    if clone_testcases or clone_results:
+        for old_t in old_dataset.testcases.itervalues():
+            new_t = old_t.clone()
+            new_t.dataset = new_dataset
+            new_testcases[new_t.codename] = new_t
 
     if clone_managers:
         for old_m in old_dataset.managers.itervalues():
             new_m = old_m.clone()
             new_m.dataset = new_dataset
 
-    sql_session.flush()
+    session.flush()
 
-    new_results = list()
     if clone_results:
         # We issue this query manually to optimize it: we load all
         # executables and evaluations at once instead of having SA
@@ -904,11 +933,11 @@ def copy_dataset(
         # one at a time. We need them because we want to copy them too,
         # recursively.
         old_results = \
-            sql_session.query(SubmissionResult)\
-                       .filter(SubmissionResult.dataset == old_dataset)\
-                       .options(joinedload(SubmissionResult.submission))\
-                       .options(joinedload(SubmissionResult.executables))\
-                       .options(joinedload(SubmissionResult.evaluations)).all()
+            session.query(SubmissionResult)\
+                   .filter(SubmissionResult.dataset == old_dataset)\
+                   .options(joinedload(SubmissionResult.submission))\
+                   .options(subqueryload(SubmissionResult.executables))\
+                   .options(subqueryload(SubmissionResult.evaluations)).all()
 
         for old_sr in old_results:
             # Create the submission result.
@@ -927,14 +956,7 @@ def copy_dataset(
                 new_e.submission_result = new_sr
                 new_e.testcase = new_testcases[old_e.codename]
 
-            # We need to keep a reference to the object to prevent it
-            # from being deleted (as SQLAlchemy's Session holds just a
-            # weak reference...).
-            new_results += [new_sr]
-
-    sql_session.flush()
-
-    return new_results
+    session.flush()
 
 
 class AddDatasetHandler(BaseHandler):
@@ -1032,8 +1054,8 @@ class AddDatasetHandler(BaseHandler):
             # information too.
             clone_results = bool(self.get_argument("clone_results", False))
             clone_managers = bool(self.get_argument("clone_managers", False))
-            copy_dataset(dataset, original_dataset, clone_results,
-                         clone_managers, self.sql_session)
+            copy_dataset(dataset, original_dataset, clone_managers,
+                         True, clone_results, self.sql_session)
 
         # If the task does not yet have an active dataset, make this
         # one active.
@@ -1046,6 +1068,142 @@ class AddDatasetHandler(BaseHandler):
         else:
             self.redirect("/add_dataset/%s/%s" % (task_id,
                                                   dataset_id_to_copy))
+
+
+class CloneDatasetHandler(tornado.web.RequestHandler):
+    def post(self, dataset_id):
+        with SessionGen() as session:
+            old_dataset = Dataset.get_from_id(dataset_id, session)
+
+            if old_dataset is None:
+                raise tornado.web.HTTPError(404)
+
+            try:
+                data = json.loads(self.request.body)
+            except ValueError:
+                raise tornado.web.HTTPError(400)
+
+            new_dataset = old_dataset.clone()
+
+            new_dataset.task = old_dataset.task
+            new_dataset.description = \
+                data.get("description", "Copy of %s" % old_dataset.description)
+            new_dataset.autojudge = False
+
+            session.add(new_dataset)
+
+            clone_managers = data.get("clone_managers", True)
+            clone_testcases = data.get("clone_testcases", True)
+            clone_results = data.get("clone_results", False)
+
+            if clone_results and not clone_testcases:
+                raise tornado.web.HTTPError(400)
+
+            copy_dataset(new_dataset, old_dataset, clone_managers,
+                         clone_testcases, clone_results, session)
+
+            self.set_header("Location", "/api/datasets/%d" % new_dataset.id)
+
+            try:
+                session.commit()
+            except IntegrityError as error:
+                raise tornado.web.HTTPError(400)
+
+
+class ActivateDatasetHandler(tornado.web.RequestHandler):
+    def put(self, dataset_id):
+        with SessionGen() as session:
+            dataset = Dataset.get_from_id(dataset_id, session)
+
+            if dataset is None:
+                raise tornado.web.HTTPError(404)
+
+            task = dataset.task
+            task.active_dataset = dataset
+
+            try:
+                session.commit()
+            except IntegrityError as error:
+                raise tornado.web.HTTPError()
+            else:
+                # This updates data on remote rankings.
+                self.application.service.proxy_service.dataset_updated(task_id=task.id)
+
+                # This kicks off judging of any submissions which were previously
+                # unloved, but are now part of an autojudged taskset.
+                self.application.service.evaluation_service.search_jobs_not_done()
+                self.application.service.scoring_service.search_jobs_not_done()
+
+
+class EnableDatasetHandler(tornado.web.RequestHandler):
+    def put(self, dataset_id):
+        with SessionGen() as session:
+            dataset = Dataset.get_from_id(dataset_id, session)
+
+            if dataset is None:
+                raise tornado.web.HTTPError(404)
+
+            dataset.autojudge = True
+
+            try:
+                session.commit()
+            except IntegrityError as error:
+                raise tornado.web.HTTPError()
+            else:
+                # This kicks off judging of any submissions which were previously
+                # unloved, but are now part of an autojudged taskset.
+                self.application.service.evaluation_service.search_jobs_not_done()
+                self.application.service.scoring_service.search_jobs_not_done()
+
+
+class DisableDatasetHandler(tornado.web.RequestHandler):
+    def put(self, dataset_id):
+        with SessionGen() as session:
+            dataset = Dataset.get_from_id(dataset_id, session)
+
+            if dataset is None:
+                raise tornado.web.HTTPError(404)
+
+            dataset.autojudge = False
+
+            try:
+                session.commit()
+            except IntegrityError as error:
+                raise tornado.web.HTTPError()
+
+
+class DiffDatasetHandler(tornado.web.RequestHandler):
+    def get(self, old_dataset_id, new_dataset_id):
+        with SessionGen() as session:
+            old_dataset = Dataset.get_from_id(old_dataset_id, session)
+            new_dataset = Dataset.get_from_id(new_dataset_id, session)
+
+            if old_dataset is None or new_dataset is None:
+                raise tornado.web.HTTPError(404)
+
+            diff = compute_changes_for_dataset(old_dataset, new_dataset)
+
+            result = list()
+
+            for sub, old_s, new_s, old_ps, new_ps, old_rsd, new_rsd in diff:
+                item = {
+                    '_ref': "%s" % sub.id,
+                    'user': "%s" % sub.user_id,
+                    'timestamp': make_timestamp(sub.timestamp),
+                    'language': sub.language,
+                    'token': make_timestamp(sub.token.timestamp)
+                             if sub.token is not None else None,
+                    'old_score': old_s,
+                    'new_score': new_s,
+                    'old_public_score': old_ps,
+                    'new_public_score': new_ps,
+                    'old_ranking_score_details': old_rsd,
+                    'new_ranking_score_details': new_rsd,
+                }
+                result.append(item);
+
+            self.write(json.dumps(result))
+
 
 
 class RenameDatasetHandler(BaseHandler):
@@ -1634,6 +1792,25 @@ class RankingHandler(BaseHandler):
             self.set_header("Content-Disposition",
                             "attachment; filename=\"ranking.csv\"")
             self.render("ranking.csv", **self.r_params)
+        elif format == "json":
+            result = dict()
+            for user in self.contest.users:
+                if user.hidden:
+                    continue
+
+                tasks = {}
+                for task in self.contest.tasks:
+                    score, partial = task_score(user, task)
+                    score = round(score, task.score_precision)
+                    tasks[task.id] = {'score': score, 'partial': partial}
+
+                score = sum(v['score'] for v in tasks.itervalues())
+                score = round(score, self.contest.score_precision)
+                partial = any(v['partial'] for v in tasks.itervalues())
+                result[user.id] = {'score': score, 'partial': partial,
+                                   'tasks': tasks}
+
+            self.write(result)
         else:
             self.render("ranking.html", **self.r_params)
 
@@ -2063,4 +2240,9 @@ _aws_handlers = [
     (r"/resources/([0-9]+|all)", ResourcesHandler),
     (r"/resources/([0-9]+|all)/([0-9]+)", ResourcesHandler),
     (r"/notifications", NotificationsHandler),
+    (r"/datasets/([0-9]+)/clone", CloneDatasetHandler),
+    (r"/datasets/([0-9]+)/activate", ActivateDatasetHandler),
+    (r"/datasets/([0-9]+)/enable", EnableDatasetHandler),
+    (r"/datasets/([0-9]+)/disable", DisableDatasetHandler),
+    (r"/datasets/([0-9]+)/diff/([0-9]+)", DiffDatasetHandler),
 ]

@@ -1,0 +1,75 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Submission {{submission._ref}}</h4>
+</div>
+<div class="modal-body">
+    <div class="panel panel-default" ng-show="isScored()">
+        <div class="panel-heading">
+            <h3 class="panel-title">Scoring<span class="label pull-right" ng-class="getScoreLabelClass()">{{submission.score}} / {{submission.max_score}}</span></h3>
+        </div>
+        <div class="panel-body">
+            <pimped-up-score-details data="submission.score_details"></pimped-up-score-details>
+        </div>
+    </div>
+    <div class="panel panel-default" ng-show="isEvaluated()">
+        <div class="panel-heading">
+            <h3 class="panel-title">Evaluation</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Codename</th>
+                        <th>Outcome</th>
+                        <th>Text</th>
+                        <th>Time</th>
+                        <th><abbr title="Wall-clock Time">WCT</abbr></th>
+                        <th>Memory</th>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="ev in submission.evaluations | orderBy:'codename'">
+                        <th>{{ev.codename}}</th>
+                        <td>{{ev.outcome}}</td>
+                        <td>{{ev.text}}</td>
+                        <td>{{ev.execution_time | executionTime | nullNotAvailable}}</td>
+                        <td>{{ev.execution_wall_clock_time | executionTime | nullNotAvailable}}</td>
+                        <td>{{ev.execution_memory | memoryUsed | nullNotAvailable}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel panel-default" ng-show="isCompiled()">
+        <div class="panel-heading">
+            <h3 class="panel-title">Compilation</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Outcome</th>
+                        <th>Text</th>
+                        <th>Time</th>
+                        <th><abbr title="Wall-clock Time">WCT</abbr></th>
+                        <th>Memory</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{submission.compilation_outcome | booleanSuccessFailure}}</td>
+                        <td>{{submission.compilation_text}}</td>
+                        <td>{{submission.compilation_time | executionTime | nullNotAvailable}}</td>
+                        <td>{{submission.compilation_wall_clock_time | executionTime | nullNotAvailable}}</td>
+                        <td>{{submission.compilation_memory | memoryUsed | nullNotAvailable}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h5>Standard output</h5>
+            <pre style="overflow: auto; word-wrap: normal; white-space: pre;">{{submission.compilation_stdout}}</pre>
+            <h5>Standard error</h5>
+            <pre style="overflow: auto; word-wrap: normal; white-space: pre;">{{submission.compilation_stderr}}</pre>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="close()">Close</button>
+</div>

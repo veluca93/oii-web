@@ -1,0 +1,24 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Send a new announcement</h4>
+</div>
+<div class="modal-body">
+    <form id="announcement_create_form" name="form" class="form-horizontal" ng-submit="create();" novalidate>
+        <div class="form-group" ng-class="{'has-error': !form.subject.$valid}">
+            <label for="announcement_create_subject" class="col-md-3 control-label">Subject</label>
+            <div class="col-md-9">
+                <input type="text" id="announcement_create_subject" name="subject" class="form-control" ng-model="subject">
+            </div>
+        </div>
+        <div class="form-group" ng-class="{'has-error': !form.text.$valid}">
+            <label for="announcement_create_text" class="col-md-3 control-label">Text</label>
+            <div class="col-md-9">
+                <textarea id="announcement_create_text" name="text" class="form-control" ng-model="text"></textarea>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close();">Close</button>
+    <button type="submit" form="announcement_create_form" class="btn btn-primary" ng-disabled="!form.$valid">Send</button>
+</div>

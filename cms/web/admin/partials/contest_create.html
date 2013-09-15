@@ -1,0 +1,44 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Create a contest</h4>
+</div>
+<div class="modal-body">
+    <form id="contest_create_form" name="form" class="form-horizontal" ng-submit="create()" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.name.$valid}">
+                <label for="contest_create_name" class="col-md-3 control-label">Name</label>
+                <div class="col-md-9">
+                    <input type="text" id="contest_create_name" name="name" class="form-control" ng-model="contest.name" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.description.$valid}">
+                <label for="contest_create_description" class="col-md-3 control-label">Description</label>
+                <div class="col-md-9">
+                    <input type="text" id="contest_create_description" name="description" class="form-control" ng-model="contest.description" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Timing</legend>
+            <div class="form-group" ng-class="{'has-error': !form.start.$valid}">
+                <label for="contest_create_start" class="col-md-3 control-label">Start time</label>
+                <div class="col-md-9">
+                    <input type="datetime" id="contest_create_start" name="start" class="form-control" ng-model="contest.start" required ng-datetime>
+                    <p class="help-block">As an ISO 8601 combined date and time representation in UTC (i.e. "<em>YYYY</em>-<em>MM</em>-<em>DD</em>T<em>hh</em>:<em>mm</em>:<em>ss</em>Z").</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.stop.$valid}">
+                <label for="contest_create_stop" class="col-md-3 control-label">End time</label>
+                <div class="col-md-9">
+                    <input type="datetime" id="contest_create_stop" name="stop" class="form-control" ng-model="contest.stop" required ng-datetime>
+                    <p class="help-block">As an ISO 8601 combined date and time representation in UTC (i.e. "<em>YYYY</em>-<em>MM</em>-<em>DD</em>T<em>hh</em>:<em>mm</em>:<em>ss</em>Z").</p>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close()">Close</button>
+    <button type="submit" form="contest_create_form" class="btn btn-primary" ng-disabled="!form.$valid">Create</button>
+</div>

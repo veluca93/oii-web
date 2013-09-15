@@ -1,0 +1,46 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Create a dataset</h4>
+</div>
+<div class="modal-body">
+    <form id="dataset_create_form" name="form" class="form-horizontal" ng-submit="create()" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.description.$valid}">
+                <label for="dataset_create_description" class="col-md-3 control-label">Description</label>
+                <div class="col-md-9">
+                    <input type="text" class="form-control" id="dataset_create_description" name="description" ng-model="dataset.description" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Resource limits</legend>
+            <div class="form-group" ng-class="{'has-error': !form.time_limit.$valid}">
+                <label for="dataset_create_time_limit" class="col-md-3 control-label">Time limit</label>
+                <div class="col-md-9">
+                    <input type="number" id="dataset_create_time_limit" name="time_limit" class="form-control" ng-model="dataset.time_limit">
+                    <p class="help-block">In seconds.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.memory_limit.$valid}">
+                <label for="dataset_create_memory_limit" class="col-md-3 control-label">Memory limit</label>
+                <div class="col-md-9">
+                    <input type="number" id="dataset_create_memory_limit" name="memory_limit" class="form-control" ng-model="dataset.memory_limit">
+                    <p class="help-block">In MiB.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Task type</legend>
+            <task-type name="dataset.task_type" parameters="dataset.task_type_parameters"></task-type>
+        </fieldset>
+        <fieldset>
+            <legend>Score type</legend>
+            <score-type name="dataset.score_type" parameters="dataset.score_type_parameters"></score-type>
+        </fieldset>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close()">Close</button>
+    <button type="submit" form="dataset_create_form" class="btn btn-primary" ng-disabled="!form.$valid">Create</button>
+</div>

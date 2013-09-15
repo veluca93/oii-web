@@ -53,6 +53,22 @@ Files: cms/server/static/img/mimetypes/*.png
 Copyright: 2009 Tango Desktop Project, http://tango.freedesktop.org/
 License: public-domain
 
+Files: cms/web/admin/lib/jquery/*
+Copyright: 2013 jQuery Foundation and other contributors, http://jquery.com/
+License: Expat
+
+Files: cms/web/admin/lib/angular/*
+Copyright: 2010-2012 Google, Inc., http://angularjs.org
+License: Expat
+
+Files: cms/web/admin/lib/angular-ui/*
+Copyright: 2012-2013 the AngularUI Team, https://github.com/organizations/angular-ui/teams/291112
+License: Expat
+
+Files: cms/web/admin/lib/bootstrap/*
+Copyright: 2012 Twitter, Inc.
+License: Apache-2.0
+
 Files: isolate/*
 Copyright: 2012-2013 Martin Mares <mj@ucw.cz>
            2012-2013 Bernard Blackham <b-pkg@largestprime.net>

@@ -1,0 +1,20 @@
+<div class="panel panel-default message">
+    <div class="panel-body">
+        <h4>
+            {{message.subject | emptyNotAvailable}}
+            <small class="pull-right">
+                to
+                <span tooltip="{{users[message.user].first_name}} {{users[message.user].last_name}}" tooltip-placement="top">
+                    <a ng-href="#!/users/{{message.user}}">{{users[message.user].username}}</a>
+                </span>
+                / {{message.timestamp *1000 | date:'yyyy-MM-dd HH:mm:ss'}}
+            </small>
+        </h4>
+        <p style="white-space: pre-wrap">{{message.text}}</p>
+    </div>
+    <div class="panel-footer" style="height: 41px; padding: 5px;">
+        <div class="btn-group pull-right">
+            <button type="button" class="btn btn-danger btn-sm" ng-click="remove();">Remove</button>
+        </div>
+    </div>
+</div>

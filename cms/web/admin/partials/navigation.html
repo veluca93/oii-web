@@ -1,0 +1,62 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="navbar navbar-default" role="navigation">
+                <div class="navbar-header">
+                    <span class="navbar-brand">Administration</span>
+                </div>
+                <div class="navbar-collapse navbar-ex1-collapse">
+                    <ul class="nav navbar-nav">
+                        <li ng-class="{active: isActivePage(1)}">
+                            <a href="#!/overview">Overview</a>
+                        </li>
+                        <li ng-class="{active: isActivePage(2)}">
+                            <a href="#!/resources">Resource usage</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 nav-sidebar">
+            <ul>
+                <li ng-class="{active: isActivePage(3)}"><a href="#!/contests/">Contest list</a></li>
+            </ul>
+
+            <ul>
+                <li ng-repeat="contest in contests | orderBy: 'begin'" ng-class="{open: isActiveContest(contest), active: isActiveContest(contest) && isActiveSubpage('general')}">
+                    <a href="#!/contests/{{contest._ref}}">
+                        {{contest.name}}
+                        <span class="badge" style="position: absolute; top: 11px; right: 15px; background-color: #f0ad4e !important;" ng-hide="isActiveContest(contest)">{{unread_count[contest._ref]}}</span>
+                    </a>
+                    <ul>
+                        <li ng-class="{active: isActiveContest(contest) && isActiveSubpage('ranking')}">
+                            <a href="#!/contests/{{contest._ref}}/ranking">Ranking</a>
+                        </li>
+                        <li ng-class="{active: isActiveContest(contest) && isActiveSubpage('users')}">
+                            <a href="#!/contests/{{contest._ref}}/users">Users</a>
+                        </li>
+                        <li ng-class="{active: isActiveContest(contest) && isActiveSubpage('tasks')}">
+                            <a href="#!/contests/{{contest._ref}}/tasks">Tasks</a>
+                        </li>
+                        <li ng-class="{active: isActiveContest(contest) && isActiveSubpage('announcements')}">
+                            <a href="#!/contests/{{contest._ref}}/announcements">Announcements</a>
+                        </li>
+                        <li ng-class="{active: isActiveContest(contest) && isActiveSubpage('messages')}">
+                            <a href="#!/contests/{{contest._ref}}/messages">Messages</a>
+                        </li>
+                        <li ng-class="{active: isActiveContest(contest) && isActiveSubpage('questions')}">
+                            <a href="#!/contests/{{contest._ref}}/questions" style="position: relative">
+                                Questions
+                                <span class="badge" style="position: absolute; top: 9px; right: 12px; background-color: #f0ad4e !important;" ng-show="isActiveContest(contest)">{{unread_count[contest._ref]}}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-9" ng-transclude></div>
+    </div>
+</div>

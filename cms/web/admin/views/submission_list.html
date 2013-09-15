@@ -1,0 +1,136 @@
+<div>
+    <ul class="breadcrumb" ng-show="isUserGiven()">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li><a href="#!/contests/{{contest._ref}}/users">Users</a></li>
+        <li><a href="#!/users/{{user._ref}}">{{user.username}}</a></li>
+        <li class="active">Submissions</li>
+    </ul>
+    <ul class="breadcrumb" ng-show="!isUserGiven() && isTaskGiven()">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li><a href="#!/contests/{{contest._ref}}/tasks">Tasks</a></li>
+        <li><a href="#!/tasks/{{task._ref}}">{{task.name}}</a></li>
+        <li class="active">Submissions</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>
+            Submission list
+            <span ng-show="isUserGiven()">
+                of user
+                <span tooltip="{{user.first_name}} {{user.last_name}}" tooltip-placement="top">
+                    <a ng-href="#!/users/{{user._ref}}">{{user.username}}</a>
+                </span>
+            </span>
+            <span ng-show="isTaskGiven()">
+                on task
+                <span tooltip="{{task.title}}" tooltip-placement="top">
+                    <a ng-href="#!/tasks/{{task._ref}}">{{task.name}}</a>
+                </span>
+            </span>
+        </h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <button type="button" class="btn btn-success" ng-click="load()">Reload</button>
+        </div>
+        <div class="btn-group pull-right" ng-show="isUserGiven()">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                Select task <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li ng-class="isNoTaskInUrl()">
+                    <a ng-href="#!{{removeTasksAndDatasetsFromUrl()}}">All tasks</a>
+                </li>
+                <li class="divider"></li>
+                <li ng-repeat="task in task_list | orderBy:'pos'" ng-class="isTaskInUrl(task._ref)">
+                    <a ng-href="#!{{addTaskToUrl(task._ref)}}">{{task.name}}</a>
+                </li>
+            </ul>
+        </div>
+        <div class="btn-group pull-right" ng-show="isTaskGiven()">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                Select dataset <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li ng-repeat="dataset in dataset_list | orderBy:'description'" ng-class="datasetClass(dataset._ref)">
+                    <a ng-href="#!{{addDatasetToUrl(dataset._ref)}}">{{dataset.description}}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped submission-list" style="table-layout: fixed;">
+        <col class="time"/>
+        <col class="user" ng-hide="isUserGiven()"/>
+        <col class="task" ng-hide="isTaskGiven()"/>
+        <col class="status"/>
+        <col class="score"/>
+        <col class="token"/>
+        <col class="files"/>
+        <col class="reevaluate"/>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th ng-hide="isUserGiven()">User</th>
+                <th ng-hide="isTaskGiven()">Task</th>
+                <th>Status</th>
+                <th><abbr title="Score">S.</abbr></th>
+                <th>Token</th>
+                <th>Files</th>
+                <th>Reevaluate</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="submission in submissions | orderBy:'-timestamp' | paginate:pages_current:20">
+                <td>
+                    <span tooltip="{{submission.timestamp *1000 | date:'yyyy-MM-dd HH:mm:ss'}}" tooltip-placement="top">
+                        {{submission.timestamp | contestTime:contest.start}}</a>
+                    </span>
+                </td>
+                <td ng-hide="isUserGiven()">
+                    <span tooltip="{{users[submission.user].first_name}} {{users[submission.user].last_name}}" tooltip-placement="top">
+                        <a ng-href="#!/users/{{submission.user}}">{{users[submission.user].username}}</a>
+                    </span>
+                </td>
+                <td ng-hide="isTaskGiven()">
+                    <span tooltip="{{tasks[submission.task].title}}" tooltip-placement="top">
+                        <a ng-href="#!/tasks/{{submission.task}}">{{tasks[submission.task].name}}</a>
+                    </span>
+                </td>
+                <td colspan="{{getColspan(submission)}}">
+                    {{getStatus(submission)}}
+                    <button class="btn btn-link btn-xs pull-right" ng-click="showDetails(submission._ref, submission.dataset)">details</button></td>
+                <td ng-show="hasScore(submission)" ng-class="getScoreClass(submission)">{{submission.score | roundToStr:tasks[submission.task].score_precision}}</td>
+                <td>
+                    <span tooltip="{{submission.token *1000 | date:'yyyy-MM-dd HH:mm:ss' | nullNotAvailable}}" tooltip-placement="top">
+                        {{submission.token | contestTime:contest.start | nullNotAvailable}}</a>
+                    </span>
+                </td>
+                <td style="padding: 3px;">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
+                            Download <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li ng-repeat="(filename, digest) in submission.files">
+                                <a ng-href="files/{{digest}}?filename={{filename | languageWildcard:submission.language}}" ng-click="downloadFile($event, digest)">{{filename | languageWildcard:submission.language}}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+                <td style="padding: 3px;">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-sm btn-warning" ng-click="recompile(submission._ref)"><abbr title="Compilation">C</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="reevaluate(submission._ref)"><abbr title="Evaluation">E</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="rescore(submission._ref)"><abbr title="Score">S</abbr></a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <pagination num-pages="pages_total" current-page="pages_current" max-size="11" rotate="true" direction-links="false" boundary-links="true" style="text-align: center"></pagination>
+</div>

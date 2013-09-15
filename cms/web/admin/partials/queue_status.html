@@ -1,0 +1,20 @@
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Priority</th>
+            <th>Timestamp</th>
+            <th>Job description</th>
+    </thead>
+    <tbody>
+        <tr ng-show="isQueueEmpty()">
+            <td colspan="3">
+                Queue is empty.
+            </td>
+        </tr>
+        <tr ng-repeat="item in queue">
+            <td>{{item.priority | jobPriority}}</td>
+            <td>{{item.timestamp *1000 | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td>{{item.job | jobDescription}}</td>
+        </tr>
+    </tbody>
+</table>

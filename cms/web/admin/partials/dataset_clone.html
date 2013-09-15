@@ -1,0 +1,33 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Create a dataset</h4>
+</div>
+<div class="modal-body">
+    <form id="dataset_clone_form" name="form" class="form-horizontal" ng-submit="clone()" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.description.$valid}">
+                <label for="dataset_clone_description" class="col-md-3 control-label">Description</label>
+                <div class="col-md-9">
+                    <input type="text" class="form-control" id="dataset_clone_description" name="description" ng-model="description" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Results</legend>
+            <div class="form-group" ng-class="{'has-error': !form.clone_results.$valid}">
+                <label for="dataset_clone_clone_results" class="col-md-3 control-label">Clone submission results</label>
+                <div class="col-md-9">
+                    <div class="checkbox">
+                        <input type="checkbox" id="dataset_clone_clone_results" name="clone_results" ng-model="clone_results">
+                    </div>
+                    <p class="help-block">This operation may be very database-intensive but it allows to recompile and reevaluate only the submissions you know will be affected and spare some worker time.</p>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close()">Close</button>
+    <button type="submit" form="dataset_clone_form" class="btn btn-primary" ng-disabled="!form.$valid">Clone</button>
+</div>

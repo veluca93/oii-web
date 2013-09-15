@@ -1,0 +1,50 @@
+<div class="modal-header">
+    <button class="close" ng-click="close();">&times;</button>
+    <h4 class="modal-title">Manage statements</h4>
+</div>
+<div class="modal-body">
+    <h4>Statement list</h4>
+
+    <table class="table table-bordered" style="table-layout: fixed;">
+        <thead>
+            <tr>
+                <th>Language</th>
+                <th>Operations</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="statement in statement_list | orderBy:'language'">
+                <td>{{statement.language | emptyNotAvailable}}</td>
+                <td style="padding: 3px;">
+                    <button type="button" class="btn btn-sm btn-success" ng-click="download(statement);">Download</a>
+                    <button type="button" class="btn btn-sm btn-danger" ng-click="delete(statement);">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Create a new statement</h4>
+
+    <form id="task_statements_form" name="form" class="form-horizontal" ng-submit="create();" novalidate>
+        <div class="form-group" ng-class="{'has-error': !form.language.$valid}">
+            <label for="task_statements_language" class="col-md-3 control-label">Language</label>
+            <div class="col-md-9">
+                <input type="text" id="task_statements_language" name="language" class="form-control" ng-model="new_language" required>
+            </div>
+        </div>
+        <div class="form-group" ng-class="{'has-error': !form.file.$valid}">
+            <label for="task_statements_file" class="col-md-3 control-label">File</label>
+            <div class="col-md-9">
+                <file id="task_statements_file" name="file" class="form-control" ng-model="new_fileblob" required></file>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-3 col-md-9">
+                <button type="submit" class="btn btn-primary" ng-disabled="!form.$valid">Upload</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="close();">Close</button>
+</div>

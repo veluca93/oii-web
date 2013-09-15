@@ -1,0 +1,58 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li><a href="#!/contests/{{contest._ref}}">{{contest.name}}</a></li>
+        <li class="active">Users</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>User list for contest {{contest.name}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <button type="button" class="btn btn-success" ng-click="createUser()">Create a user</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped user-list">
+        <col class="username">
+        <col class="first-name">
+        <col class="last-name">
+        <col class="reevaluate">
+        <thead>
+            <tr>
+                <th>
+                    <span>Username<span>
+                    <span class="pull-right sort-key" ng-class="isSortKey('-username')" ng-click="setSortKey('-username')">▲</span>
+                    <span class="pull-right sort-key" ng-class="isSortKey('username')" ng-click="setSortKey('username')">▼</span>
+                </th>
+                <th>
+                    <span>First name</span>
+                    <span class="pull-right sort-key" ng-class="isSortKey('-first_name')" ng-click="setSortKey('-first_name')">▲</span>
+                    <span class="pull-right sort-key" ng-class="isSortKey('first_name')" ng-click="setSortKey('first_name')">▼</span>
+                </th>
+                <th>
+                    <span>Last name</span>
+                    <span class="pull-right sort-key" ng-class="isSortKey('-last_name')" ng-click="setSortKey('-last_name')">▲</span>
+                    <span class="pull-right sort-key" ng-class="isSortKey('last_name')" ng-click="setSortKey('last_name')">▼</span>
+                </th>
+                <th>Reevaluate</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="user in users | orderBy: sort_key">
+                <td><a ng-href="#!/users/{{user._ref}}">{{user.username}}</a></td>
+                <td><a ng-href="#!/users/{{user._ref}}">{{user.first_name}}</a></td>
+                <td><a ng-href="#!/users/{{user._ref}}">{{user.last_name}}</a></td>
+                <td style="padding: 3px;">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-sm btn-warning" ng-click="recompile(user._ref)"><abbr title="Compilation">C</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="reevaluate(user._ref)"><abbr title="Evaluation">E</abbr></a>
+                        <a class="btn btn-sm btn-warning" ng-click="rescore(user._ref)"><abbr title="Score">S</abbr></a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

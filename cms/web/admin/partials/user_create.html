@@ -1,0 +1,42 @@
+<div class="modal-header">
+    <button class="close" ng-click="close()">&times;</button>
+    <h4 class="modal-title">Create a user</h4>
+</div>
+<div class="modal-body">
+    <form id="user_create_form" name="form" class="form-horizontal" ng-submit="create()" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.first_name.$valid}">
+                <label for="user_create_first_name" class="col-md-3 control-label">First name</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_create_first_name" name="first_name" class="form-control" ng-model="user.first_name" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.last_name.$valid}">
+                <label for="user_create_last_name" class="col-md-3 control-label">Last name</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_create_last_name" name="last_name" class="form-control" ng-model="user.last_name" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Login</legend>
+            <div class="form-group" ng-class="{'has-error': !form.username.$valid}">
+                <label for="user_create_username" class="col-md-3 control-label">Username</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_create_username" name="username" class="form-control" ng-model="user.username" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.password.$valid}">
+                <label for="user_create_password" class="col-md-3 control-label">Password</label>
+                <div class="col-md-9">
+                    <input type="text" id="user_create_password" name="password" class="form-control" ng-model="user.password" required>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close()">Close</button>
+    <button type="submit" form="user_create_form" class="btn btn-primary" ng-disabled="!form.$valid">Create</button>
+</div>

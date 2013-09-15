@@ -1,0 +1,152 @@
+<div>
+    <ul class="breadcrumb">
+        <li><a href="#!/contests/">Contests</a></li>
+        <li class="active">{{contest.name}}</li>
+    </ul>
+
+    <div class="page-header">
+        <h2>Properties of contest {{master.name}}</h2>
+    </div>
+
+    <div class="btn-toolbar">
+        <div class="btn-group pull-right">
+            <a class="btn btn-primary" ng-href="#!/contests/{{master._ref}}/tasks">See tasks</a>
+            <a class="btn btn-primary" ng-href="#!/contests/{{master._ref}}/users">See users</a>
+        </div>
+    </div>
+
+    <form id="contest_form" name="form" class="form-horizontal" ng-submit="submitContest();" novalidate>
+        <fieldset>
+            <legend>Naming</legend>
+            <div class="form-group" ng-class="{'has-error': !form.name.$valid}">
+                <label for="contest_name" class="col-md-3 control-label">Name</label>
+                <div class="col-md-9">
+                    <input type="text" id="contest_name" name="name" class="form-control" ng-model="contest.name" required>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.description.$valid}">
+                <label for="contest_description" class="col-md-3 control-label">Description</label>
+                <div class="col-md-9">
+                    <input type="text" id="contest_description" name="description" class="form-control" ng-model="contest.description" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Timing</legend>
+            <div class="form-group" ng-class="{'has-error': !form.start.$valid}">
+                <label for="contest_start" class="col-md-3 control-label">Start time</label>
+                <div class="col-md-9">
+                    <input type="datetime" id="contest_start" name="start" class="form-control" ng-model="contest.start" required ng-datetime>
+                    <p class="help-block">As an ISO 8601 combined date and time representation in UTC (i.e. "<em>YYYY</em>-<em>MM</em>-<em>DD</em>T<em>hh</em>:<em>mm</em>:<em>ss</em>Z").</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.stop.$valid}">
+                <label for="contest_stop" class="col-md-3 control-label">End time</label>
+                <div class="col-md-9">
+                    <input type="datetime" id="contest_stop" name="stop" class="form-control" ng-model="contest.stop" required ng-datetime>
+                    <p class="help-block">As an ISO 8601 combined date and time representation in UTC (i.e. "<em>YYYY</em>-<em>MM</em>-<em>DD</em>T<em>hh</em>:<em>mm</em>:<em>ss</em>Z").</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.per_user_time.$valid}">
+                <label for="contest_per_user_time" class="col-md-3 control-label">Per-user time</label>
+                <div class="col-md-9">
+                    <input type="text" id="contest_per_user_time" name="per_user_time" class="form-control" ng-model="contest.per_user_time">
+                    <p class="help-block">The length of the time-frame each user has to submit solutions, in seconds. Leave blank to use the whole contest time-frame.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.timezone.$valid}">
+                <label for="contest_timezone" class="col-md-3 control-label">Timezone</label>
+                <div class="col-md-9">
+                    <input type="text" id="contest_timezone" name="timezone" class="form-control" ng-model="contest.timezone">
+                    <p class="help-block">For example "Europe/Rome", "America/New_York", etc. (actually, anything pytz understands). Leave blank to use local server timezone.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Limitations</legend>
+            <div class="form-group" ng-class="{'has-error': !form.max_submission_number.$valid}">
+                <label for="contest_max_submission_number" class="col-md-3 control-label">Maximum number of submissions</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_max_submission_number" name="max_submission_number" class="form-control" ng-model="contest.max_submission_number">
+                    <p class="help-block">This is a global limit, shared by all tasks.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.max_user_test_number.$valid}">
+                <label for="contest_max_user_test_number" class="col-md-3 control-label">Maximum number of user tests</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_max_user_test_number" name="max_user_test_number" class="form-control" ng-model="contest.max_user_test_number">
+                    <p class="help-block">This is a global limit, shared by all tasks.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.min_submission_interval.$valid}">
+                <label for="contest_min_submission_interval" class="col-md-3 control-label">Minimum interval between submissions</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_min_submission_interval" name="min_submission_interval" class="form-control" ng-model="contest.min_submission_interval">
+                    <p class="help-block">In seconds. This is a global limit, shared by all tasks.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.min_user_test_interval.$valid}">
+                <label for="contest_min_user_test_interval" class="col-md-3 control-label">Minimum interval between user tests</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_min_user_test_interval" name="min_user_test_interval" class="form-control" ng-model="contest.min_user_test_interval">
+                    <p class="help-block">In seconds. This is a global limit, shared by all tasks.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Tokens</legend>
+            <div class="form-group" ng-class="{'has-error': !form.token_initial.$valid}">
+                <label for="contest_token_initial" class="col-md-3 control-label">Initial number of tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_token_initial" name="token_initial" class="form-control" ng-model="contest.token_initial">
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_max.$valid}">
+                <label for="contest_token_max" class="col-md-3 control-label">Maximum number of tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_token_max" name="token_max" class="form-control" ng-model="contest.token_max">
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_total.$valid}">
+                <label for="contest_token_total" class="col-md-3 control-label">Total number of tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_token_total" name="token_total" class="form-control" ng-model="contest.token_total">
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_min_interval.$valid}">
+                <label for="contest_token_min_interval" class="col-md-3 control-label">Minimum interval between tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_token_min_interval" name="token_min_interval" class="form-control" ng-model="contest.token_min_interval" required>
+                    <p class="help-block">In seconds.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_gen_time.$valid}">
+                <label for="contest_token_gen_time" class="col-md-3 control-label">Interval between token generation</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_token_gen_time" name="token_gen_time" class="form-control" ng-model="contest.token_gen_time" required>
+                    <p class="help-block">In seconds.</p>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': !form.token_gen_number.$valid}">
+                <label for="contest_token_gen_number" class="col-md-3 control-label">Number of generated tokens</label>
+                <div class="col-md-9">
+                    <input type="number" id="contest_token_gen_number" name="token_gen_number" class="form-control" ng-model="contest.token_gen_number" required>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Scoring</legend>
+            <div class="form-group" ng-class="{'has-error': !form.score_precision.$valid}">
+                <label for="contest_score_precision" class="col-md-3 control-label">Score precision</label>
+                <div class="col-md-9">
+                    <input type="number" class="form-control" id="contest_score_precision" name="score_precision" ng-model="contest.score_precision" required>
+                    <p class="help-block">The number of decimal places the scores will be rounded to.</p>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="btn-toolbar">
+            <button type="submit" class="btn btn-primary pull-right" ng-disabled="!form.$valid || isUnchanged()">Save!</button>
+            <button class="btn btn-default pull-right" ng-disabled="isUnchanged()" ng-click="resetContest()">Reset</button>
+        </fieldset>
+    </form>
+</div>
