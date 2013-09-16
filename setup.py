@@ -57,6 +57,17 @@ def do_setup():
             os.path.join("templates", "ranking", "*.*"),
         ],
         "cms.web": [
+            os.path.join("practice", "*.*"),
+            os.path.join("practice", "css", "*.*"),
+            os.path.join("practice", "img", "*.*"),
+            os.path.join("practice", "js", "*.*"),
+            os.path.join("practice", "lib", "jquery", "*.*"),
+            os.path.join("practice", "lib", "angular", "*.*"),
+            os.path.join("practice", "lib", "angular-ui", "*.*"),
+            os.path.join("practice", "lib", "bootstrap", "css", "*.*"),
+            os.path.join("practice", "lib", "bootstrap", "fonts", "*.*"),
+            os.path.join("practice", "partials", "*.*"),
+            os.path.join("practice", "views", "*.*"),
             os.path.join("admin", "*.*"),
             os.path.join("admin", "css", "*.*"),
             os.path.join("admin", "img", "*.*"),
@@ -133,6 +144,7 @@ def do_setup():
                    "scripts/cmsContestWebServer",
                    "scripts/cmsAdminWebServer",
                    "scripts/cmsProxyService",
+                   "scripts/cmsPracticeWebServer",
 
                    "scripts/cmsRankingWebServer",
 
