@@ -98,5 +98,6 @@ class PracticeWebServer(WebService):
             shard=shard,
             listen_address=config.contest_listen_address[shard])
         self.wsgi_app = SharedDataMiddleware(RoutingHandler(), {
-            '/': ("cms.web", "practice")
+            '/':        ("cms.web", "practice"),
+            '/assets':  ("cms.web", "assets")
         })
