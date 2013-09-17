@@ -17,16 +17,71 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import io
 import logging
+import pkg_resources
+from datetime import datetime
 
 from cms import config
 from cms.log import initialize_logging
 from cms.io.WebGeventLibrary import WebService
 
-from werkzeug.wsgi import SharedDataMiddleware
-from werkzeug.exceptions import NotFound
+from werkzeug.wrappers import Response
+from werkzeug.wsgi import SharedDataMiddleware, wrap_file, responder
+from werkzeug.routing import Map, Rule
+from werkzeug.exceptions import HTTPException, NotFound
 
 logger = logging.getLogger(__name__)
+
+
+class FileHandler(object):
+    def __init__(self, filename, mimetype):
+        self.filename = filename
+        self.mimetype = mimetype
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        path = os.path.join(
+            pkg_resources.resource_filename("cms.web", "practice"),
+            self.filename)
+
+        response = Response()
+        response.status_code = 200
+        response.mimetype = self.mimetype
+        response.last_modified = \
+            datetime.utcfromtimestamp(os.path.getmtime(path))\
+                    .replace(microsecond=0)
+        response.response = wrap_file(environ, io.open(path, 'rb'))
+        response.direct_passthrough = True
+        return response
+
+
+class RoutingHandler(object):
+    def __init__(self):
+        self.router = Map([
+            Rule("/", methods=["GET"], endpoint="root"),
+        ], encoding_errors="strict")
+
+        self.root_handler = FileHandler("index.html", "text/html")
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    def wsgi_app(self, environ, start_response):
+        route = self.router.bind_to_environ(environ)
+        try:
+            endpoint, args = route.match()
+        except HTTPException as exc:
+            return exc(environ, start_response)
+
+        if endpoint == "root":
+            return self.root_handler(environ, start_response)
+
+        return NotFound()
 
 
 class PracticeWebServer(WebService):
@@ -43,6 +98,6 @@ class PracticeWebServer(WebService):
             {},
             shard=shard,
             listen_address=config.contest_listen_address[shard])
-        self.wsgi_app = SharedDataMiddleware(NotFound(), {
+        self.wsgi_app = SharedDataMiddleware(RoutingHandler(), {
             '/': ("cms.web", "practice")
         })
