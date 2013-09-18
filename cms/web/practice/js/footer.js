@@ -17,14 +17,13 @@
  */
 'use strict';
 
-
-// Declare app level module which depends on filters, and services
-angular.module('pws', ['pws.navbar', 'pws.overview', 'pws.signup', 'pws.footer']).
-    config(['$locationProvider', '$routeProvider', function($locationProvider, $routeProvider) {
-        $locationProvider.html5Mode(false);
-        $locationProvider.hashPrefix('!');
-
-        $routeProvider.when('/overview', {templateUrl: 'views/overview.html'});
-        $routeProvider.when('/signup', {templateUrl: 'views/signup.html'});
-        $routeProvider.otherwise({redirectTo: '/overview'});
+angular.module('pws.footer', [])
+    .directive('footer', ['$location', '$route', function($location, $route) {
+        return {
+            restrict: 'E',
+            scope: {},
+            templateUrl: 'partials/footer.html',
+            replace: true,
+            transclude: true,
+        };
     }]);

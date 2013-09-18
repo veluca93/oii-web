@@ -45,8 +45,7 @@ angular.module('pws.navbar', [])
                     $scope.active_page = 0;
                     //~ $scope.active_subpage = undefined;
 
-                    console.log("routeChangeSuccess");
-                    console.log($location.path());
+                    //~ console.log($location.path());
                     if ($location.path() == "/overview") {
                         $scope.active_page = 1;
                     } else if ($location.path() == "/signup") {
