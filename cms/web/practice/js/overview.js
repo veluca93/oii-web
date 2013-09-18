@@ -17,14 +17,6 @@
  */
 'use strict';
 
+/* Overview page */
 
-// Declare app level module which depends on filters, and services
-angular.module('pws', ['pws.navbar', 'pws.overview', 'pws.signup']).
-    config(['$locationProvider', '$routeProvider', function($locationProvider, $routeProvider) {
-        $locationProvider.html5Mode(false);
-        $locationProvider.hashPrefix('!');
-
-        $routeProvider.when('/overview', {templateUrl: 'views/overview.html'});
-        $routeProvider.when('/signup', {templateUrl: 'views/signup.html'});
-        $routeProvider.otherwise({redirectTo: '/overview'});
-    }]);
+angular.module('pws.overview', []);
