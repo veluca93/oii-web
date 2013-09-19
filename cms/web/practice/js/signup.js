@@ -20,21 +20,23 @@
 /* Signup page */
 
 angular.module('pws.signup', [])
-    .controller('SignupCtrl', ['$scope', function ($scope) {
-        $scope.fieldsets = [
-            {description: "Dati di accesso al sito", fields: [
-                {req: true, id: "username",  type: "text",     label: "Username"},
-                {req: true, id: "password",  type: "password", label: "Password"},
-                {req: true, id: "password2", type: "password", label: "Ripeti password"},
-            ]},
-            {description: "Dati personali", fields: [
-                {req: true, id: "firstname", type: "text",  label: "Nome"},
-                {req: true, id: "lastname",  type: "text",  label: "Cognome"},
-                {req: true, id: "email",     type: "email", label: "Indirizzo email"},
-                {req: true, id: "email2",    type: "email", label: "Ripeti indirizzo email"},
-            ]},
-        ];
-        $scope.submit = function() {
-            $scope.fieldsets[1].fields[1].model = "Ciao";
-        };
-    }]);
+  .controller('SignupCtrl', ['$scope', '$http', function ($scope, $http) {
+    $scope.submit = function() {
+      $http.post("register", $scope.user)
+        .success(function(data, status, headers, config) {
+          console.log("dati inviati correttamente");
+        }).error(function(data, status, headers, config) {
+          console.log("dati non inviati");
+        });
+    };
+    $scope.checkExistence = function(type, value) {
+      $http.post("check", {type: type, value: value})
+        .success(function(data, status, headers, config) {
+          console.log(data);
+          return data.exists == "1";
+        }).error(function(data, status, headers, config) {
+          console.log("dati non ricevuti");
+        });
+      return false;
+    }
+  }]);
