@@ -5,7 +5,7 @@
       <div class="control-group" ng-repeat="field in fs.fields">
         <label class="control-label" for="{{field.id}}">{{field.label}}</label>
         <div class="controls">
-          <input type="{{field.type}}" id="{{field.id}}" ng-model="field.model"/>
+          <input type="{{field.type}}" id="{{field.id}}" ng-required="field.req" ng-model="field.model"/>
         </div>
       </div>
     </fieldset>
