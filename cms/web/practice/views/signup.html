@@ -1,60 +1,13 @@
-<form class="form-horizontal">
-  <fieldset>
-    <legend>Dati di accesso al sito</legend>
-    <div class="control-group">
-      <label class="control-label" for="username">Username</label>
-      <div class="controls">
-        <input type="text" id="username"/>
+<div class="container" ng-controller="SignupCtrl">
+  <form class="form-horizontal">
+    <fieldset ng-repeat="fs in fieldsets">
+      <legend>{{fs.description}}</legend>
+      <div class="control-group" ng-repeat="field in fs.fields">
+        <label class="control-label" for="{{field.id}}">{{field.label}}</label>
+        <div class="controls">
+          <input type="{{field.type}}" id="{{field.id}}"/>
+        </div>
       </div>
-    </div>
-    <div class="control-group">
-      <label class="control-label" for="password">Password</label>
-      <div class="controls">
-        <input type="password" id="password"/>
-      </div>
-    </div>
-    <div class="control-group">
-      <label class="control-label" for="password2">Ripeti password</label>
-      <div class="controls">
-        <input type="password" id="password2"/>
-      </div>
-    </div>
-    <legend>Dati personali</legend>
-    <div class="control-group">
-      <label class="control-label" for="firstname">Nome</label>
-      <div class="controls">
-        <input type="text" id="firstname"/>
-      </div>
-    </div>
-    <div class="control-group">
-      <label class="control-label" for="lastname">Cognome</label>
-      <div class="controls">
-        <input type="text" id="lastname"/>
-      </div>
-    </div>
-    <div class="control-group">
-      <label class="control-label" for="email">Indirizzo email</label>
-      <div class="controls">
-        <input type="email" id="email"/>
-      </div>
-    </div>
-    <div class="control-group">
-      <label class="control-label" for="email2">Ripeti indirizzo email</label>
-      <div class="controls">
-        <input type="email" id="email2"/>
-      </div>
-    </div>
-<!--
-    <div class="control-group">
-      <label class="checkbox">
-        <input type="checkbox"> Inviami un'email per ogni nuovo problema reso disponibile sul sito.
-      </label>
-    </div>
--->
-    <div class="control-group">
-      <div class="controls">
-        <button type="submit" class="btn">Registrati</button>
-      </div>
-    </div>
-  </fieldset>
-</form>
+    </fieldset>
+  </form>
+</div>
