@@ -28,10 +28,10 @@ angular.module('pws.signup', [])
                 {"id": "password2", "type": "password", "label": "Ripeti password"},
             ]},
             {"description": "Dati personali", "fields": [
-                {"id": "firstname", "type": "text", "label": "Nome"},
-                {"id": "lastname", "type": "text", "label": "Cognome"},
-                {"id": "email", "type": "email", "label": "Indirizzo email"},
-                {"id": "email2", "type": "email", "label": "Ripeti indirizzo email"},
+                {"id": "firstname", "type": "text",  "label": "Nome"},
+                {"id": "lastname",  "type": "text",  "label": "Cognome"},
+                {"id": "email",     "type": "email", "label": "Indirizzo email"},
+                {"id": "email2",    "type": "email", "label": "Ripeti indirizzo email"},
             ]},
         ];
     }]);
