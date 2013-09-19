@@ -18,12 +18,9 @@
 'use strict';
 
 angular.module('pws.footer', [])
-    .directive('footer', ['$location', '$route', function($location, $route) {
+    .directive('footer', [function() {
         return {
             restrict: 'E',
-            scope: {},
             templateUrl: 'partials/footer.html',
-            replace: true,
-            transclude: true,
         };
     }]);
