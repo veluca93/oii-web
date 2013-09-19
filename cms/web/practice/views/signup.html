@@ -1,11 +1,11 @@
-<div class="container" ng-controller="SignupCtrl">
-  <form class="form-horizontal">
+<div class="container">
+  <form class="form-horizontal" ng-submit="submit()" ng-controller="SignupCtrl">
     <fieldset ng-repeat="fs in fieldsets">
       <legend>{{fs.description}}</legend>
       <div class="control-group" ng-repeat="field in fs.fields">
         <label class="control-label" for="{{field.id}}">{{field.label}}</label>
         <div class="controls">
-          <input type="{{field.type}}" id="{{field.id}}"/>
+          <input type="{{field.type}}" id="{{field.id}}" ng-model="field.model"/>
         </div>
       </div>
     </fieldset>
