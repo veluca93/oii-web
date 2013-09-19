@@ -1,18 +1,73 @@
 <div class="container">
-  <form class="form-horizontal" ng-submit="submit()" ng-controller="SignupCtrl">
-    <fieldset ng-repeat="fs in fieldsets">
-      <legend>{{fs.description}}</legend>
-      <div class="control-group" ng-repeat="field in fs.fields">
-        <label class="control-label" for="{{field.id}}">{{field.label}}</label>
-        <div class="controls">
-          <input type="{{field.type}}" id="{{field.id}}" ng-required="field.req" ng-model="field.model"/>
+  <div class="row" ng-controller="SignupCtrl">
+    <div class="span6">
+      <form novalidate class="form-horizontal" ng-submit="submit()" name="user">
+        <fieldset>
+          <legend>Dati di accesso al sito</legend>
+          <div class="control-group">
+            <label class="control-label" for="username">Username</label>
+            <div class="controls">
+              <input type="text" id="username" ng-model="user.username"/>
+              <span ng-show="checkExistence('username', user.username)">[già preso]</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="password">Password</label>
+            <div class="controls">
+              <input type="password" id="password" ng-model="user.password"/>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="password2">Ripeti password</label>
+            <div class="controls">
+              <input type="password" id="password2" ng-model="user.password2"/>
+              <span ng-show="user.password2 != user.password">[non combacia]</span>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Dati personali</legend>
+          <div class="control-group">
+            <label class="control-label" for="firstname">Nome</label>
+            <div class="controls">
+              <input type="text" id="firstname" ng-model="user.firstname" popover-trigger="focus" popover-placement="right" popover="prova..."/>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="lastname">Cognome</label>
+            <div class="controls">
+              <input type="text" id="lastname" ng-model="user.lastname"/>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="email">Indirizzo email</label>
+            <div class="controls">
+              <input type="text" id="email" ng-model="user.email"/>
+              <span ng-show="checkExistence('email', user.email)">[già preso]</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="email2">Ripeti indirizzo email</label>
+            <div class="controls">
+              <input type="text" id="email2" ng-model="user.email2"/>
+              <span ng-show="user.email2 != user.email">[non combacia]</span>
+            </div>
+          </div>
+        </fieldset>
+        <div class="control-group">
+          <div class="controls">
+            <button type="submit" class="btn">Registrati</button>
+          </div>
         </div>
-      </div>
-    </fieldset>
-    <div class="control-group">
-      <div class="controls">
-        <button type="submit" class="btn">Registrati</button>
+      </form>
+    </div>
+    <div class="span6">
+      <legend>Anteprima dell'utente</legend>
+      <div class="pagination-centered">
+        <img src="http://placekitten.com/200/200"/>
+        <h2>{{{true: user.username, false: '(username)'}[user.username.length > 0]}}</h2>
+        {{{true: user.firstname, false: '(nome)'}[user.firstname.length > 0] | capitalize}} {{{true: user.lastname, false: '(cognome)'}[user.lastname.length > 0] | capitalize}}
       </div>
     </div>
-  </form>
+  </div>
 </div>
