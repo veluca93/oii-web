@@ -26,9 +26,11 @@ from datetime import datetime
 from cms import config
 from cms.log import initialize_logging
 from cms.io.WebGeventLibrary import WebService
+from cms.db.filecacher import FileCacher
 
 from werkzeug.wrappers import Response
-from werkzeug.wsgi import SharedDataMiddleware, wrap_file, responder
+from werkzeug.wsgi import SharedDataMiddleware, DispatcherMiddleware, \
+    wrap_file, responder
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound
 
@@ -57,6 +59,48 @@ class FileHandler(object):
             datetime.utcfromtimestamp(os.path.getmtime(path))\
                     .replace(microsecond=0)
         response.response = wrap_file(environ, io.open(path, 'rb'))
+        response.direct_passthrough = True
+        return response
+
+
+class DBFileHandler(object):
+    def __init__(self, file_cacher, mimetype):
+        self.file_cacher = file_cacher
+        self.mimetype = mimetype
+        self.router = Map([
+            Rule("/<digest>", methods=["GET"], endpoint="get"),
+        ], encoding_errors="strict")
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        route = self.router.bind_to_environ(environ)
+
+        try:
+            endpoint, args = route.match()
+        except HTTPException as exc:
+            return exc(environ, start_response)
+
+        try:
+            if endpoint == "get":
+                return self.get(args["digest"], environ)
+        except HTTPException as exc:
+            return exc
+
+        return NotFound()
+
+    def get(self, digest, environ):
+        try:
+            fobj = self.file_cacher.get_file(digest)
+        except KeyError:
+            raise NotFound()
+
+        response = Response()
+        response.status_code = 200
+        response.mimetype = self.mimetype
+        response.response = wrap_file(environ, fobj)
         response.direct_passthrough = True
         return response
 
@@ -92,6 +136,7 @@ class PracticeWebServer(WebService):
     def __init__(self, shard, contest):
         initialize_logging("PracticeWebServer", shard)
         self.contest = contest
+
         WebService.__init__(
             self,
             config.contest_listen_port[shard],
@@ -99,7 +144,17 @@ class PracticeWebServer(WebService):
             {},
             shard=shard,
             listen_address=config.contest_listen_address[shard])
+
+        self.file_cacher = FileCacher(self)
+
         self.wsgi_app = SharedDataMiddleware(RoutingHandler(), {
             '/':        ("cms.web", "practice"),
             '/assets':  ("cms.web", "assets")
+        })
+
+        self.wsgi_app = DispatcherMiddleware(self.wsgi_app, {
+            '/statement':   DBFileHandler(self.file_cacher, "application/pdf"),
+            '/source':      DBFileHandler(self.file_cacher, "text/plain"),
+            '/attachment':  DBFileHandler(self.file_cacher,
+                                          "application/octect-stream")
         })
