@@ -23,15 +23,15 @@ angular.module('pws.signup', [])
     .controller('SignupCtrl', ['$scope', function ($scope) {
         $scope.fieldsets = [
             {description: "Dati di accesso al sito", fields: [
-                {id: "username",  type: "text",     label: "Username"},
-                {id: "password",  type: "password", label: "Password"},
-                {id: "password2", type: "password", label: "Ripeti password"},
+                {req: true, id: "username",  type: "text",     label: "Username"},
+                {req: true, id: "password",  type: "password", label: "Password"},
+                {req: true, id: "password2", type: "password", label: "Ripeti password"},
             ]},
             {description: "Dati personali", fields: [
-                {id: "firstname", type: "text",  label: "Nome"},
-                {id: "lastname",  type: "text",  label: "Cognome"},
-                {id: "email",     type: "email", label: "Indirizzo email"},
-                {id: "email2",    type: "email", label: "Ripeti indirizzo email"},
+                {req: true, id: "firstname", type: "text",  label: "Nome"},
+                {req: true, id: "lastname",  type: "text",  label: "Cognome"},
+                {req: true, id: "email",     type: "email", label: "Indirizzo email"},
+                {req: true, id: "email2",    type: "email", label: "Ripeti indirizzo email"},
             ]},
         ];
         $scope.submit = function() {
