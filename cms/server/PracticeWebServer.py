@@ -20,6 +20,7 @@
 import os
 import io
 import logging
+import mimetypes
 import pkg_resources
 from datetime import datetime
 
@@ -39,9 +40,8 @@ logger = logging.getLogger(__name__)
 
 
 class FileHandler(object):
-    def __init__(self, filename, mimetype):
+    def __init__(self, filename):
         self.filename = filename
-        self.mimetype = mimetype
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -54,7 +54,10 @@ class FileHandler(object):
 
         response = Response()
         response.status_code = 200
-        response.mimetype = self.mimetype
+        response.mimetype = "application/octect-stream"
+        mimetype = mimetypes.guess_type(self.filename)[0]
+        if mimetype is not None:
+            response.mimetype = mimetype
         response.last_modified = \
             datetime.utcfromtimestamp(os.path.getmtime(path))\
                     .replace(microsecond=0)
@@ -64,9 +67,8 @@ class FileHandler(object):
 
 
 class DBFileHandler(object):
-    def __init__(self, file_cacher, mimetype):
+    def __init__(self, file_cacher):
         self.file_cacher = file_cacher
-        self.mimetype = mimetype
         self.router = Map([
             Rule("/<digest>", methods=["GET"], endpoint="get"),
             Rule("/<digest>/<filename>", methods=["GET"], endpoint="get")
@@ -100,11 +102,16 @@ class DBFileHandler(object):
 
         response = Response()
         response.status_code = 200
-        response.mimetype = self.mimetype
+
+        response.mimetype = "application/octect-stream"
         if "filename" in args:
             response.headers.add_header(
                 b'Content-Disposition', b'attachment',
                 filename=args["filename"])
+            mimetype = mimetypes.guess_type(args['filename'])[0]
+            if mimetype is not None:
+                response.mimetype = mimetype
+
         response.response = wrap_file(environ, fobj)
         response.direct_passthrough = True
         return response
@@ -116,7 +123,7 @@ class RoutingHandler(object):
             Rule("/", methods=["GET"], endpoint="root"),
         ], encoding_errors="strict")
 
-        self.root_handler = FileHandler("index.html", "text/html")
+        self.root_handler = FileHandler("index.html")
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -158,8 +165,5 @@ class PracticeWebServer(WebService):
         })
 
         self.wsgi_app = DispatcherMiddleware(self.wsgi_app, {
-            '/statement':   DBFileHandler(self.file_cacher, "application/pdf"),
-            '/source':      DBFileHandler(self.file_cacher, "text/plain"),
-            '/attachment':  DBFileHandler(self.file_cacher,
-                                          "application/octect-stream")
+            '/files':   DBFileHandler(self.file_cacher),
         })
