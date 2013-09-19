@@ -69,6 +69,7 @@ class DBFileHandler(object):
         self.mimetype = mimetype
         self.router = Map([
             Rule("/<digest>", methods=["GET"], endpoint="get"),
+            Rule("/<digest>/<filename>", methods=["GET"], endpoint="get")
         ], encoding_errors="strict")
 
     def __call__(self, environ, start_response):
@@ -85,21 +86,25 @@ class DBFileHandler(object):
 
         try:
             if endpoint == "get":
-                return self.get(args["digest"], environ)
+                return self.get(args, environ)
         except HTTPException as exc:
             return exc
 
         return NotFound()
 
-    def get(self, digest, environ):
+    def get(self, args, environ):
         try:
-            fobj = self.file_cacher.get_file(digest)
+            fobj = self.file_cacher.get_file(args["digest"])
         except KeyError:
             raise NotFound()
 
         response = Response()
         response.status_code = 200
         response.mimetype = self.mimetype
+        if "filename" in args:
+            response.headers.add_header(
+                b'Content-Disposition', b'attachment',
+                filename=args["filename"])
         response.response = wrap_file(environ, fobj)
         response.direct_passthrough = True
         return response
