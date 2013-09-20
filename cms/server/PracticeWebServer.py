@@ -19,6 +19,8 @@
 
 import os
 import io
+import re
+import json
 import logging
 import mimetypes
 import pkg_resources
@@ -28,15 +30,73 @@ from cms import config
 from cms.log import initialize_logging
 from cms.io.WebGeventLibrary import WebService
 from cms.db.filecacher import FileCacher
+from cms.db import Session, User, Contest
 
-from werkzeug.wrappers import Response
+from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, DispatcherMiddleware, \
     wrap_file, responder
 from werkzeug.routing import Map, Rule
-from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.exceptions import HTTPException, NotFound, BadRequest
 
 
 logger = logging.getLogger(__name__)
+
+
+class CheckHandler(object):
+    def __init__(self, session, contest):
+        self.session = session
+        self.contest = contest
+        self.mailreg = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        request = Request(environ)
+
+        if request.mimetype != "application/json":
+            return BadRequest()
+        try:
+            req = json.load(request.stream)
+        except ValueError:
+            return BadRequest()
+
+        resp = dict()
+        if req["type"] == "username":
+            if len(req["value"]) < 4:
+                resp["success"] = 0
+                resp["error"] = "Username troppo corto"
+            else:
+                user = self.session.query(User)\
+                    .filter(User.contest == self.contest)\
+                    .filter(User.username == req["value"]).first()
+                if user is None:
+                    resp["success"] = 1
+                else:
+                    resp["success"] = 0
+                    resp["error"] = "Username gia' esistente"
+
+        elif req["type"] == "email":
+            if not self.mailreg.match(req["value"]):
+                resp["success"] = 0
+                resp["error"] = "Indirizzo email non valido"
+            else:
+                user = self.session.query(User)\
+                    .filter(User.contest == self.contest)\
+                    .filter(User.email == req["value"]).first()
+                if user is None:
+                    resp["success"] = 1
+                else:
+                    resp["success"] = 0
+                    resp["error"] = "Email gia' esistente"
+
+        response = Response()
+        response.mimetype = "application/json"
+        response.status_code = 200
+        response.data = json.dumps(resp)
+
+        return response
 
 
 class FileHandler(object):
@@ -147,7 +207,6 @@ class PracticeWebServer(WebService):
     """
     def __init__(self, shard, contest):
         initialize_logging("PracticeWebServer", shard)
-        self.contest = contest
 
         WebService.__init__(
             self,
@@ -158,6 +217,8 @@ class PracticeWebServer(WebService):
             listen_address=config.contest_listen_address[shard])
 
         self.file_cacher = FileCacher(self)
+        self.session = Session()
+        self.contest = Contest.get_from_id(contest, self.session)
 
         self.wsgi_app = SharedDataMiddleware(RoutingHandler(), {
             '/':        ("cms.web", "practice"),
@@ -166,4 +227,5 @@ class PracticeWebServer(WebService):
 
         self.wsgi_app = DispatcherMiddleware(self.wsgi_app, {
             '/files':   DBFileHandler(self.file_cacher),
+            '/check':   CheckHandler(self.session, self.contest)
         })
