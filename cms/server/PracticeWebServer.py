@@ -41,12 +41,13 @@ from werkzeug.exceptions import HTTPException, NotFound, BadRequest
 
 logger = logging.getLogger(__name__)
 
+EMAIL_REG = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
 
 class CheckHandler(object):
     def __init__(self, session, contest):
         self.session = session
         self.contest = contest
-        self.mailreg = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -78,7 +79,7 @@ class CheckHandler(object):
                     resp["error"] = "Username gia' esistente"
 
         elif req["type"] == "email":
-            if not self.mailreg.match(req["value"]):
+            if not EMAIL_REG.match(req["value"]):
                 resp["success"] = 0
                 resp["error"] = "Indirizzo email non valido"
             else:
