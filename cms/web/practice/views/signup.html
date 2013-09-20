@@ -4,11 +4,11 @@
       <form class="form-horizontal" ng-submit="submit()" name="signupform">
         <fieldset>
           <legend>Dati di accesso al sito</legend>
-          <div class="control-group" ng-class="{error: nicknameTaken}">
+          <div class="control-group" ng-class="{error: isBad['username']}">
             <label class="control-label" for="username">Username</label>
             <div class="controls">
               <input type="text" id="username" ng-model="user.username" ng-change="checkNickname()"/>
-              <span ng-show="nicknameTaken">[già preso]</span>
+              <span ng-show="isBad['username']">{{errorMsg['username']}}</span>
             </div>
           </div>
           <div class="control-group">
@@ -21,7 +21,7 @@
             <label class="control-label" for="password2">Ripeti password</label>
             <div class="controls">
               <input type="password" id="password2" ng-model="user.password2" name="password2" ng-change="matchPassword()"/>
-              <span ng-show="signupform.password2.$dirty && passwordDiffers">[non combacia]</span>
+              <span ng-show="signupform.password2.$dirty && passwordDiffers">Non combacia</span>
             </div>
           </div>
         </fieldset>
@@ -39,18 +39,18 @@
               <input type="text" id="lastname" ng-model="user.lastname"/>
             </div>
           </div>
-          <div class="control-group" ng-class="{error: emailTaken}">
+          <div class="control-group" ng-class="{error: isBad['email']}">
             <label class="control-label" for="email">Indirizzo email</label>
             <div class="controls">
               <input type="text" id="email" ng-model="user.email" ng-change="checkEmail(); matchEmail()"/>
-              <span ng-show="emailTaken">[già preso]</span>
+              <span ng-show="isBad['email']">{{errorMsg['email']}}</span>
             </div>
           </div>
           <div class="control-group" ng-class="{error: signupform.email2.$dirty && emailDiffers}">
             <label class="control-label" for="email2">Ripeti indirizzo email</label>
             <div class="controls">
               <input type="text" id="email2" ng-model="user.email2" name="email2" ng-change="matchEmail()"/>
-              <span ng-show="signupform.email2.$dirty && emailDiffers">[non combacia]</span>
+              <span ng-show="signupform.email2.$dirty && emailDiffers">Non combacia</span>
             </div>
           </div>
         </fieldset>
