@@ -22,6 +22,7 @@
 angular.module('pws.signup', [])
   .controller('SignupCtrl', ['$scope', '$http', function ($scope, $http) {
     $scope.submit = function() {
+      //~ alert(JSON.stringify($scope.user)); return;
       $http.post("register", $scope.user)
         .success(function(data, status, headers, config) {
           console.log("dati inviati correttamente");
@@ -30,13 +31,26 @@ angular.module('pws.signup', [])
         });
     };
     $scope.checkExistence = function(type, value) {
+      //~ return value == "asd";
       $http.post("check", {type: type, value: value})
         .success(function(data, status, headers, config) {
           console.log(data);
-          return data.exists == "1";
+          return data.success;
         }).error(function(data, status, headers, config) {
           console.log("dati non ricevuti");
         });
       return false;
-    }
+    };
+    $scope.checkNickname = function() {
+      $scope.nicknameTaken = $scope.checkExistence('username', $scope.user.username);
+    };
+    $scope.checkEmail = function() {
+      $scope.emailTaken = $scope.checkExistence('email', $scope.user.email);
+    };
+    $scope.matchPassword = function() {
+      $scope.passwordDiffers = ($scope.user.password !== $scope.user.password2);
+    };
+    $scope.matchEmail = function() {
+      $scope.emailDiffers = ($scope.user.email !== $scope.user.email2);
+    };
   }]);

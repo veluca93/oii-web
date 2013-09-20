@@ -19,19 +19,20 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.overview', 'pws.signup', 'pws.footer'])
+angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.overview', 'pws.tasks', 'pws.signup', 'pws.signin', 'pws.footer'])
   .config(['$locationProvider', '$routeProvider', function($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(false);
     $locationProvider.hashPrefix('!');
 
     $routeProvider.when('/overview', {templateUrl: 'views/overview.html'});
+    $routeProvider.when('/tasks', {templateUrl: 'views/tasks.html'});
     $routeProvider.when('/signup', {templateUrl: 'views/signup.html'});
     $routeProvider.otherwise({redirectTo: '/overview'});
   }])
   .filter('capitalize', function() {
     return function(input) {
       var arr = input.split(' '), ret = "";
-      for (var i=0; i < arr.length; i++) {
+      for (var i=0; i<arr.length; i++) {
         if (i > 0) ret += " ";
         ret += arr[i].charAt(0).toUpperCase() + arr[i].slice(1).toLowerCase();
       }
