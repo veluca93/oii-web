@@ -21,31 +21,33 @@
 
 angular.module('pws.signup', [])
   .controller('SignupCtrl', ['$scope', '$http', function ($scope, $http) {
+    $scope.isBad = {};
+    $scope.errorMsg = {};
     $scope.submit = function() {
       //~ alert(JSON.stringify($scope.user)); return;
-      $http.post("register", $scope.user)
+      $http.post('register', $scope.user)
         .success(function(data, status, headers, config) {
-          console.log("dati inviati correttamente");
+          console.log('dati inviati correttamente');
         }).error(function(data, status, headers, config) {
-          console.log("dati non inviati");
+          console.log('dati non inviati');
         });
     };
-    $scope.checkExistence = function(type, value) {
+    $scope.askServer = function(type, value) {
       //~ return value == "asd";
-      $http.post("check", {type: type, value: value})
+      $http.post('check', {'type': type, 'value': value})
         .success(function(data, status, headers, config) {
           console.log(data);
-          return data.success;
+          $scope.isBad[type] = (data.success == 0);
+          $scope.errorMsg[type] = data.error;
         }).error(function(data, status, headers, config) {
-          console.log("dati non ricevuti");
+          console.log('dati non ricevuti');
         });
-      return false;
     };
     $scope.checkNickname = function() {
-      $scope.nicknameTaken = $scope.checkExistence('username', $scope.user.username);
+      $scope.askServer('username', $scope.user.username);
     };
     $scope.checkEmail = function() {
-      $scope.emailTaken = $scope.checkExistence('email', $scope.user.email);
+      $scope.askServer('email', $scope.user.email);
     };
     $scope.matchPassword = function() {
       $scope.passwordDiffers = ($scope.user.password !== $scope.user.password2);
