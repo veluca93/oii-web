@@ -30,7 +30,7 @@ from cms import config
 from cms.log import initialize_logging
 from cms.io.WebGeventLibrary import WebService
 from cms.db.filecacher import FileCacher
-from cms.db import Session, User, Contest
+from cms.db import SessionGen, User, Contest
 
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, DispatcherMiddleware, \
@@ -42,11 +42,11 @@ from werkzeug.exceptions import HTTPException, NotFound, BadRequest
 logger = logging.getLogger(__name__)
 
 EMAIL_REG = re.compile(r"[^@]+@[^@]+\.[^@]+")
+USERNAME_REG = re.compile(r"^[A-Za-z0-9_\.]+$")
 
 
 class CheckHandler(object):
-    def __init__(self, session, contest):
-        self.session = session
+    def __init__(self, contest):
         self.contest = contest
 
     def __call__(self, environ, start_response):
@@ -60,37 +60,46 @@ class CheckHandler(object):
             return BadRequest()
         try:
             req = json.load(request.stream)
-        except ValueError:
+            rtype = req["type"]
+            rvalue = req["value"]
+        except (ValueError, KeyError):
             return BadRequest()
 
         resp = dict()
-        if req["type"] == "username":
-            if len(req["value"]) < 4:
+        if rtype == "username":
+            if len(rvalue) < 4:
                 resp["success"] = 0
                 resp["error"] = "Username troppo corto"
+            elif not USERNAME_REG.match(rvalue):
+                resp["success"] = 0
+                resp["error"] = "Caratteri non validi nell'username"
             else:
-                user = self.session.query(User)\
-                    .filter(User.contest == self.contest)\
-                    .filter(User.username == req["value"]).first()
-                if user is None:
-                    resp["success"] = 1
-                else:
-                    resp["success"] = 0
-                    resp["error"] = "Username gia' esistente"
+                with SessionGen() as session:
+                    contest = Contest.get_from_id(self.contest, session)
+                    user = session.query(User)\
+                        .filter(User.contest == contest)\
+                        .filter(User.username == rvalue).first()
+                    if user is None:
+                        resp["success"] = 1
+                    else:
+                        resp["success"] = 0
+                        resp["error"] = "Username gia' esistente"
 
-        elif req["type"] == "email":
-            if not EMAIL_REG.match(req["value"]):
+        elif rtype == "email":
+            if not EMAIL_REG.match(rvalue):
                 resp["success"] = 0
                 resp["error"] = "Indirizzo email non valido"
             else:
-                user = self.session.query(User)\
-                    .filter(User.contest == self.contest)\
-                    .filter(User.email == req["value"]).first()
-                if user is None:
-                    resp["success"] = 1
-                else:
-                    resp["success"] = 0
-                    resp["error"] = "Email gia' esistente"
+                with SessionGen() as session:
+                    contest = Contest.get_from_id(self.contest, session)
+                    user = session.query(User)\
+                        .filter(User.contest == contest)\
+                        .filter(User.email == rvalue).first()
+                    if user is None:
+                        resp["success"] = 1
+                    else:
+                        resp["success"] = 0
+                        resp["error"] = "Email gia' esistente"
 
         response = Response()
         response.mimetype = "application/json"
@@ -218,8 +227,7 @@ class PracticeWebServer(WebService):
             listen_address=config.contest_listen_address[shard])
 
         self.file_cacher = FileCacher(self)
-        self.session = Session()
-        self.contest = Contest.get_from_id(contest, self.session)
+        self.contest = contest
 
         self.wsgi_app = SharedDataMiddleware(RoutingHandler(), {
             '/':        ("cms.web", "practice"),
@@ -228,5 +236,5 @@ class PracticeWebServer(WebService):
 
         self.wsgi_app = DispatcherMiddleware(self.wsgi_app, {
             '/files':   DBFileHandler(self.file_cacher),
-            '/check':   CheckHandler(self.session, self.contest)
+            '/check':   CheckHandler(self.contest)
         })
