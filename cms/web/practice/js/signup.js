@@ -21,10 +21,29 @@
 
 angular.module('pws.signup', [])
   .controller('SignupCtrl', ['$scope', '$http', function ($scope, $http) {
-    $scope.isBad = {};
-    $scope.errorMsg = {};
+    $scope.isBad = {'username': true, 'email': true, 'password': true, 'password2': true, 'email2': true};
+    $scope.user = {'username': '', 'email': '', 'email2': '', 'password': '', 'password2': ''};
+    $scope.errorMsg = {'password': 'Password troppo corta', 'password2': 'Non combacia', 'email2': 'Non combacia'};
     $scope.submit = function() {
-      //~ alert(JSON.stringify($scope.user)); return;
+      $scope.checkUsername();
+      $scope.checkEmail();
+      $scope.checkPassword();
+      if ($scope.isBad['username']) {
+        $scope.signupform.username.$dirty = true;
+        $("#username").focus(); return;
+      } else if ($scope.isBad['password']) {
+        $scope.signupform.password.$dirty = true;
+        $("#password").focus(); return;
+      } else if ($scope.isBad['password2']) {
+        $scope.signupform.password2.$dirty = true;
+        $("#password2").focus(); return;
+      } else if ($scope.isBad['email']) {
+        $scope.signupform.email.$dirty = true;
+        $("#email").focus(); return;
+      } else if ($scope.isBad['email2']) {
+        $scope.signupform.email2.$dirty = true;
+        $("#email2").focus(); return;
+      }
       $http.post('register', $scope.user)
         .success(function(data, status, headers, config) {
           console.log('dati inviati correttamente');
@@ -33,7 +52,6 @@ angular.module('pws.signup', [])
         });
     };
     $scope.askServer = function(type, value) {
-      //~ return value == "asd";
       $http.post('check', {'type': type, 'value': value})
         .success(function(data, status, headers, config) {
           console.log(data);
@@ -43,16 +61,19 @@ angular.module('pws.signup', [])
           console.log('dati non ricevuti');
         });
     };
-    $scope.checkNickname = function() {
+    $scope.checkUsername = function() {
       $scope.askServer('username', $scope.user.username);
     };
     $scope.checkEmail = function() {
       $scope.askServer('email', $scope.user.email);
     };
+    $scope.checkPassword = function() {
+      $scope.isBad['password'] = ($scope.user.password.length < 5);
+    };
     $scope.matchPassword = function() {
-      $scope.passwordDiffers = ($scope.user.password !== $scope.user.password2);
+      $scope.isBad['password2'] = ($scope.user.password !== $scope.user.password2);
     };
     $scope.matchEmail = function() {
-      $scope.emailDiffers = ($scope.user.email !== $scope.user.email2);
+      $scope.isBad['email2'] = ($scope.user.email !== $scope.user.email2);
     };
   }]);
