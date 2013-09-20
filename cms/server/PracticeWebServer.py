@@ -176,6 +176,52 @@ class RegisterHandler(object):
         return response
 
 
+class LoginHandler(object):
+    def __init__(self, contest):
+        self.contest = contest
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        request = Request(environ)
+
+        if request.mimetype != "application/json":
+            return BadRequest()
+        try:
+            req = json.load(request.stream)
+            username = req["username"]
+            password = req["password"]
+        except (ValueError, KeyError):
+            return BadRequest()
+
+        sha = hashlib.sha256()
+        sha.update(password)
+        sha.update(config.secret_key)
+        token = sha.hexdigest()
+
+        resp = dict()
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            user = session.query(User)\
+                .filter(User.contest == contest)\
+                .filter(User.username == username)\
+                .filter(User.password == token).first()
+            if user is None:
+                resp["success"] = 0
+            else:
+                resp["success"] = 1
+                resp["token"] = token
+
+        response = Response()
+        response.mimetype = "application/json"
+        response.status_code = 200
+        response.data = json.dumps(resp)
+
+        return response
+
+
 class FileHandler(object):
     def __init__(self, filename):
         self.filename = filename
@@ -304,5 +350,6 @@ class PracticeWebServer(WebService):
         self.wsgi_app = DispatcherMiddleware(self.wsgi_app, {
             '/files':       DBFileHandler(self.file_cacher),
             '/check':       CheckHandler(self.contest),
-            '/register':    RegisterHandler(self.contest)
+            '/register':    RegisterHandler(self.contest),
+            '/login':       LoginHandler(self.contest)
         })
