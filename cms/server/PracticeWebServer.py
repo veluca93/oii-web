@@ -33,7 +33,7 @@ from cms import config
 from cms.log import initialize_logging
 from cms.io.WebGeventLibrary import WebService
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest
+from cms.db import SessionGen, User, Contest, Statement
 
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, DispatcherMiddleware, \
@@ -222,6 +222,50 @@ class LoginHandler(object):
         return response
 
 
+class TasksHandler(object):
+    def __init__(self, contest):
+        self.contest = contest
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        resp = dict()
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            tasks = []
+            for t in contest.tasks:
+                task = {}
+                task["name"] = t.name
+                task["title"] = t.title
+                statements = json.loads(t.primary_statements)
+                stm = dict()
+                for l in statements:
+                    s = session.query(Statement)\
+                        .filter(Statement.task_id == t.id)\
+                        .filter(Statement.language == l).first()
+                    stm[l] = s.digest
+                task["statements"] = stm
+                for i in ["time_limit", "memory_limit", "task_type",
+                          "task_type_parameters", "score_type_parameters",
+                          "score_type"]:
+                    task[i] = getattr(t.active_dataset, i)
+                att = dict()
+                for (name, obj) in t.attachments.iteritems():
+                    att[name] = obj.digest
+                task["attachments"] = att
+                tasks.append(task)
+        resp["tasks"] = tasks
+
+        response = Response()
+        response.mimetype = "application/json"
+        response.status_code = 200
+        response.data = json.dumps(resp)
+
+        return response
+
+
 class FileHandler(object):
     def __init__(self, filename):
         self.filename = filename
@@ -351,5 +395,6 @@ class PracticeWebServer(WebService):
             '/files':       DBFileHandler(self.file_cacher),
             '/check':       CheckHandler(self.contest),
             '/register':    RegisterHandler(self.contest),
-            '/login':       LoginHandler(self.contest)
+            '/login':       LoginHandler(self.contest),
+            '/tasks':       TasksHandler(self.contest)
         })
