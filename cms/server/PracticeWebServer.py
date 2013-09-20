@@ -22,9 +22,12 @@ import io
 import re
 import json
 import logging
+import hashlib
 import mimetypes
 import pkg_resources
 from datetime import datetime
+
+from sqlalchemy.exc import IntegrityError
 
 from cms import config
 from cms.io import WebService
@@ -99,6 +102,70 @@ class CheckHandler(object):
                     else:
                         resp["success"] = 0
                         resp["error"] = "Email gia' esistente"
+
+        response = Response()
+        response.mimetype = "application/json"
+        response.status_code = 200
+        response.data = json.dumps(resp)
+
+        return response
+
+
+class RegisterHandler(object):
+    def __init__(self, contest):
+        self.contest = contest
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        request = Request(environ)
+
+        if request.mimetype != "application/json":
+            return BadRequest()
+        try:
+            req = json.load(request.stream)
+            username = req["username"]
+            password = req["password"]
+            email = req["email"]
+            firstname = req["firstname"]
+            lastname = req["lastname"]
+        except (ValueError, KeyError):
+            return BadRequest()
+
+        sha = hashlib.sha256()
+        sha.update(password)
+        sha.update(config.secret_key)
+        token = sha.hexdigest()
+
+        resp = dict()
+        if len(username) < 4 or not USERNAME_REG.match(username):
+            resp["success"] = 0
+            resp["error"] = "USERNAME_INVALID"
+        elif not EMAIL_REG.match(email):
+            resp["success"] = 0
+            resp["error"] = "EMAIL_INVALID"
+        elif len(password) < 4:
+            resp["success"] = 0
+            resp["error"] = "PASSWORD_INVALID"
+        else:
+            resp["success"] = 1
+            with SessionGen() as session:
+                user = User(
+                    first_name=firstname,
+                    last_name=lastname,
+                    username=username,
+                    password=token,
+                    email=email
+                )
+                user.contest = Contest.get_from_id(self.contest, session)
+                try:
+                    session.add(user)
+                    session.commit()
+                except IntegrityError:
+                    resp["success"] = 0
+                    resp["error"] = "USER_EXISTS"
 
         response = Response()
         response.mimetype = "application/json"
@@ -234,6 +301,7 @@ class PracticeWebServer(WebService):
         })
 
         self.wsgi_app = DispatcherMiddleware(self.wsgi_app, {
-            '/files':   DBFileHandler(self.file_cacher),
-            '/check':   CheckHandler(self.contest)
+            '/files':       DBFileHandler(self.file_cacher),
+            '/check':       CheckHandler(self.contest),
+            '/register':    RegisterHandler(self.contest)
         })
