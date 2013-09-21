@@ -19,4 +19,13 @@
 
 /* Tasks page */
 
-angular.module('pws.tasks', []);
+angular.module('pws.tasks', [])
+  .controller('TasksController', ['$scope', '$http', function($scope, $http) {
+    $http.post('tasks', {})
+      .success(function(data, status, headers, config) {
+        console.log('dati ricevuti');
+        $scope.tasks = data.tasks;
+      }).error(function(data, status, headers, config) {
+        console.log('dati non ricevuti');
+      });
+  }]);
