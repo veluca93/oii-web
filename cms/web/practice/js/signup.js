@@ -53,7 +53,9 @@ angular.module('pws.signup', [])
             'in questa pagina. Buon allenamento.');
           $location.path("tasks");
         }).error(function(data, status, headers, config) {
-          console.log('dati non inviati');
+          angular.element($("#alertBox")).scope().addAlert('danger', 'Errore interno ' +
+            'in fase di registrazione: assicurati che la tua connessione a internet sia ' +
+            'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.');
         });
     };
     $scope.askServer = function(type, value) {

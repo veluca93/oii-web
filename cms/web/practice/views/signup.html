@@ -64,8 +64,8 @@
     </div>
     <div class="col-lg-6">
       <legend>Anteprima dell'utente</legend>
-      <div style="text-align: center">
-        <img src="http://placekitten.com/200/200"/>
+      <div class="well well-lg col-lg-offset-2 col-lg-8" style="text-align: center">
+        <img src="http://placekitten.com/200/200" class="img-thumbnail"/>
         <h2>{{{true: user.username, false: '(username)'}[user.username.length > 0]}}</h2>
         {{{true: user.firstname, false: '(nome)'}[user.firstname.length > 0] | capitalize}} {{{true: user.lastname, false: '(cognome)'}[user.lastname.length > 0] | capitalize}}
       </div>

@@ -73,8 +73,9 @@ def do_setup():
         ],
         "cms.web": [
             os.path.join("assets", "css", "*.*"),
-            os.path.join("assets", "img", "*.*"),
+            os.path.join("assets", "ico", "*.*"),
             os.path.join("assets", "js", "*.*"),
+            os.path.join("assets", "fonts", "*.*"),
             os.path.join("practice", "*.*"),
             os.path.join("practice", "css", "*.*"),
             os.path.join("practice", "img", "*.*"),
