@@ -1,70 +1,70 @@
-<div class="container">
+<div class="container" style="padding-top:20px">
   <div class="row" ng-controller="SignupCtrl">
-    <div class="span6">
-      <form class="form-horizontal" ng-submit="submit()" name="signupform">
+    <div class="col-lg-6">
+      <form class="form-horizontal" role="form" ng-submit="submit()" name="signupform">
         <fieldset>
           <legend>Dati di accesso al sito</legend>
-          <div class="control-group" ng-class="{error: signupform.username.$dirty && isBad['username']}">
-            <label class="control-label" for="username">Username</label>
-            <div class="controls">
-              <input autocomplete="off" type="text" id="username" name="username" ng-model="user.username" ng-change="checkUsername()"/>
-              <span ng-show="signupform.username.$dirty && isBad['username']">{{errorMsg['username']}}</span>
+          <div class="form-group" ng-class="{'has-error': signupform.username.$dirty && isBad['username']}">
+            <label class="col-lg-4 control-label" for="username">Username</label>
+            <div class="col-lg-6">
+              <input class="form-control" autocomplete="off" type="text" id="username" name="username" ng-model="user.username" ng-change="checkUsername()"/>
+              <span class="help-block" ng-show="signupform.username.$dirty && isBad['username']">{{errorMsg['username']}}</span>
             </div>
           </div>
-          <div class="control-group" ng-class="{error: signupform.password.$dirty && isBad['password']}">
-            <label class="control-label" for="password">Password</label>
-            <div class="controls">
-              <input autocomplete="off" type="password" id="password" name="password" ng-model="user.password" ng-change="checkPassword(); matchPassword()"/>
-              <span ng-show="signupform.password.$dirty && isBad['password']">{{errorMsg['password']}}</span>
+          <div class="form-group" ng-class="{'has-error': signupform.password.$dirty && isBad['password']}">
+            <label class="col-lg-4 control-label" for="password">Password</label>
+            <div class="col-lg-6">
+              <input class="form-control" autocomplete="off" type="password" id="password" name="password" ng-model="user.password" ng-change="checkPassword(); matchPassword()"/>
+              <span class="help-block" ng-show="signupform.password.$dirty && isBad['password']">{{errorMsg['password']}}</span>
             </div>
           </div>
-          <div class="control-group" ng-class="{error: signupform.password2.$dirty && isBad['password2']}">
-            <label class="control-label" for="password2">Ripeti password</label>
-            <div class="controls">
-              <input autocomplete="off" type="password" id="password2" name="password2" ng-model="user.password2" ng-change="matchPassword()"/>
-              <span ng-show="signupform.password2.$dirty && isBad['password2']">{{errorMsg['password2']}}</span>
+          <div class="form-group" ng-class="{'has-error': signupform.password2.$dirty && isBad['password2']}">
+            <label class="col-lg-4 control-label" for="password2">Ripeti password</label>
+            <div class="col-lg-6">
+              <input class="form-control" autocomplete="off" type="password" id="password2" name="password2" ng-model="user.password2" ng-change="matchPassword()"/>
+              <span class="help-block" ng-show="signupform.password2.$dirty && isBad['password2']">{{errorMsg['password2']}}</span>
             </div>
           </div>
         </fieldset>
         <fieldset>
           <legend>Dati personali</legend>
-          <div class="control-group">
-            <label class="control-label" for="firstname">Nome</label>
-            <div class="controls">
-              <input autocomplete="off" type="text" id="firstname" ng-model="user.firstname"/>
+          <div class="form-group">
+            <label class="col-lg-4 control-label" for="firstname">Nome</label>
+            <div class="col-lg-6">
+              <input class="form-control" autocomplete="off" type="text" id="firstname" ng-model="user.firstname"/>
             </div>
           </div>
-          <div class="control-group">
-            <label class="control-label" for="lastname">Cognome</label>
-            <div class="controls">
-              <input autocomplete="off" type="text" id="lastname" ng-model="user.lastname"/>
+          <div class="form-group">
+            <label class="col-lg-4 control-label" for="lastname">Cognome</label>
+            <div class="col-lg-6">
+              <input class="form-control" autocomplete="off" type="text" id="lastname" ng-model="user.lastname"/>
             </div>
           </div>
-          <div class="control-group" ng-class="{error: signupform.email.$dirty && isBad['email']}">
-            <label class="control-label" for="email">Indirizzo email</label>
-            <div class="controls">
-              <input autocomplete="off" type="text" id="email" name="email" ng-model="user.email" ng-change="checkEmail(); matchEmail()"/>
-              <span ng-show="signupform.email.$dirty && isBad['email']">{{errorMsg['email']}}</span>
+          <div class="form-group" ng-class="{'has-error': signupform.email.$dirty && isBad['email']}">
+            <label class="col-lg-4 control-label" for="email">Indirizzo email</label>
+            <div class="col-lg-6">
+              <input class="form-control" autocomplete="off" type="text" id="email" name="email" ng-model="user.email" ng-change="checkEmail(); matchEmail()"/>
+              <span class="help-block" ng-show="signupform.email.$dirty && isBad['email']">{{errorMsg['email']}}</span>
             </div>
           </div>
-          <div class="control-group" ng-class="{error: signupform.email2.$dirty && isBad['email2']}">
-            <label class="control-label" for="email2">Ripeti indirizzo email</label>
-            <div class="controls">
-              <input autocomplete="off" type="text" id="email2" name="email2" ng-model="user.email2" ng-change="matchEmail()"/>
-              <span ng-show="signupform.email2.$dirty && isBad['email2']">{{errorMsg['email2']}}</span>
+          <div class="form-group" ng-class="{'has-error': signupform.email2.$dirty && isBad['email2']}">
+            <label class="col-lg-4 control-label" for="email2">Ripeti indirizzo email</label>
+            <div class="col-lg-6">
+              <input class="form-control" autocomplete="off" type="text" id="email2" name="email2" ng-model="user.email2" ng-change="matchEmail()"/>
+              <span class="help-block" ng-show="signupform.email2.$dirty && isBad['email2']">{{errorMsg['email2']}}</span>
             </div>
           </div>
         </fieldset>
-        <div class="control-group">
-          <div class="controls">
-            <button type="submit" class="btn">Registrati</button>
+        <div class="form-group">
+          <div class="col-lg-offset-4 col-lg-8">
+            <button type="submit" class="btn btn-default">Registrati</button>
           </div>
         </div>
       </form>
     </div>
-    <div class="span6">
+    <div class="col-lg-6">
       <legend>Anteprima dell'utente</legend>
-      <div class="pagination-centered">
+      <div style="text-align: center">
         <img src="http://placekitten.com/200/200"/>
         <h2>{{{true: user.username, false: '(username)'}[user.username.length > 0]}}</h2>
         {{{true: user.firstname, false: '(nome)'}[user.firstname.length > 0] | capitalize}} {{{true: user.lastname, false: '(cognome)'}[user.lastname.length > 0] | capitalize}}
