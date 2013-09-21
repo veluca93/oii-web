@@ -32,13 +32,15 @@ from sqlalchemy.exc import IntegrityError
 from cms import config
 from cms.io import WebService
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest
+from cms.db import SessionGen, User, Contest, Submission
+from cmscommon.DateTime import make_timestamp
 
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, DispatcherMiddleware, \
     wrap_file, responder
 from werkzeug.routing import Map, Rule
-from werkzeug.exceptions import HTTPException, NotFound, BadRequest
+from werkzeug.exceptions import HTTPException, NotFound, BadRequest, \
+    Unauthorized
 
 
 logger = logging.getLogger(__name__)
@@ -236,6 +238,7 @@ class TasksHandler(object):
             tasks = []
             for t in contest.tasks:
                 task = {}
+                task["id"] = t.id
                 task["name"] = t.name
                 task["title"] = t.title
                 task["statements"] =\
@@ -251,6 +254,67 @@ class TasksHandler(object):
                 task["attachments"] = att
                 tasks.append(task)
         resp["tasks"] = tasks
+
+        response = Response()
+        response.mimetype = "application/json"
+        response.status_code = 200
+        response.data = json.dumps(resp)
+
+        return response
+
+
+class SubmissionsHandler(object):
+    def __init__(self, contest):
+        self.contest = contest
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        request = Request(environ)
+
+        if request.mimetype != "application/json":
+            return BadRequest()
+
+        if request.authorization is not None and \
+           request.authorization.type == "basic":
+            username = request.authorization.username
+            token = request.authorization.password
+        else:
+            return Unauthorized()
+
+        try:
+            req = json.load(request.stream)
+            print req
+            last = datetime.utcfromtimestamp(req["last"])
+        except (ValueError, KeyError):
+            return BadRequest()
+
+        resp = dict()
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            user = session.query(User)\
+                .filter(User.contest == contest)\
+                .filter(User.username == username)\
+                .filter(User.password == token).first()
+            if user is None:
+                return Unauthorized()
+            subs = session.query(Submission)\
+                .filter(Submission.user_id == user.id)\
+                .filter(Submission.timestamp > last).all()
+            submissions = []
+            for s in subs:
+                submission = dict()
+                submission["id"] = s.id
+                submission["task_id"] = s.task_id
+                submission["timestamp"] = make_timestamp(s.timestamp)
+                result = s.get_result()
+                for i in ["compilation_outcome", "evaluation_outcome",
+                          "score"]:
+                    submission[i] = getattr(result, i)
+                submissions.append(submission)
+        resp["submissions"] = submissions
 
         response = Response()
         response.mimetype = "application/json"
@@ -390,5 +454,6 @@ class PracticeWebServer(WebService):
             '/check':       CheckHandler(self.contest),
             '/register':    RegisterHandler(self.contest),
             '/login':       LoginHandler(self.contest),
-            '/tasks':       TasksHandler(self.contest)
+            '/tasks':       TasksHandler(self.contest),
+            '/submissions': SubmissionsHandler(self.contest)
         })
