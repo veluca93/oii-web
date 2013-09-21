@@ -32,7 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from cms import config
 from cms.io import WebService
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Statement
+from cms.db import SessionGen, User, Contest
 
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, DispatcherMiddleware, \
@@ -238,17 +238,12 @@ class TasksHandler(object):
                 task = {}
                 task["name"] = t.name
                 task["title"] = t.title
-                statements = json.loads(t.primary_statements)
-                stm = dict()
-                for l in statements:
-                    s = session.query(Statement)\
-                        .filter(Statement.task_id == t.id)\
-                        .filter(Statement.language == l).first()
-                    stm[l] = s.digest
-                task["statements"] = stm
+                task["statements"] =\
+                    dict([(l, s.digest) for l, s in t.statements.iteritems()])
+                task["submission_format"] =\
+                    [sfe.filename for sfe in t.submission_format]
                 for i in ["time_limit", "memory_limit", "task_type",
-                          "task_type_parameters", "score_type_parameters",
-                          "score_type"]:
+                          "score_type_parameters", "score_type"]:
                     task[i] = getattr(t.active_dataset, i)
                 att = dict()
                 for (name, obj) in t.attachments.iteritems():
