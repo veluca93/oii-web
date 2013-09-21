@@ -20,7 +20,7 @@
 /* Signup page */
 
 angular.module('pws.signup', [])
-  .controller('SignupCtrl', ['$scope', '$http', function ($scope, $http) {
+  .controller('SignupCtrl', ['$scope', '$http', '$location', function ($scope, $http, $location) {
     $scope.isBad = {'username': true, 'email': true, 'password': true, 'password2': true, 'email2': true};
     $scope.user = {'username': '', 'email': '', 'email2': '', 'password': '', 'password2': ''};
     $scope.errorMsg = {'password': 'Password troppo corta', 'password2': 'Non combacia', 'email2': 'Non combacia'};
@@ -46,7 +46,12 @@ angular.module('pws.signup', [])
       }
       $http.post('register', $scope.user)
         .success(function(data, status, headers, config) {
-          console.log('dati inviati correttamente');
+          angular.element($("#alertBox")).scope().addAlert('success', 'Complimenti, ' +
+            'la registrazione è andata a buon fine, adesso puoi accedere con le credenziali ' +
+            'del tuo nuovo account usando il modulo in alto a destra. Una volta entrato ' +
+            'nel sistema avrai la possibilità di sottoporre le soluzioni ai task presenti ' +
+            'in questa pagina. Buon allenamento.');
+          $location.path("tasks");
         }).error(function(data, status, headers, config) {
           console.log('dati non inviati');
         });
