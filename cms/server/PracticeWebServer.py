@@ -56,7 +56,9 @@ class APIHandler(object):
             Rule("/register", methods=["POST"], endpoint="register"),
             Rule("/login", methods=["POST"], endpoint="login"),
             Rule("/tasks", methods=["GET", "POST"], endpoint="tasks"),
-            Rule("/submissions", methods=["POST"], endpoint="submissions")
+            Rule("/submissions", methods=["POST"], endpoint="submissions"),
+            Rule("/submission/<sid>", methods=["GET", "POST"],
+                 endpoint="submission")
         ], encoding_errors="strict")
         self.file_cacher = file_cacher
         self.contest = contest
@@ -91,6 +93,8 @@ class APIHandler(object):
                 return self.tasks_handler()
             elif endpoint == "submissions":
                 return self.submissions_handler(request)
+            elif endpoint == "submission":
+                return self.submission_handler(request, args["sid"])
         except HTTPException as e:
             return e
 
@@ -303,8 +307,7 @@ class APIHandler(object):
                     dict([(l, s.digest) for l, s in t.statements.iteritems()])
                 task["submission_format"] =\
                     [sfe.filename for sfe in t.submission_format]
-                for i in ["time_limit", "memory_limit", "task_type",
-                          "score_type_parameters", "score_type"]:
+                for i in ["time_limit", "memory_limit", "task_type"]:
                     task[i] = getattr(t.active_dataset, i)
                 att = dict()
                 for (name, obj) in t.attachments.iteritems():
@@ -341,6 +344,28 @@ class APIHandler(object):
                 submissions.append(submission)
         resp["submissions"] = submissions
         return self.dump_json(resp)
+
+    def submission_handler(self, request, sid):
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            user = self.get_req_user(session, contest, request)
+            s = session.query(Submission)\
+                .filter(Submission.id == sid).first()
+            if s is None:
+                raise NotFound()
+            if s.user_id != user.id:
+                raise Unauthorized()
+            submission = dict()
+            submission["id"] = s.id
+            submission["task_id"] = s.task_id
+            submission["timestamp"] = make_timestamp(s.timestamp)
+            result = s.get_result()
+            for i in ["compilation_outcome", "evaluation_outcome",
+                      "score", "compilation_stdout", "compilation_stderr",
+                      "compilation_time", "compilation_memory"]:
+                submission[i] = getattr(result, i)
+            submission["score_details"] = json.loads(result.score_details)
+            return self.dump_json(submission)
 
 
 class PracticeWebServer(WebService):
