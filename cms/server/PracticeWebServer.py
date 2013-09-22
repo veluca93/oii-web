@@ -48,9 +48,11 @@ logger = logging.getLogger(__name__)
 class APIHandler(object):
     def __init__(self, file_cacher, contest):
         self.router = Map([
-            Rule("/", methods=["GET"], endpoint="root"),
-            Rule("/files/<digest>", methods=["GET"], endpoint="dbfile"),
-            Rule("/files/<digest>/<name>", methods=["GET"], endpoint="dbfile"),
+            Rule("/", methods=["GET", "POST"], endpoint="root"),
+            Rule("/files/<digest>", methods=["GET", "POST"],
+                 endpoint="dbfile"),
+            Rule("/files/<digest>/<name>", methods=["GET", "POST"],
+                 endpoint="dbfile"),
             Rule("/check", methods=["POST"], endpoint="check"),
             Rule("/register", methods=["POST"], endpoint="register"),
             Rule("/login", methods=["POST"], endpoint="login"),
