@@ -29,11 +29,11 @@ from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
 
-from cms import config
+from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import WebService
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Submission
-from cmscommon.DateTime import make_timestamp
+from cms.db import SessionGen, User, Contest, Submission, File
+from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, wrap_file, responder
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 class APIHandler(object):
-    def __init__(self, file_cacher, contest):
+    def __init__(self, parent):
         self.router = Map([
             Rule("/", methods=["GET", "POST"], endpoint="root"),
             Rule("/files/<digest>", methods=["GET", "POST"],
@@ -59,10 +59,12 @@ class APIHandler(object):
             Rule("/tasks", methods=["GET", "POST"], endpoint="tasks"),
             Rule("/submissions", methods=["POST"], endpoint="submissions"),
             Rule("/submission/<sid>", methods=["GET", "POST"],
-                 endpoint="submission")
+                 endpoint="submission"),
+            Rule("/submit/<name>", methods=["POST"], endpoint="submit")
         ], encoding_errors="strict")
-        self.file_cacher = file_cacher
-        self.contest = contest
+        self.file_cacher = parent.file_cacher
+        self.contest = parent.contest
+        self.evaluation_service = parent.evaluation_service
         self.EMAIL_REG = re.compile(r"[^@]+@[^@]+\.[^@]+")
         self.USERNAME_REG = re.compile(r"^[A-Za-z0-9_\.]+$")
 
@@ -96,6 +98,8 @@ class APIHandler(object):
                 return self.submissions_handler(request)
             elif endpoint == "submission":
                 return self.submission_handler(request, args["sid"])
+            elif endpoint == "submit":
+                return self.submit_handler(request, args["name"])
         except HTTPException as e:
             return e
 
@@ -124,7 +128,7 @@ class APIHandler(object):
             raise BadRequest()
         try:
             req = json.load(request.stream)
-        except ValueError:
+        except (ValueError, TypeError):
             raise BadRequest()
         return req
 
@@ -365,8 +369,78 @@ class APIHandler(object):
                       "score", "compilation_stdout", "compilation_stderr",
                       "compilation_time", "compilation_memory"]:
                 submission[i] = getattr(result, i)
-            submission["score_details"] = json.loads(result.score_details)
+            if result.score_details is not None:
+                submission["score_details"] = json.loads(result.score_details)
+            else:
+                submission["score_details"] = None
             return self.dump_json(submission)
+
+    def submit_handler(self, request, task_name):
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            user = self.get_req_user(session, contest, request)
+            # TODO: implement checks (interval, size), archives and
+            # (?) partial submissions
+            try:
+                task = contest.get_task(task_name)
+            except KeyError:
+                raise NotFound()
+            resp = dict()
+            resp["success"] = 1
+
+            # Detect language
+            files = []
+            sub_language = None
+            for sfe in task.submission_format:
+                f = request.files.get(sfe.filename)
+                if f is None:
+                    resp["success"] = 0
+                    resp["error"] = "Mancano dei files!"
+                    return self.dump_json(resp)
+                files.append(f)
+                if sfe.filename.endswith(".%l"):
+                    language = None
+                    for ext, lang in SOURCE_EXT_TO_LANGUAGE_MAP.iteritems():
+                        if f.filename.endswith(ext):
+                            language = lang
+                    if language is None:
+                        resp["success"] = 0
+                        resp["error"] = "Linguaggio non riconosciuto"
+                        return self.dump_json(resp)
+                    elif sub_language is not None and sub_language != language:
+                        resp["success"] = 0
+                        resp["error"] = "Files di linguaggio diverso!"
+                        return self.dump_json(resp)
+                    else:
+                        sub_language = language
+
+            # Add the submission
+            timestamp = make_datetime()
+            submission = Submission(timestamp,
+                                    sub_language,
+                                    user=user,
+                                    task=task)
+            for f in files:
+                digest = self.file_cacher.put_file_from_fobj(
+                    f.stream,
+                    "Submission file %s sent by %s at %d." % (
+                        f.name, user.username,
+                        make_timestamp(timestamp)))
+                session.add(File(f.name, digest, submission=submission))
+            session.add(submission)
+            session.commit()
+
+            # Notify ES
+            self.evaluation_service.new_submission(submission_id=submission.id)
+
+            # Answer with submission data
+            resp["id"] = submission.id
+            resp["task_id"] = submission.task_id
+            resp["timestamp"] = make_timestamp(submission.timestamp)
+            resp["compilation_outcome"] = None
+            resp["evaluation_outcome"] = None
+            resp["score"] = None
+            return self.dump_json(resp)
 
 
 class PracticeWebServer(WebService):
@@ -386,8 +460,10 @@ class PracticeWebServer(WebService):
 
         self.file_cacher = FileCacher(self)
         self.contest = contest
+        self.evaluation_service = self.connect_to(
+            ServiceCoord("EvaluationService", 0))
 
-        handler = APIHandler(self.file_cacher, self.contest)
+        handler = APIHandler(self)
 
         self.wsgi_app = SharedDataMiddleware(handler, {
             '/':        ("cms.web", "practice"),
