@@ -17,19 +17,32 @@
  */
 'use strict';
 
-angular.module('pws.communication', [])
-  .directive('communication', [function() {
+angular.module('pws.notifications', [])
+  .factory('notificationHub', [function() {
+    var handlers = new Array();
     return {
-      restrict: 'E',
-      templateUrl: 'partials/communication.html',
+      register_handler: function(callback) {
+        handlers.push(callback);
+      },
+      notify_oneshot: function(type, msg) {
+        angular.forEach(handlers, function(item) {
+          item.call(this, type, msg);
+        });
+      },
     };
   }])
-  .controller('CommunicationCtrl', ['$scope', function($scope) {
-    $scope.alerts = [];
-    $scope.addAlert = function(type, msg) {
-      $scope.alerts.push({'msg': msg, 'type': type});
+  .directive('notifications', [function() {
+    return {
+      restrict: 'E',
+      templateUrl: 'partials/notifications.html',
     };
+  }])
+  .controller('NotificationsCtrl', ['$scope', 'notificationHub', function($scope, hub) {
+    $scope.alerts = [];
     $scope.closeAlert = function(index) {
       $scope.alerts.splice(index, 1);
     };
+    hub.register_handler(function(type, msg) {
+      $scope.alerts.push({'msg': msg, 'type': type});
+    });
   }]);

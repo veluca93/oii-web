@@ -20,8 +20,8 @@
 /* Signin page */
 
 angular.module('pws.signin', [])
-  .controller('SigninCtrl', ['$scope', function ($scope) {
+  .controller('SigninCtrl', ['$scope', 'notificationHub', function ($scope, hub) {
     $scope.submit = function() {
-      alert("unimplemented");
+      hub.notify_oneshot('info', 'Unimplemented');
     };
   }]);
