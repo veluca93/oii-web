@@ -1,5 +1,5 @@
-<div class="container" style="padding-top:20px">
-  <div class="row" ng-controller="SignupCtrl">
+<div class="container">
+  <div class="row">
     <div class="col-lg-6">
       <form class="form-horizontal" role="form" ng-submit="submit()" name="signupform">
         <fieldset>
@@ -7,7 +7,7 @@
           <div class="form-group" ng-class="{'has-error': signupform.username.$dirty && isBad['username']}">
             <label class="col-lg-4 control-label" for="username">Username</label>
             <div class="col-lg-6">
-              <input class="form-control" autocomplete="off" type="text" id="username" name="username" ng-model="user.username" ng-change="checkUsername()"/>
+              <input class="form-control" maxlength="15" autocomplete="off" type="text" id="username" name="username" ng-model="user.username" ng-change="checkUsername()"/>
               <span class="help-block" ng-show="signupform.username.$dirty && isBad['username']">{{errorMsg['username']}}</span>
             </div>
           </div>
@@ -31,13 +31,13 @@
           <div class="form-group">
             <label class="col-lg-4 control-label" for="firstname">Nome</label>
             <div class="col-lg-6">
-              <input class="form-control" autocomplete="off" type="text" id="firstname" ng-model="user.firstname"/>
+              <input class="form-control" maxlength="30" autocomplete="off" type="text" id="firstname" ng-model="user.firstname"/>
             </div>
           </div>
           <div class="form-group">
             <label class="col-lg-4 control-label" for="lastname">Cognome</label>
             <div class="col-lg-6">
-              <input class="form-control" autocomplete="off" type="text" id="lastname" ng-model="user.lastname"/>
+              <input class="form-control" maxlength="30" autocomplete="off" type="text" id="lastname" ng-model="user.lastname"/>
             </div>
           </div>
           <div class="form-group" ng-class="{'has-error': signupform.email.$dirty && isBad['email']}">

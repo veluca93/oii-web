@@ -20,10 +20,10 @@
 /* Tasks page */
 
 angular.module('pws.tasks', [])
-  .controller('TasksController', ['$scope', '$http', function($scope, $http) {
+  .controller('TasksController', ['$scope', '$http', '$routeParams', function($scope, $http, $routeParams) {
+    $scope.startIndex = $routeParams.startIndex;
     $http.post('tasks', {})
       .success(function(data, status, headers, config) {
-        console.log('dati ricevuti');
         $scope.tasks = data.tasks;
       }).error(function(data, status, headers, config) {
         console.log('dati non ricevuti');
