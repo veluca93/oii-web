@@ -63,7 +63,6 @@ angular.module('pws.signup', [])
     $scope.askServer = function(type, value) {
       $http.post('check', {'type': type, 'value': value})
         .success(function(data, status, headers, config) {
-          console.log(data);
           $scope.isBad[type] = (data.success == 0);
           $scope.errorMsg[type] = data.error;
         }).error(function(data, status, headers, config) {
