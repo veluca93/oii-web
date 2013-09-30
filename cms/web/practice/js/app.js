@@ -19,7 +19,7 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.signup', 'pws.signin', 'pws.footer', 'pws.notifications'])
+angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.signup', 'pws.signin', 'pws.footer', 'pws.notifications', 'pws.signout'])
   .config(['$locationProvider', '$routeProvider', function($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(false);
     $locationProvider.hashPrefix('!');

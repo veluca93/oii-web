@@ -14,15 +14,22 @@
         <li ng-class="{active: isActivePage(3)}"><a href="#!/tasks"><span class="glyphicon glyphicon-list"></span> Archivio problemi</a></li>
         <li ng-class="{active: isActivePage(2)}"><a href="#!/signup"><span class="glyphicon glyphicon-pencil"></span> Sign up</a></li>
       </ul>
-      <form class="navbar-form navbar-right" ng-controller="SigninCtrl" ng-submit="submit()">
-        <div class="form-group">
-          <input type="text" placeholder="Username" class="form-control">
-        </div>
-        <div class="form-group">
-          <input type="password" placeholder="Password" class="form-control">
-        </div>
-        <button type="submit" class="btn btn-success">Sign in</button>
-      </form>
+      <div ng-show="$window.token == undefined" ng-controller="SigninCtrl">
+        <form class="navbar-form navbar-right" name="signinform" ng-submit="submit()">
+          <div class="form-group">
+            <input class="form-control" maxlength="15" type="text" id="username" name="username" ng-model="user.username" placeholder="Username" />
+          </div>
+          <div class="form-group">
+            <input class="form-control" type="password" id="password" name="password" ng-model="user.password" placeholder="Password" />
+          </div>
+          <button type="submit" class="btn btn-success">Sign in</button>
+        </form>
+      </div>
+      <div ng-show="$window.token != undefined" ng-controller="SignoutCtrl">
+        <form class="navbar-form navbar-right" name="signoutform" ng-submit="submit()">
+          <button type="submit" class="btn btn-success">Sign Out</button>
+        </form>
+      </div>
     </div><!--/.navbar-collapse -->
   </div>
 </div>

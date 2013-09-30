@@ -20,8 +20,23 @@
 /* Signin page */
 
 angular.module('pws.signin', [])
-  .controller('SigninCtrl', ['$scope', 'notificationHub', function ($scope, hub) {
+  .controller('SigninCtrl', ['$scope', '$window', '$http', 'notificationHub', function ($scope, $window, $http, hub) {
+    $scope.user = {"username": '', "password": ''};
+    $scope.$window = $window
     $scope.submit = function() {
-      hub.notify_oneshot('info', 'Unimplemented');
+        $http.post('login', $scope.user)
+        .success(function(data, status, headers, config) {
+          if (data.success == 1) {
+            hub.notify_oneshot('success', 'Signed in');
+            window.token = data.token
+          }
+          else if(data.success == 0){
+            hub.notify_oneshot("danger", "Sign in error");
+          }
+        }).error(function(data, status, headers, config) {
+          hub.notify_oneshot('danger', 'Errore interno ' +
+            'in fase di login: assicurati che la tua connessione a internet sia ' +
+            'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.');
+        });
     };
   }]);
