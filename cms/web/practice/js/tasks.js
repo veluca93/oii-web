@@ -20,7 +20,7 @@
 /* Tasks page */
 
 angular.module('pws.tasks', [])
-  .controller('TasksController', ['$scope', '$http', '$routeParams', function($scope, $http, $routeParams) {
+  .controller('TasksController', ['$scope', '$http', '$routeParams', '$location', function($scope, $http, $routeParams, $location) {
     $scope.startIndex = $routeParams.startIndex;
     $http.post('tasks', {})
       .success(function(data, status, headers, config) {
@@ -28,4 +28,7 @@ angular.module('pws.tasks', [])
       }).error(function(data, status, headers, config) {
         console.log('dati non ricevuti');
       });
+    $scope.openTask = function(url) {
+      $location.url(url);
+    };
   }]);

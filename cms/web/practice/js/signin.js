@@ -21,17 +21,17 @@
 
 angular.module('pws.signin', [])
   .controller('SigninCtrl', ['$scope', '$window', '$http', 'notificationHub', function ($scope, $window, $http, hub) {
-    $scope.user = {"username": '', "password": ''};
-    $scope.$window = $window
+    $scope.user = {'username': '', 'password': ''};
+    $scope.$window = $window;
     $scope.submit = function() {
         $http.post('login', $scope.user)
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
             hub.notify_oneshot('success', 'Signed in');
-            window.token = data.token
+            window.token = data.token;
           }
           else if(data.success == 0){
-            hub.notify_oneshot("danger", "Sign in error");
+            hub.notify_oneshot('danger', 'Sign in error');
           }
         }).error(function(data, status, headers, config) {
           hub.notify_oneshot('danger', 'Errore interno ' +
