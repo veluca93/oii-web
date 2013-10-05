@@ -1,27 +1,32 @@
+html {
+  overflow-y: scroll;
+}
+
 body {
-  padding-top:70px;
-  padding-bottom:20px;
+  padding-top: 70px;
+  padding-bottom: 20px;
 }
 
-.notifications{
+.notifications {
+  position: fixed;
+  z-index: 1;
+  width: 250px;
+  right: 0px;
+  padding-right: 10px;
+}
+
+.notifications .notification {
   width: 100%;
-}
-
-.notifications .notification{
-  width: 15%;
-  float: right;
   padding-right: 2px;
   padding-top: 2px;
-  margin-right: 1%;
-  clear: both;
   text-align: justify;
 }
 
-.notifications .notification .close{
+.notifications .notification .close {
   line-height: 0.5;
 }
 
-.notifications .notification div{
+.notifications .notification div {
   padding-right: 15px;
   padding-top: 10px;
 }

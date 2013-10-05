@@ -35,6 +35,7 @@ angular.module('pws.notifications', [])
     return {
       restrict: 'E',
       templateUrl: 'partials/notifications.html',
+      controller: 'NotificationsCtrl',
     };
   }])
   .controller('NotificationsCtrl', ['$scope', 'notificationHub', function($scope, hub) {

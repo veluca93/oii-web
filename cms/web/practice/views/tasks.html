@@ -1,16 +1,7 @@
-<div class="container" ng-controller="TasksController">
-  <table class="table table-striped table-bordered">
-    <tr>
-      <th>ID</th>
-      <th>Nome</th>
-      <th>Limite di tempo (secondi)</th>
-      <th>Limite di memoria (MiB)</th>
-    </tr>
-    <tr ng-repeat="task in tasks">
-      <td>{{task.name}}</td>
-      <td>{{task.title}}</td>
-      <td>{{task.time_limit}}</td>
-      <td>{{task.memory_limit}}</td>
-    </tr>
-  </table>
+<div class="container">
+  <div class="list-group">
+    <a ng-repeat="task in tasks" class="list-group-item" href="/files/{{task.statements.it}}/testo.pdf" ng-click="openTask(task.name)">
+      <span class="glyphicon glyphicon-list-alt"></span> {{task.title}}
+    </a>
+  </div>
 </div>

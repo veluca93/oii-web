@@ -1,3 +1,3 @@
-<div ng-controller="NotificationsCtrl" class="notifications">
+<div class="notifications">
   <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)" class="notification">{{alert.msg}}</alert>
 </div>
