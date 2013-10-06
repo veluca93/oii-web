@@ -5,16 +5,16 @@
         <fieldset>
           <legend>Dati di accesso al sito</legend>
           <div class="form-group" ng-class="{'has-error': signupform.username.$dirty && isBad['username']}">
-            <label class="col-lg-4 control-label" for="username">Username</label>
+            <label class="col-lg-4 control-label" for="username1">Username</label>
             <div class="col-lg-6">
-              <input class="form-control" maxlength="15" autocomplete="off" type="text" id="username" name="username" ng-model="user.username" ng-change="checkUsername()"/>
+              <input class="form-control" maxlength="15" autocomplete="off" type="text" id="username1" name="username" ng-model="user.username" ng-change="checkUsername()"/>
               <span class="help-block" ng-show="signupform.username.$dirty && isBad['username']">{{errorMsg['username']}}</span>
             </div>
           </div>
           <div class="form-group" ng-class="{'has-error': signupform.password.$dirty && isBad['password']}">
-            <label class="col-lg-4 control-label" for="password">Password</label>
+            <label class="col-lg-4 control-label" for="password1">Password</label>
             <div class="col-lg-6">
-              <input class="form-control" autocomplete="off" type="password" id="password" name="password" ng-model="user.password" ng-change="checkPassword(); matchPassword()"/>
+              <input class="form-control" autocomplete="off" type="password" id="password1" name="password" ng-model="user.password" ng-change="checkPassword(); matchPassword()"/>
               <span class="help-block" ng-show="signupform.password.$dirty && isBad['password']">{{errorMsg['password']}}</span>
             </div>
           </div>
@@ -41,9 +41,9 @@
             </div>
           </div>
           <div class="form-group" ng-class="{'has-error': signupform.email.$dirty && isBad['email']}">
-            <label class="col-lg-4 control-label" for="email">Indirizzo email</label>
+            <label class="col-lg-4 control-label" for="email1">Indirizzo email</label>
             <div class="col-lg-6">
-              <input class="form-control" autocomplete="off" type="text" id="email" name="email" ng-model="user.email" ng-change="checkEmail(); matchEmail()"/>
+              <input class="form-control" autocomplete="off" type="text" id="email1" name="email" ng-model="user.email" ng-change="checkEmail(); matchEmail()"/>
               <span class="help-block" ng-show="signupform.email.$dirty && isBad['email']">{{errorMsg['email']}}</span>
             </div>
           </div>
