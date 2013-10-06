@@ -20,15 +20,52 @@
 /* Tasks page */
 
 angular.module('pws.tasks', [])
-  .controller('TasksController', ['$scope', '$http', '$routeParams', '$location', function($scope, $http, $routeParams, $location) {
-    $scope.startIndex = $routeParams.startIndex;
-    $http.post('tasks', {})
-      .success(function(data, status, headers, config) {
-        $scope.tasks = data.tasks;
-      }).error(function(data, status, headers, config) {
-        console.log('dati non ricevuti');
-      });
-    $scope.openTask = function(url) {
-      $location.url(url);
+  .factory('tasksDatabase', ['$http', 'notificationHub', function($http, hub) {
+    var all = null;
+    return {
+      loadAll: function(callback) {
+        $http.post('tasks', {})
+          .success(function(data, status, headers, config) {
+            //~ hub.notify_oneshot('success', 'Caricato tutto');
+            all = data.tasks;
+            callback.call(this);
+          }).error(function(data, status, headers, config) {
+            hub.notify_oneshot('danger', 'Errore di connessione');
+          });
+      },
+      isLoaded: function() {
+        return all !== null;
+      },
+      loadPage: function(from, to) {
+        var page = new Array(), i=0;
+        for (var task in all) {
+          if (from <= i && i < to)
+            page.push(all[task]);
+          i++;
+        }
+        return page;
+      },
+      loadTask: function(task) {
+        return all[task];
+      },
     };
+  }])
+  .controller('TasksController', ['$scope', '$routeParams', '$location', 'tasksDatabase', function($scope, $routeParams, $location, db) {
+    $scope.startIndex = parseInt($routeParams.startIndex);
+    var f = function() {
+      $scope.tasks = db.loadPage(5 * $scope.startIndex, 5 * ($scope.startIndex + 1));
+    };
+    if (!db.isLoaded())
+      db.loadAll(f);
+    else
+      f.call(this);
+  }])
+  .controller('TaskpageController', ['$scope', '$routeParams', 'tasksDatabase', function($scope, $routeParams, db) {
+    var f = function() {
+      $scope.task = db.loadTask($routeParams.taskName);
+    };
+    if (!db.isLoaded())
+      db.loadAll(f);
+    else
+      f.call(this);
   }]);
