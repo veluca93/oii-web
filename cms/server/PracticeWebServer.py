@@ -302,7 +302,7 @@ class APIHandler(object):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
-            tasks = []
+            tasks = dict()
             for t in contest.tasks:
                 task = {}
                 task["id"] = t.id
@@ -318,7 +318,7 @@ class APIHandler(object):
                 for (name, obj) in t.attachments.iteritems():
                     att[name] = obj.digest
                 task["attachments"] = att
-                tasks.append(task)
+                tasks[task["name"]] = task
         resp["tasks"] = tasks
         return self.dump_json(resp)
 
