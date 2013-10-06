@@ -1,6 +1,17 @@
 <div class="container">
+  <ul class="pagination">
+    <li ng-class="{disabled: startIndex==0}">
+      <a href="#!/tasks/{{{true: startIndex, false: startIndex-1}[startIndex==0]}}">&laquo;</a>
+    </li>
+    <li ng-repeat="t in [] | range:0:3" ng-class="{active: startIndex==t}">
+      <a href="#!/tasks/{{t}}">{{t}}</a>
+    </li>
+    <li ng-class="{disabled: startIndex==2}">
+      <a href="#!/tasks/{{{true: startIndex, false: startIndex+1}[startIndex==2]}}">&raquo;</a>
+    </li>
+  </ul>
   <div class="list-group">
-    <a ng-repeat="task in tasks" class="list-group-item" href="/files/{{task.statements.it}}/testo.pdf" ng-click="openTask(task.name)">
+    <a ng-repeat="task in tasks" class="list-group-item" href="#!/task/{{task.name}}">
       <span class="glyphicon glyphicon-list-alt"></span> {{task.title}}
     </a>
   </div>

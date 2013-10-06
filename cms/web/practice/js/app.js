@@ -27,7 +27,7 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.signup', 
     $routeProvider.when('/overview', {templateUrl: 'views/overview.html'});
     $routeProvider.when('/tasks/', {redirectTo: '/tasks/0'});
     $routeProvider.when('/tasks/:startIndex', {templateUrl: 'views/tasks.html', controller: 'TasksController'});
-    $routeProvider.when('/task/:taskName', {templateUrl: 'views/taskpage.html', controller: 'TasksController'});
+    $routeProvider.when('/task/:taskName', {templateUrl: 'views/taskpage.html', controller: 'TaskpageController'});
     $routeProvider.when('/signup', {templateUrl: 'views/signup.html', controller: 'SignupCtrl'});
     $routeProvider.otherwise({redirectTo: '/overview'});
   }])
@@ -39,5 +39,12 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.signup', 
         ret += arr[i].charAt(0).toUpperCase() + arr[i].slice(1).toLowerCase();
       }
       return ret;
+    }
+  })
+  .filter('range', function() {
+    return function(input, min, max) {
+      for (var i=min; i<max; i++)
+        input.push(i);
+      return input;
     }
   });
