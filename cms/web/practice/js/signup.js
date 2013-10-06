@@ -30,16 +30,16 @@ angular.module('pws.signup', [])
       $scope.checkPassword();
       if ($scope.isBad['username']) {
         $scope.signupform.username.$dirty = true;
-        $("#username").focus(); return;
+        $("#username1").focus(); return;
       } else if ($scope.isBad['password']) {
         $scope.signupform.password.$dirty = true;
-        $("#password").focus(); return;
+        $("#password1").focus(); return;
       } else if ($scope.isBad['password2']) {
         $scope.signupform.password2.$dirty = true;
         $("#password2").focus(); return;
       } else if ($scope.isBad['email']) {
         $scope.signupform.email.$dirty = true;
-        $("#email").focus(); return;
+        $("#email1").focus(); return;
       } else if ($scope.isBad['email2']) {
         $scope.signupform.email2.$dirty = true;
         $("#email2").focus(); return;
