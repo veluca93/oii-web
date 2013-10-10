@@ -47,4 +47,9 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.signup', 
         input.push(i);
       return input;
     }
+  })
+  .filter('repext', function() {
+    return function(text) {
+      return text.replace(/.%l$/, ".(cpp|c|pas)")
+    }
   });
