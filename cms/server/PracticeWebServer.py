@@ -32,7 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import WebService
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Submission, File
+from cms.db import SessionGen, User, Contest, Submission, File, Task
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -57,7 +57,8 @@ class APIHandler(object):
             Rule("/register", methods=["POST"], endpoint="register"),
             Rule("/login", methods=["POST"], endpoint="login"),
             Rule("/tasks", methods=["GET", "POST"], endpoint="tasks"),
-            Rule("/submissions", methods=["POST"], endpoint="submissions"),
+            Rule("/submissions/<name>", methods=["GET", "POST"],
+                 endpoint="submissions"),
             Rule("/submission/<sid>", methods=["GET", "POST"],
                  endpoint="submission"),
             Rule("/submit/<name>", methods=["POST"], endpoint="submit")
@@ -95,7 +96,7 @@ class APIHandler(object):
             elif endpoint == "tasks":
                 return self.tasks_handler()
             elif endpoint == "submissions":
-                return self.submissions_handler(request)
+                return self.submissions_handler(request, args["name"])
             elif endpoint == "submission":
                 return self.submission_handler(request, args["sid"])
             elif endpoint == "submit":
@@ -328,21 +329,19 @@ class APIHandler(object):
         resp["tasks"] = tasks
         return self.dump_json(resp)
 
-    def submissions_handler(self, request):
-        req = self.load_json(request)
-        try:
-            last = datetime.utcfromtimestamp(req["last"])
-        except (ValueError, KeyError):
-            logger.warning("Datetime not understood")
-            raise BadRequest()
-
+    def submissions_handler(self, request, name):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
             user = self.get_req_user(session, contest, request)
+            task = session.query(Task)\
+                .filter(Task.contest_id == contest.id)\
+                .filter(Task.name == name).first()
+            if task is None:
+                raise NotFound()
             subs = session.query(Submission)\
                 .filter(Submission.user_id == user.id)\
-                .filter(Submission.timestamp > last).all()
+                .filter(Submission.task_id == task.id).all()
             submissions = []
             for s in subs:
                 submission = dict()
@@ -371,6 +370,10 @@ class APIHandler(object):
             submission["id"] = s.id
             submission["task_id"] = s.task_id
             submission["timestamp"] = make_timestamp(s.timestamp)
+            submission["language"] = s.language
+            submission["files"] = dict()
+            for name, f in s.files.iteritems():
+                submission["files"][name] = f.digest
             result = s.get_result()
             for i in ["compilation_outcome", "evaluation_outcome",
                       "score", "compilation_stdout", "compilation_stderr",
