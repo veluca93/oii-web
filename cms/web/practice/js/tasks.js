@@ -79,9 +79,12 @@ angular.module('pws.tasks', [])
   }])
   .controller('TasksController', ['$scope', '$routeParams', '$location', 'tasksDatabase', function($scope, $routeParams, $location, db) {
     $scope.startIndex = parseInt($routeParams.startIndex);
+    $scope.updPage = function(newIndex) {
+      $location.path("tasks/" + newIndex);
+    };
     var f = function() {
       $scope.totalTasks = db.totalTasks();
-      $scope.tasks = db.loadPage(5 * $scope.startIndex, 5 * ($scope.startIndex + 1));
+      $scope.tasks = db.loadPage(10 * ($scope.startIndex - 1), 10 * $scope.startIndex);
     };
     if (!db.isLoaded())
       db.loadAll(f);

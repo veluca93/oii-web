@@ -25,7 +25,7 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.user', 'p
     $locationProvider.hashPrefix('!');
 
     $routeProvider.when('/overview', {templateUrl: 'views/overview.html'});
-    $routeProvider.when('/tasks/', {redirectTo: '/tasks/0'});
+    $routeProvider.when('/tasks/', {redirectTo: '/tasks/1'});
     $routeProvider.when('/tasks/:startIndex', {templateUrl: 'views/tasks.html', controller: 'TasksController'});
     $routeProvider.when('/task/:taskName', {templateUrl: 'views/taskpage.html', controller: 'TaskpageController'});
     $routeProvider.when('/signup', {templateUrl: 'views/signup.html', controller: 'SignupCtrl'});
@@ -49,7 +49,7 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.user', 'p
     }
   })
   .filter('repext', function() {
-    return function(text) {
-      return text.replace(/.%l$/, ".(cpp|c|pas)")
+    return function(input) {
+      return input.replace(/.%l$/, ".(cpp|c|pas)")
     }
   });
