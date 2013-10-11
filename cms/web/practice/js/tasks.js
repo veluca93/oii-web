@@ -91,7 +91,8 @@ angular.module('pws.tasks', [])
     else
       f.call(this);
   }])
-  .controller('TaskpageController', ['$scope', '$routeParams', 'tasksDatabase', function($scope, $routeParams, db) {
+  .controller('TaskpageController', ['$scope', '$routeParams', 'tasksDatabase', 'userManager', function($scope, $routeParams, db, user) {
+    $scope.isLogged = user.isLogged;
     var f = function() {
       $scope.task = db.loadTask($routeParams.taskName);
     };
