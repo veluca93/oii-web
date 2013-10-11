@@ -125,10 +125,12 @@ class APIHandler(object):
 
     def load_json(self, request):
         if request.mimetype != "application/json":
+            logger.warning("Request not in JSON")
             raise BadRequest()
         try:
             req = json.load(request.stream)
         except (ValueError, TypeError):
+            logger.warning("JSON parse error")
             raise BadRequest()
         return req
 
@@ -224,6 +226,7 @@ class APIHandler(object):
             rtype = req["type"]
             rvalue = req["value"]
         except KeyError:
+            logger.warning("Missing parameters")
             raise BadRequest()
 
         if rtype == "username":
@@ -231,6 +234,7 @@ class APIHandler(object):
         elif rtype == "email":
             return self.dump_json(self.check_email(rvalue))
 
+        logger.warning("Request type not understood")
         raise BadRequest()
 
     def register_handler(self, request):
@@ -242,6 +246,7 @@ class APIHandler(object):
             firstname = req["firstname"]
             lastname = req["lastname"]
         except KeyError:
+            logger.warning("Missing parameters")
             raise BadRequest()
 
         sha = hashlib.sha256()
@@ -280,6 +285,7 @@ class APIHandler(object):
             username = req["username"]
             password = req["password"]
         except KeyError:
+            logger.warning("Missing parameter")
             raise BadRequest()
 
         sha = hashlib.sha256()
@@ -327,6 +333,7 @@ class APIHandler(object):
         try:
             last = datetime.utcfromtimestamp(req["last"])
         except (ValueError, KeyError):
+            logger.warning("Datetime not understood")
             raise BadRequest()
 
         resp = dict()
@@ -345,7 +352,7 @@ class APIHandler(object):
                 result = s.get_result()
                 for i in ["compilation_outcome", "evaluation_outcome",
                           "score"]:
-                    submission[i] = getattr(result, i)
+                    submission[i] = getattr(result, i, None)
                 submissions.append(submission)
         resp["submissions"] = submissions
         return self.dump_json(resp)
@@ -368,7 +375,7 @@ class APIHandler(object):
             for i in ["compilation_outcome", "evaluation_outcome",
                       "score", "compilation_stdout", "compilation_stderr",
                       "compilation_time", "compilation_memory"]:
-                submission[i] = getattr(result, i)
+                submission[i] = getattr(result, i, None)
             if result.score_details is not None:
                 submission["score_details"] = json.loads(result.score_details)
             else:
