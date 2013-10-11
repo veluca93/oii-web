@@ -10,9 +10,9 @@
     </div>
     <div class="navbar-collapse collapse" ng-controller="SignCtrl">
       <ul class="nav navbar-nav">
-        <li ng-class="{active: isActivePage(1)}"><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-        <li ng-class="{active: isActivePage(3)}"><a href="#!/tasks"><span class="glyphicon glyphicon-list"></span> Archivio problemi</a></li>
-        <li ng-show="!isLogged()" ng-class="{active: isActivePage(2)}"><a href="#!/signup"><span class="glyphicon glyphicon-pencil"></span> Sign up</a></li>
+        <li ng-class="{active: isActivePage('overview')}"><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+        <li ng-class="{active: isActivePage('tasks')}"><a href="#!/tasks"><span class="glyphicon glyphicon-list"></span> Archivio problemi</a></li>
+        <li ng-show="!isLogged()" ng-class="{active: isActivePage('signup')}"><a href="#!/signup"><span class="glyphicon glyphicon-pencil"></span> Sign up</a></li>
       </ul>
       <div ng-show="!isLogged()">
         <form class="navbar-form navbar-right" name="signinform" ng-submit="signin()">

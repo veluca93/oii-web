@@ -30,20 +30,7 @@ angular.module('pws.navbar', [])
   }])
   .controller('NavbarCtrl', ['$scope', '$location', 'userManager', function($scope, $location, user) {
     $scope.getUsername = user.getUsername;
-    $scope.activePage = undefined;
-    $scope.update = function() {
-      $scope.activePage = 0;
-      if ($location.path() == "/overview") {
-        $scope.activePage = 1;
-      } else if ($location.path() == "/signup") {
-        $scope.activePage = 2;
-      } else if ($location.path().indexOf("/tasks") == 0) {
-        $scope.activePage = 3;
-      }
-    }
-    $scope.$on('$routeChangeSuccess', $scope.update);
     $scope.isActivePage = function(page) {
-      return page == $scope.activePage;
+      return $location.path().indexOf(page) == 1;
     }
-    $scope.update();
   }]);
