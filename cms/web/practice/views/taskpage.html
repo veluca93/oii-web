@@ -3,7 +3,7 @@
     <tab heading="Testo" active="active">
       <iframe seamless src="../../assets/pdfjs/viewer.html?file=/files/{{task.statements.it}}/testo.pdf" class="viewer"></iframe>
     </tab>
-    <tab heading="Sottomissioni">
+    <tab heading="Sottomissioni" ng-show="$parent.isLogged()">
       <br/>
       <div class="panel panel-primary">
         <div class="panel-heading">
