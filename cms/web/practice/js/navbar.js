@@ -18,62 +18,32 @@
 'use strict';
 
 angular.module('pws.navbar', [])
-    .directive('navbar', ['$location', '$route', function($location, $route) {
-        return {
-            restrict: 'E',
-            scope: {},
-            templateUrl: 'partials/navbar.html',
-            replace: true,
-            transclude: true,
-            controller: ['$scope', '$route', '$element', '$attrs', '$transclude', function($scope, $route, $element, $attrs, $transclude) {
-                $scope.active_page = undefined;
-
-                //~ nav.active_change_listeners.push(function(contest_ref) {
-                    //~ $scope.active_contest_id = contest_ref;
-                    //~ $scope.update();
-                //~ });
-
-                //~ nav.unread_change_listeners.push(function(contest_ref, value) {
-                    //~ if (value == 0) {
-                        //~ $scope.unread_count[contest_ref] = "";
-                    //~ } else {
-                        //~ $scope.unread_count[contest_ref] = value.toFixed(0);
-                    //~ }
-                //~ });
-
-                $scope.update = function() {
-                    $scope.active_page = 0;
-                    //~ $scope.active_subpage = undefined;
-
-                    //~ console.log($location.path());
-                    if ($location.path() == "/overview") {
-                        $scope.active_page = 1;
-                    } else if ($location.path() == "/signup") {
-                        $scope.active_page = 2;
-                    } else if ($location.path().indexOf("/tasks") == 0) {
-                        $scope.active_page = 3;
-                    }
-                }
-
-                $scope.$on('$routeChangeSuccess', $scope.update);
-
-                //~ $scope.navigate = function() {
-                    //~ if ($scope.active_contest_id >= 0) {
-                        //~ $location.path("/contests/" + $scope.active_contest_id);
-                    //~ } else {
-                        //~ $scope.active_contest_id = -$scope.active_page;
-                    //~ }
-                //~ };
-
-                $scope.isActivePage = function(page) {
-                    return page == $scope.active_page;
-                }
-
-                //~ $scope.isActiveSubpage = function(subpage) {
-                    //~ return subpage == $scope.active_subpage;
-                //~ }
-
-                $scope.update();
-            }],
-        };
-    }]);
+  .directive('navbar', [function() {
+    return {
+      restrict: 'E',
+      scope: {},
+      templateUrl: 'partials/navbar.html',
+      replace: true,
+      transclude: true,
+      controller: 'NavbarCtrl',
+    };
+  }])
+  .controller('NavbarCtrl', ['$scope', '$location', 'userManager', function($scope, $location, user) {
+    $scope.getUsername = user.getUsername;
+    $scope.activePage = undefined;
+    $scope.update = function() {
+      $scope.activePage = 0;
+      if ($location.path() == "/overview") {
+        $scope.activePage = 1;
+      } else if ($location.path() == "/signup") {
+        $scope.activePage = 2;
+      } else if ($location.path().indexOf("/tasks") == 0) {
+        $scope.activePage = 3;
+      }
+    }
+    $scope.$on('$routeChangeSuccess', $scope.update);
+    $scope.isActivePage = function(page) {
+      return page == $scope.activePage;
+    }
+    $scope.update();
+  }]);

@@ -8,7 +8,7 @@
       </button>
       <a class="navbar-brand" href="#">Allenamenti OII</a>
     </div>
-    <div class="navbar-collapse collapse" ng-controller="NavbarCtrl">
+    <div class="navbar-collapse collapse" ng-controller="SignCtrl">
       <ul class="nav navbar-nav">
         <li ng-class="{active: isActivePage(1)}"><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
         <li ng-class="{active: isActivePage(3)}"><a href="#!/tasks"><span class="glyphicon glyphicon-list"></span> Archivio problemi</a></li>
@@ -27,7 +27,7 @@
       </div>
       <div ng-show="isLogged()">
         <form class="navbar-form navbar-right" name="signoutform" ng-submit="signout()">
-          <b>{{user.username}}</b>, <button type="submit" class="btn btn-success">Sign Out</button>
+          <b class="user-brand">{{getUsername()}}</b> <button type="submit" class="btn btn-success">Sign Out</button>
         </form>
       </div>
     </div><!--/.navbar-collapse -->

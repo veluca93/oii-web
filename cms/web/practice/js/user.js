@@ -26,6 +26,9 @@ angular.module('pws.user', [])
         return localStorage.getItem('token') !== null &&
                localStorage.getItem('username') !== null;
       },
+      getUsername: function() {
+        return localStorage.getItem('username');
+      },
       signin: function(token, username) {
         localStorage.setItem('token', token);
         localStorage.setItem('username', username);
@@ -48,15 +51,15 @@ angular.module('pws.user', [])
       },
     };
   }])
-  .controller('NavbarCtrl', ['$scope', '$window', '$http', 'userManager', 'notificationHub', function ($scope, $window, $http, user, hub) {
+  .controller('SignCtrl', ['$scope', '$window', '$http', 'userManager', 'notificationHub', function ($scope, $window, $http, user, hub) {
     $scope.user = {'username': '', 'password': ''};
     $scope.isLogged = user.isLogged;
     $scope.signin = function() {
         $http.post('login', $scope.user)
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
-            hub.notify_oneshot('success', 'Bentornato, ' + $scope.user.username);
             user.signin(data.token, $scope.user.username);
+            hub.notify_oneshot('success', 'Bentornato, ' + user.getUsername());
           }
           else if (data.success == 0) {
             hub.notify_oneshot('danger', 'Sign in error');

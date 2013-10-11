@@ -35,6 +35,11 @@ body {
   cursor: pointer;
 }
 
+.user-brand {
+  color: #999;
+  padding-right: 10px;
+}
+
 .viewer {
   width: 100%;
   height: 600px;
