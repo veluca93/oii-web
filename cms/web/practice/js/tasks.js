@@ -22,12 +22,15 @@
 angular.module('pws.tasks', [])
   .factory('tasksDatabase', ['$http', 'notificationHub', function($http, hub) {
     var all = null;
+    var allSize = 0;
     return {
       loadAll: function(callback) {
         $http.post('tasks', {})
           .success(function(data, status, headers, config) {
             //~ hub.notify_oneshot('success', 'Caricato tutto');
             all = data.tasks;
+            for (var item in all)
+              allSize ++;
             callback.call(this);
           }).error(function(data, status, headers, config) {
             hub.notify_oneshot('danger', 'Errore di connessione');
@@ -35,6 +38,9 @@ angular.module('pws.tasks', [])
       },
       isLoaded: function() {
         return all !== null;
+      },
+      totalTasks: function() {
+        return allSize;
       },
       loadPage: function(from, to) {
         var page = new Array(), i=0;
@@ -50,9 +56,31 @@ angular.module('pws.tasks', [])
       },
     };
   }])
+  .factory('subsDatabase', ['$http', 'notificationHub', function($http, hub) {
+    var all = null;
+    var allSize = 0;
+    return {
+      loadAll: function(callback) {
+        $http.post('submissions', {})
+          .success(function(data, status, headers, config) {
+            //~ hub.notify_oneshot('success', 'Caricato tutto');
+            //~ all = data.tasks;
+            //~ for (var item in all)
+              //~ allSize ++;
+            callback.call(this);
+          }).error(function(data, status, headers, config) {
+            hub.notify_oneshot('danger', 'Errore di connessione');
+          });
+      },
+      isLoaded: function() {
+        //~ return all !== null;
+      },
+    };
+  }])
   .controller('TasksController', ['$scope', '$routeParams', '$location', 'tasksDatabase', function($scope, $routeParams, $location, db) {
     $scope.startIndex = parseInt($routeParams.startIndex);
     var f = function() {
+      $scope.totalTasks = db.totalTasks();
       $scope.tasks = db.loadPage(5 * $scope.startIndex, 5 * ($scope.startIndex + 1));
     };
     if (!db.isLoaded())
