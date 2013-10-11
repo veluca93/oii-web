@@ -21,6 +21,9 @@
 
 angular.module('pws.signup', [])
   .controller('SignupCtrl', ['$scope', '$http', '$location', 'notificationHub', function ($scope, $http, $location, hub) {
+    $("#email1").blur(function() {
+      $("#avatar").attr('src', 'http://gravatar.com/avatar/' + CryptoJS.MD5(this.value).toString() + '?d=identicon&s=200');
+    });
     $scope.isBad = {'username': true, 'email': true, 'password': true, 'password2': true, 'email2': true};
     $scope.user = {'username': '', 'email': '', 'email2': '', 'password': '', 'password2': ''};
     $scope.errorMsg = {'password': 'Password troppo corta', 'password2': 'Non combacia', 'email2': 'Non combacia'};
