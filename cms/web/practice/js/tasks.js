@@ -77,7 +77,7 @@ angular.module('pws.tasks', [])
       },
     };
   }])
-  .controller('TasksController', ['$scope', '$routeParams', '$location', 'tasksDatabase', function($scope, $routeParams, $location, db) {
+  .controller('TasksCtrl', ['$scope', '$routeParams', '$location', 'tasksDatabase', function($scope, $routeParams, $location, db) {
     $scope.startIndex = parseInt($routeParams.startIndex);
     $scope.updPage = function(newIndex) {
       $location.path("tasks/" + newIndex);
@@ -91,7 +91,7 @@ angular.module('pws.tasks', [])
     else
       f.call(this);
   }])
-  .controller('TaskpageController', ['$scope', '$routeParams', '$location', 'tasksDatabase', 'userManager', function($scope, $routeParams, $location, db, user) {
+  .controller('TaskpageCtrl', ['$scope', '$routeParams', '$location', 'tasksDatabase', 'userManager', function($scope, $routeParams, $location, db, user) {
     $scope.isLogged = user.isLogged;
     $scope.setActiveTab = function(tab) {
         $location.path("/" + tab + "/" + $routeParams.taskName);
