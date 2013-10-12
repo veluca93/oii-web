@@ -1,31 +1,12 @@
 <div class="container">
-  <tabset>
-    <tab heading="Testo" active="active">
-      <iframe seamless src="../../assets/pdfjs/viewer.html?file=/files/{{task.statements.it}}/testo.pdf" class="viewer"></iframe>
-    </tab>
-    <tab heading="Sottomissioni" ng-show="$parent.isLogged()">
-      <br/>
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          <h3 class="panel-title">Invia una soluzione</h3>
-        </div>
-        <div class="panel-body">
-          <form class="form-horizontal">
-            <div class="form-group" ng-repeat="file in task.submission_format">
-              <label class="control-label col-lg-3" for="{{file}}">{{file | repext}}</label>
-              <div class="col-lg-9">
-                <input type="file" id="{{file}}" name="{{file}}"/>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="col-lg-offset-3 col-lg-9">
-                <button type="submit" class="btn btn-success">Invia</button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-      <submissions></submissions>
-    </tab>
+  <ul class="nav nav-tabs">
+    <li class="active">
+      <a>Testo</a>
+    </li>
+    <li ng-click="setActiveTab('submissions')">
+      <a>Sottomissioni</a>
+    </li>
+  </ul>
+  <iframe seamless src="../../assets/pdfjs/viewer.html?file=/files/{{task.statements.it}}/testo.pdf" class="viewer"></iframe>
   </tabset>
 </div>

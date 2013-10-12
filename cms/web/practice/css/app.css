@@ -31,7 +31,7 @@ body {
   padding-top: 10px;
 }
 
-.pagination {
+.pagination, .nav-tabs li {
   cursor: pointer;
 }
 
