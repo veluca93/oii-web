@@ -7,6 +7,24 @@ body {
   padding-bottom: 20px;
 }
 
+a {
+  cursor: pointer;
+}
+
+/* Navbar */
+
+.user-brand {
+  color: #999;
+  padding-right: 10px;
+}
+
+.signin-form {
+  width: 250px;
+  padding: 15px;
+}
+
+/* Notification alerts */
+
 .notifications {
   position: fixed;
   z-index: 1;
@@ -31,14 +49,7 @@ body {
   padding-top: 10px;
 }
 
-.pagination, .nav-tabs li {
-  cursor: pointer;
-}
-
-.user-brand {
-  color: #999;
-  padding-right: 10px;
-}
+/* PDF.JS */
 
 .viewer {
   width: 100%;

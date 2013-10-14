@@ -69,6 +69,8 @@ angular.module('pws.user', [])
             'in fase di login: assicurati che la tua connessione a internet sia ' +
             'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.');
         });
+        $scope.user.username = '';
+        $scope.user.password = '';
     };
     $scope.signout = function(){
         user.signout();
