@@ -29,6 +29,9 @@ angular.module('pws.navbar', [])
     };
   }])
   .controller('NavbarCtrl', ['$scope', '$location', 'userManager', function($scope, $location, user) {
+    $('.signin-form input').click(function(e) {
+      e.stopPropagation();
+    });
     $scope.getUsername = user.getUsername;
     $scope.isActivePage = function(page) {
       return $location.path().indexOf(page) == 1;

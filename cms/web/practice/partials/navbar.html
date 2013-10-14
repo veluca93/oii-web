@@ -10,26 +10,37 @@
     </div>
     <div class="navbar-collapse collapse" ng-controller="SignCtrl">
       <ul class="nav navbar-nav">
-        <li ng-class="{active: isActivePage('overview')}"><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-        <li ng-class="{active: isActivePage('tasks')}"><a href="#!/tasks"><span class="glyphicon glyphicon-list"></span> Archivio problemi</a></li>
-        <li ng-show="!isLogged()" ng-class="{active: isActivePage('signup')}"><a href="#!/signup"><span class="glyphicon glyphicon-pencil"></span> Sign up</a></li>
+        <li ng-class="{active: isActivePage('overview')}">
+          <a href="#"><span class="glyphicon glyphicon-home"></span> Home</a>
+        </li>
+        <li ng-class="{active: isActivePage('tasks')}">
+          <a href="#!/tasks"><span class="glyphicon glyphicon-list"></span> Archivio problemi</a>
+        </li>
+        <li ng-show="!isLogged()" ng-class="{active: isActivePage('signup')}">
+          <a href="#!/signup"><span class="glyphicon glyphicon-pencil"></span> Sign up</a>
+        </li>
       </ul>
-      <div ng-show="!isLogged()">
-        <form class="navbar-form navbar-right" name="signinform" ng-submit="signin()">
-          <div class="form-group">
-            <input class="form-control" maxlength="15" type="text" id="username" name="username" ng-model="user.username" placeholder="Username" />
+      <ul class="nav navbar-nav navbar-right">
+        <li ng-show="!isLogged()" class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> Sign in <b class="caret"></b></a>
+          <div class="dropdown-menu">
+            <form class="signin-form" role="form" name="signinform" ng-submit="signin()">
+              <div class="form-group">
+                <input class="form-control" maxlength="15" type="text" id="username" name="username" ng-model="user.username" placeholder="Username" />
+              </div>
+              <div class="form-group">
+                <input class="form-control" type="password" id="password" name="password" ng-model="user.password" placeholder="Password" />
+              </div>
+              <button type="submit" class="btn btn-success">Sign in</button>
+            </form>
           </div>
-          <div class="form-group">
-            <input class="form-control" type="password" id="password" name="password" ng-model="user.password" placeholder="Password" />
-          </div>
-          <button type="submit" class="btn btn-success">Sign in</button>
-        </form>
-      </div>
-      <div ng-show="isLogged()">
-        <form class="navbar-form navbar-right" name="signoutform" ng-submit="signout()">
-          <b class="user-brand">{{getUsername()}}</b> <button type="submit" class="btn btn-success">Sign Out</button>
-        </form>
-      </div>
+        </li>
+        <li ng-show="isLogged()">
+          <form class="navbar-form navbar-right" name="signoutform" ng-submit="signout()">
+            <b class="user-brand">{{getUsername()}}</b> <button type="submit" class="btn btn-success">Sign Out</button>
+          </form>
+        </li>
+      </ul>
     </div><!--/.navbar-collapse -->
   </div>
 </div>
