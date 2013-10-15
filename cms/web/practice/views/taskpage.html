@@ -1,15 +1,4 @@
 <div class="container">
-  <ul class="nav nav-tabs">
-    <li class="active">
-      <a>Testo</a>
-    </li>
-    <li ng-click="setActiveTab('stats')">
-      <a>Statistiche</a>
-    </li>
-    <li ng-click="setActiveTab('submissions')" ng-show="isLogged()">
-      <a>Sottomissioni</a>
-    </li>
-  </ul>
+  <taskbar></taskbar>
   <iframe seamless src="../../assets/pdfjs/viewer.html?file=/files/{{task.statements.it}}/testo.pdf" class="viewer"></iframe>
-  </tabset>
 </div>

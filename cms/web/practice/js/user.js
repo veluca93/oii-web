@@ -54,7 +54,6 @@ angular.module('pws.user', [])
   .controller('SignCtrl', ['$scope', '$http', 'userManager', 'notificationHub', function ($scope, $http, user, hub) {
     $scope.user = {'username': '', 'password': ''};
     $scope.isLogged = user.isLogged;
-    $scope.getUsername = user.getUsername;
     $scope.signin = function() {
         $http.post('login', $scope.user)
         .success(function(data, status, headers, config) {
