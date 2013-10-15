@@ -3,7 +3,10 @@
     <li class="active">
       <a>Testo</a>
     </li>
-    <li ng-click="setActiveTab('submissions')">
+    <li ng-click="setActiveTab('stats')">
+      <a>Statistiche</a>
+    </li>
+    <li ng-click="setActiveTab('submissions')" ng-show="isLogged()">
       <a>Sottomissioni</a>
     </li>
   </ul>

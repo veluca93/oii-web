@@ -51,9 +51,10 @@ angular.module('pws.user', [])
       },
     };
   }])
-  .controller('SignCtrl', ['$scope', '$window', '$http', 'userManager', 'notificationHub', function ($scope, $window, $http, user, hub) {
+  .controller('SignCtrl', ['$scope', '$http', 'userManager', 'notificationHub', function ($scope, $http, user, hub) {
     $scope.user = {'username': '', 'password': ''};
     $scope.isLogged = user.isLogged;
+    $scope.getUsername = user.getUsername;
     $scope.signin = function() {
         $http.post('login', $scope.user)
         .success(function(data, status, headers, config) {
@@ -63,14 +64,14 @@ angular.module('pws.user', [])
           }
           else if (data.success == 0) {
             hub.notify_oneshot('danger', 'Sign in error');
+            $scope.user.username = '';
+            $scope.user.password = '';
           }
         }).error(function(data, status, headers, config) {
           hub.notify_oneshot('danger', 'Errore interno ' +
             'in fase di login: assicurati che la tua connessione a internet sia ' +
             'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.');
         });
-        $scope.user.username = '';
-        $scope.user.password = '';
     };
     $scope.signout = function(){
         user.signout();
