@@ -64,8 +64,11 @@
     </div>
     <div class="col-lg-6">
       <legend>Anteprima dell'utente</legend>
-      <div class="well well-lg col-lg-offset-2 col-lg-8" style="text-align: center">
-        <img id="avatar" src="http://placekitten.com/200/200" class="img-thumbnail"/>
+      <div class="user-preview well well-lg col-lg-offset-2 col-lg-8">
+        <div class="avatar-wrapper">
+          <img src="http://gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=identicon&s=200" class="avatar img-thumbnail"/>
+          <img src="../../assets/ico/loader.gif" class="avatar-loader"/>
+        </div>
         <h2>{{{true: user.username, false: '(username)'}[user.username.length > 0]}}</h2>
         {{{true: user.firstname, false: '(nome)'}[user.firstname.length > 0] | capitalize}} {{{true: user.lastname, false: '(cognome)'}[user.lastname.length > 0] | capitalize}}
       </div>

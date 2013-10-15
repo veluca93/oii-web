@@ -21,8 +21,20 @@
 
 angular.module('pws.signup', [])
   .controller('SignupCtrl', ['$scope', '$http', '$location', 'notificationHub', function ($scope, $http, $location, hub) {
+    $(".avatar")
+      .load(function() {
+        $(".avatar-loader").hide();
+      })
+      .error(function() {
+        console.log("Errore nel caricamento dell'immagine");
+      });
     $("#email1").blur(function() {
-      $("#avatar").attr('src', 'http://gravatar.com/avatar/' + CryptoJS.MD5(this.value).toString() + '?d=identicon&s=200');
+      var newSrc = 'http://gravatar.com/avatar/' + CryptoJS.MD5(this.value).toString() + '?d=identicon&s=200';
+      var avatar = $(".avatar");
+      if (avatar.attr('src') != newSrc) {
+        $(".avatar-loader").show();
+        avatar.attr('src', newSrc);
+      }
     });
     $scope.isBad = {'username': true, 'email': true, 'password': true, 'password2': true, 'email2': true};
     $scope.user = {'username': '', 'email': '', 'email2': '', 'password': '', 'password2': ''};

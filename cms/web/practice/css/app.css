@@ -49,6 +49,29 @@ a {
   padding-top: 10px;
 }
 
+/* Signup page */
+
+.user-preview {
+  text-align: center;
+}
+
+.avatar-wrapper {
+  position: relative;
+  margin: auto;
+  width: 200px;
+}
+
+.avatar {
+  width: 200px;
+  height: 200px;
+}
+
+.avatar-loader {
+  position: absolute;
+  right: 78px;
+  top: 95px;
+}
+
 /* PDF.JS */
 
 .viewer {
