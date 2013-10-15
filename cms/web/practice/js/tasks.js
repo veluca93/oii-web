@@ -96,6 +96,9 @@ angular.module('pws.tasks', [])
     $scope.setActiveTab = function(tab) {
         $location.path("/" + tab + "/" + $routeParams.taskName);
     };
+    $scope.isActiveTab = function(tab) {
+      return $location.path().indexOf(tab) == 1;
+    };
     var f = function() {
       $scope.task = db.loadTask($routeParams.taskName);
     };

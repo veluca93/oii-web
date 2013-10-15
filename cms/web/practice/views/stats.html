@@ -1,15 +1,5 @@
 <div class="container">
-  <ul class="nav nav-tabs">
-    <li ng-click="setActiveTab('task')">
-      <a>Testo</a>
-    </li>
-    <li class="active">
-      <a>Statistiche</a>
-    </li>
-    <li ng-click="setActiveTab('submissions')" ng-show="isLogged()">
-      <a>Sottomissioni</a>
-    </li>
-  </ul>
+  <taskbar></taskbar>
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">Statistiche</h3>
