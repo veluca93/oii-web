@@ -27,13 +27,12 @@ angular.module('pws.tasks', [])
       loadAll: function(callback) {
         $http.post('tasks', {})
           .success(function(data, status, headers, config) {
-            //~ hub.notify_oneshot('success', 'Caricato tutto');
             all = data.tasks;
             for (var item in all)
               allSize ++;
             callback.call(this);
           }).error(function(data, status, headers, config) {
-            hub.notify_oneshot('danger', 'Errore di connessione');
+            hub.createAlert('danger', 'Errore di connessione', 2);
           });
       },
       isLoaded: function() {
@@ -63,13 +62,13 @@ angular.module('pws.tasks', [])
       loadAll: function(callback) {
         $http.post('submissions', {})
           .success(function(data, status, headers, config) {
-            //~ hub.notify_oneshot('success', 'Caricato tutto');
+            //~ hub.createAlert('success', 'Caricato tutto', 1);
             //~ all = data.tasks;
             //~ for (var item in all)
               //~ allSize ++;
             callback.call(this);
           }).error(function(data, status, headers, config) {
-            hub.notify_oneshot('danger', 'Errore di connessione');
+            hub.createAlert('danger', 'Errore di connessione', 2);
           });
       },
       isLoaded: function() {
