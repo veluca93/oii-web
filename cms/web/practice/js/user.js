@@ -59,13 +59,14 @@ angular.module('pws.user', [])
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
             user.signin(data.token, $scope.user.username);
-            hub.notify_oneshot('success', 'Bentornato, ' + user.getUsername());
+            hub.createAlert('success', 'Bentornato, ' + user.getUsername(), 3);
           }
           else if (data.success == 0) {
-            hub.notify_oneshot('danger', 'Sign in error');
-            $scope.user.username = '';
-            $scope.user.password = '';
+            hub.createAlert('danger', 'Sign in error', 3);
           }
+          else return;
+          $scope.user.username = '';
+          $scope.user.password = '';
         }).error(function(data, status, headers, config) {
           hub.notify_oneshot('danger', 'Errore interno ' +
             'in fase di login: assicurati che la tua connessione a internet sia ' +
