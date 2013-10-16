@@ -25,7 +25,7 @@ import logging
 import hashlib
 import mimetypes
 import pkg_resources
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
 
@@ -391,7 +391,15 @@ class APIHandler(object):
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
             user = self.get_req_user(session, contest, request)
-            # TODO: implement checks (interval, size), archives and
+            lastsub = session.query(Submission)\
+                .filter(Submission.user_id == user.id).first()
+            if make_datetime() - lastsub.timestamp < timedelta(seconds=20):
+                resp = dict()
+                resp["success"] = 0
+                resp["error"] = "E' passato troppo poco tempo!"
+                return self.dump_json(resp)
+
+            # TODO: implement checks (size), archives and
             # (?) partial submissions
             try:
                 task = contest.get_task(task_name)
