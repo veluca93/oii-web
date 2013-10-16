@@ -20,77 +20,24 @@
 /* Tasks page */
 
 angular.module('pws.tasks', [])
-  .factory('tasksDatabase', ['$http', 'notificationHub', function($http, hub) {
-    var all = null;
-    var allSize = 0;
-    return {
-      loadAll: function(callback) {
-        $http.post('tasks', {})
-          .success(function(data, status, headers, config) {
-            all = data.tasks;
-            for (var item in all)
-              allSize ++;
-            callback.call(this);
-          }).error(function(data, status, headers, config) {
-            hub.createAlert('danger', 'Errore di connessione', 2);
-          });
-      },
-      isLoaded: function() {
-        return all !== null;
-      },
-      totalTasks: function() {
-        return allSize;
-      },
-      loadPage: function(from, to) {
-        var page = new Array(), i=0;
-        for (var task in all) {
-          if (from <= i && i < to)
-            page.push(all[task]);
-          i++;
-        }
-        return page;
-      },
-      loadTask: function(task) {
-        return all[task];
-      },
-    };
-  }])
-  .factory('subsDatabase', ['$http', 'notificationHub', function($http, hub) {
-    var all = null;
-    var allSize = 0;
-    return {
-      loadAll: function(callback) {
-        $http.post('submissions', {})
-          .success(function(data, status, headers, config) {
-            //~ hub.createAlert('success', 'Caricato tutto', 1);
-            //~ all = data.tasks;
-            //~ for (var item in all)
-              //~ allSize ++;
-            callback.call(this);
-          }).error(function(data, status, headers, config) {
-            hub.createAlert('danger', 'Errore di connessione', 2);
-          });
-      },
-      isLoaded: function() {
-        //~ return all !== null;
-      },
-    };
-  }])
-  .controller('TasksCtrl', ['$scope', '$routeParams', '$location', 'tasksDatabase', function($scope, $routeParams, $location, db) {
+  .controller('TasksCtrl', ['$scope', '$routeParams', '$location', '$http', '$window', function($scope, $routeParams, $location, $http, $window) {
     $scope.startIndex = parseInt($routeParams.startIndex);
+    $scope.tasksPerPage = 5
+    $scope.$window = $window
     $scope.updPage = function(newIndex) {
       $location.path("tasks/" + newIndex);
     };
-    var f = function() {
-      $scope.totalTasks = db.totalTasks();
-      $scope.tasks = db.loadPage(10 * ($scope.startIndex - 1), 10 * $scope.startIndex);
-    };
-    if (!db.isLoaded())
-      db.loadAll(f);
-    else
-      f.call(this);
+    $http.post('tasks',
+      {"first": $scope.tasksPerPage*($scope.startIndex-1),
+      "last": $scope.tasksPerPage*$scope.startIndex})
+      .success(function(data, status, headers, config) {
+        $scope.tasks = data["tasks"];
+        $scope.$window.totalTasks = data["num"];
+      }).error(function(data, status, headers, config) {
+        hub.createAlert('danger', 'Errore di connessione', 2);
+    });
   }])
-  .controller('TaskpageCtrl', ['$scope', '$routeParams', '$location', 'tasksDatabase', 'userManager', function($scope, $routeParams, $location, db, user) {
+  .controller('TaskpageCtrl', ['$scope', '$routeParams', '$location', '$http', '$window', 'userManager', function($scope, $routeParams, $location, $http, $window, user) {
     $scope.isLogged = user.isLogged;
     $scope.setActiveTab = function(tab) {
         $location.path("/" + tab + "/" + $routeParams.taskName);
@@ -98,11 +45,11 @@ angular.module('pws.tasks', [])
     $scope.isActiveTab = function(tab) {
       return $location.path().indexOf(tab) == 1;
     };
-    var f = function() {
-      $scope.task = db.loadTask($routeParams.taskName);
-    };
-    if (!db.isLoaded())
-      db.loadAll(f);
-    else
-      f.call(this);
+    $scope.$window = $window
+    $http.post('task/' + $routeParams.taskName, {})
+      .success(function(data, status, headers, config) {
+        $scope.$window.task = data;
+      }).error(function(data, status, headers, config) {
+        hub.createAlert('danger', 'Errore di connessione', 2);
+    });
   }]);
