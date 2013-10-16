@@ -1,5 +1,5 @@
 <div class="container">
-  <pagination total-items="totalTasks" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="startIndex" on-select-page="updPage(page)">
+  <pagination total-items="$window.totalTasks" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="startIndex" on-select-page="updPage(page)" items-per-page="tasksPerPage">
   </pagination>
   <div class="list-group">
     <a ng-repeat="task in tasks" class="list-group-item" href="#!/task/{{task.name}}">
