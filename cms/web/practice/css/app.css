@@ -11,6 +11,16 @@ a {
   cursor: pointer;
 }
 
+.hyphenate {
+  text-align: justify;
+   -ms-word-break: break-all;
+       word-break: break-all;
+       word-break: break-word;
+  -webkit-hyphens: auto;
+     -moz-hyphens: auto;
+          hyphens: auto;
+}
+
 /* Navbar */
 
 .user-brand {
@@ -27,26 +37,13 @@ a {
 
 .notifications {
   position: fixed;
-  z-index: 1;
+  right: 10px;
+}
+
+.notifications .alert {
+  position: relative;
   width: 250px;
   right: 0px;
-  padding-right: 10px;
-}
-
-.notifications .notification {
-  width: 100%;
-  padding-right: 2px;
-  padding-top: 2px;
-  text-align: justify;
-}
-
-.notifications .notification .close {
-  line-height: 0.5;
-}
-
-.notifications .notification div {
-  padding-right: 15px;
-  padding-top: 10px;
 }
 
 /* Signup page */

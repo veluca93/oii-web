@@ -19,31 +19,24 @@
 
 angular.module('pws.notifications', [])
   .factory('notificationHub', [function() {
-    var handlers = new Array();
     return {
-      register_handler: function(callback) {
-        handlers.push(callback);
-      },
-      notify_oneshot: function(type, msg) {
-        angular.forEach(handlers, function(item) {
-          item.call(this, type, msg);
-        });
+      createAlert: function(type, msg, secs) {
+        var alert = $('<div class="alert alert-' + type + ' hyphenate' +
+            ' alert-dismissable"><button type="button" class="close" ' +
+            ' data-dismiss="alert" aria-hidden="true">&times;</button' +
+            '>' + msg + '</div>');
+        $(".notifications").prepend(alert);
+        window.setTimeout(function() {
+          alert.animate({'right': '-260px'}, 'slow', function() {
+            $(this).remove();
+          });
+        }, Math.round(1000 * secs));
       },
     };
   }])
   .directive('notifications', [function() {
     return {
       restrict: 'E',
-      templateUrl: 'partials/notifications.html',
-      controller: 'NotificationsCtrl',
+      template: '<div class="notifications"></div>',
     };
-  }])
-  .controller('NotificationsCtrl', ['$scope', 'notificationHub', function($scope, hub) {
-    $scope.alerts = [];
-    $scope.closeAlert = function(index) {
-      $scope.alerts.splice(index, 1);
-    };
-    hub.register_handler(function(type, msg) {
-      $scope.alerts.push({'msg': msg, 'type': type});
-    });
   }]);
