@@ -62,17 +62,17 @@ angular.module('pws.signup', [])
       $http.post('register', $scope.user)
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
-            hub.notify_oneshot('success', 'Complimenti, ' +
+            hub.createAlert('success', 'Complimenti, ' +
               'la registrazione è andata a buon fine, adesso puoi accedere con le credenziali ' +
               'del tuo nuovo account usando il modulo in alto a destra. Una volta entrato ' +
               'nel sistema avrai la possibilità di sottoporre le soluzioni ai task presenti ' +
-              'in questa pagina. Buon allenamento.');
+              'in questa pagina. Buon allenamento.', 10);
             $location.path("tasks");
           }
         }).error(function(data, status, headers, config) {
-          hub.notify_oneshot('danger', 'Errore interno ' +
+          hub.createAlert('danger', 'Errore interno ' +
             'in fase di registrazione: assicurati che la tua connessione a internet sia ' +
-            'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.');
+            'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.', 5);
         });
     };
     $scope.askServer = function(type, value) {

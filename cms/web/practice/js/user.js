@@ -40,13 +40,13 @@ angular.module('pws.user', [])
       loadSubs: function(callback) {
         $http.post('submissions', {})
           .success(function(data, status, headers, config) {
-            //~ hub.notify_oneshot('success', 'Caricato tutto');
+            //~ hub.createAlert('success', 'Caricato tutto', 1);
             //~ all = data.tasks;
             //~ for (var item in all)
               //~ allSize ++;
             callback.call(this);
           }).error(function(data, status, headers, config) {
-            hub.notify_oneshot('danger', 'Errore di connessione');
+            hub.createAlert('danger', 'Errore di connessione', 2);
           });
       },
     };
@@ -68,13 +68,13 @@ angular.module('pws.user', [])
           $scope.user.username = '';
           $scope.user.password = '';
         }).error(function(data, status, headers, config) {
-          hub.notify_oneshot('danger', 'Errore interno ' +
+          hub.createAlert('danger', 'Errore interno ' +
             'in fase di login: assicurati che la tua connessione a internet sia ' +
-            'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.');
+            'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.', 5);
         });
     };
     $scope.signout = function(){
         user.signout();
-        hub.notify_oneshot('success', 'Arrivederci');
+        hub.createAlert('success', 'Arrivederci', 1);
     }
   }]);

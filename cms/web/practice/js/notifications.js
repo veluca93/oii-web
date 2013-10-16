@@ -23,8 +23,8 @@ angular.module('pws.notifications', [])
       createAlert: function(type, msg, secs) {
         var alert = $('<div class="alert alert-' + type + ' hyphenate' +
             ' alert-dismissable"><button type="button" class="close" ' +
-            ' data-dismiss="alert" aria-hidden="true">&times;</button' +
-            '>' + msg + '</div>');
+            'data-dismiss="alert" aria-hidden="true">&times;</button>' +
+            msg + '</div>');
         $(".notifications").prepend(alert);
         window.setTimeout(function() {
           alert.animate({'right': '-260px'}, 'slow', function() {
