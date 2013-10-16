@@ -28,6 +28,7 @@ import pkg_resources
 from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import desc
 
 from cms import config, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.log import initialize_logging
@@ -392,7 +393,8 @@ class APIHandler(object):
             contest = Contest.get_from_id(self.contest, session)
             user = self.get_req_user(session, contest, request)
             lastsub = session.query(Submission)\
-                .filter(Submission.user_id == user.id).first()
+                .filter(Submission.user_id == user.id)\
+                .order_by(desc(Submission.timestamp)).first()
             if make_datetime() - lastsub.timestamp < timedelta(seconds=20):
                 resp = dict()
                 resp["success"] = 0
