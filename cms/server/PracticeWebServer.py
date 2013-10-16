@@ -61,10 +61,9 @@ class APIHandler(object):
             Rule("/login", methods=["POST"], endpoint="login"),
             Rule("/tasks", methods=["POST"], endpoint="tasks"),
             Rule("/task/<name>", methods=["GET", "POST"], endpoint="task"),
-            Rule("/submissions/<name>", methods=["GET", "POST"],
-                 endpoint="submissions"),
-            Rule("/submission/<sid>", methods=["GET", "POST"],
-                 endpoint="submission"),
+            Rule("/submissions/<name>", methods=["POST"],
+                endpoint="submissions"),
+            Rule("/submission/<sid>", methods=["POST"], endpoint="submission"),
             Rule("/submit/<name>", methods=["POST"], endpoint="submit")
         ], encoding_errors="strict")
         self.file_cacher = parent.file_cacher
@@ -102,7 +101,7 @@ class APIHandler(object):
             elif endpoint == "tasks":
                 return self.tasks_handler(request)
             elif endpoint == "submissions":
-                return self.submissions_handler(args["name"])
+                return self.submissions_handler(request, args["name"])
             elif endpoint == "submission":
                 return self.submission_handler(request, args["sid"])
             elif endpoint == "submit":
@@ -119,15 +118,15 @@ class APIHandler(object):
             .filter(User.password == token).first()
 
     def get_req_user(self, session, contest, request):
-        if request.authorization is not None and \
-           request.authorization.type == "basic":
-            username = request.authorization.username
-            token = request.authorization.password
+        try:
+            data = self.load_json(request)
+            username = data["username"]
+            token = data["token"]
             user = self.get_user(session, contest, username, token)
             if user is None:
                 raise Unauthorized()
             return user
-        else:
+        except (BadRequest, KeyError):
             raise Unauthorized()
 
     def load_json(self, request):
@@ -356,7 +355,7 @@ class APIHandler(object):
             resp["attachments"] = att
         return self.dump_json(resp)
 
-    def submissions_handler(self, name):
+    def submissions_handler(self, request, name):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
@@ -368,7 +367,8 @@ class APIHandler(object):
                 raise NotFound()
             subs = session.query(Submission)\
                 .filter(Submission.user_id == user.id)\
-                .filter(Submission.task_id == task.id).all()
+                .filter(Submission.task_id == task.id)\
+                .order_by(desc(Submission.timestamp)).all()
             submissions = []
             for s in subs:
                 submission = dict()
