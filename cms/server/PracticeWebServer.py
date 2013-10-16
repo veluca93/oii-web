@@ -57,7 +57,8 @@ class APIHandler(object):
             Rule("/check", methods=["POST"], endpoint="check"),
             Rule("/register", methods=["POST"], endpoint="register"),
             Rule("/login", methods=["POST"], endpoint="login"),
-            Rule("/tasks", methods=["GET", "POST"], endpoint="tasks"),
+            Rule("/tasks", methods=["POST"], endpoint="tasks"),
+            Rule("/task/<name>", methods=["GET", "POST"], endpoint="task"),
             Rule("/submissions/<name>", methods=["GET", "POST"],
                  endpoint="submissions"),
             Rule("/submission/<sid>", methods=["GET", "POST"],
@@ -94,10 +95,12 @@ class APIHandler(object):
                 return self.register_handler(request)
             elif endpoint == "login":
                 return self.login_handler(request)
+            elif endpoint == "task":
+                return self.task_handler(args["name"])
             elif endpoint == "tasks":
-                return self.tasks_handler()
+                return self.tasks_handler(request)
             elif endpoint == "submissions":
-                return self.submissions_handler(request, args["name"])
+                return self.submissions_handler(args["name"])
             elif endpoint == "submission":
                 return self.submission_handler(request, args["sid"])
             elif endpoint == "submit":
@@ -306,31 +309,52 @@ class APIHandler(object):
                 resp["token"] = token
         return self.dump_json(resp)
 
-    def tasks_handler(self):
+    def tasks_handler(self, request):
+        data = self.load_json(request)
+        if data["first"] > data["last"]:
+            raise BadRequest()
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
-            tasks = dict()
-            for t in contest.tasks:
-                task = {}
+            tasks = session.query(Task)\
+                .filter(Task.contest_id == contest.id)\
+                .order_by(desc(Task.id))\
+                .slice(data["first"], data["last"]).all()
+            resp["num"] = session.query(Task)\
+                .filter(Task.contest_id == contest.id).count()
+            resp["tasks"] = []
+            for t in tasks:
+                task = dict()
                 task["id"] = t.id
                 task["name"] = t.name
                 task["title"] = t.title
-                task["statements"] =\
-                    dict([(l, s.digest) for l, s in t.statements.iteritems()])
-                task["submission_format"] =\
-                    [sfe.filename for sfe in t.submission_format]
-                for i in ["time_limit", "memory_limit", "task_type"]:
-                    task[i] = getattr(t.active_dataset, i)
-                att = dict()
-                for (name, obj) in t.attachments.iteritems():
-                    att[name] = obj.digest
-                task["attachments"] = att
-                tasks[task["name"]] = task
-        resp["tasks"] = tasks
+                resp["tasks"].append(task)
         return self.dump_json(resp)
 
-    def submissions_handler(self, request, name):
+    def task_handler(self, name):
+        resp = dict()
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            t = session.query(Task)\
+                .filter(Task.name == name)\
+                .filter(Task.contest_id == contest.id)\
+                .first()
+            resp["id"] = t.id
+            resp["name"] = t.name
+            resp["title"] = t.title
+            resp["statements"] =\
+                dict([(l, s.digest) for l, s in t.statements.iteritems()])
+            resp["submission_format"] =\
+                [sfe.filename for sfe in t.submission_format]
+            for i in ["time_limit", "memory_limit", "task_type"]:
+                resp[i] = getattr(t.active_dataset, i)
+            att = dict()
+            for (name, obj) in t.attachments.iteritems():
+                att[name] = obj.digest
+            resp["attachments"] = att
+        return self.dump_json(resp)
+
+    def submissions_handler(self, name):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
