@@ -29,6 +29,9 @@ angular.module('pws.user', [])
       getUsername: function() {
         return localStorage.getItem('username');
       },
+      getToken: function() {
+        return localStorage.getItem('token');
+      },
       signin: function(token, username) {
         localStorage.setItem('token', token);
         localStorage.setItem('username', username);
