@@ -20,6 +20,105 @@
 /* Tasks page */
 
 angular.module('pws.tasks', [])
+  .service('subsDatabase',
+    ['$http', '$rootScope', '$timeout', 'notificationHub', 'userManager',
+    function($http, $rootScope, $timeout, hub, user) {
+    $rootScope.submissions = {};
+    var updInterval = {};
+    var updAttempts = {};
+    var timeout;
+    this.load = function(name) {
+      $http.post('submissions/' + name,
+        {"username": user.getUsername(), "token": user.getToken()})
+        .success(function(data, status, headers, config) {
+          $rootScope.submissions[name] = [];
+          for(var i=data["submissions"].length; i>0; i--)
+            addSub(name, data["submissions"][i-1]);
+        }).error(function(data, status, headers, config) {
+          hub.createAlert('danger', 'Errore di connessione', 2);
+      });
+      $timeout.cancel(timeout);
+      updSubs();
+    }
+    function intervalFromAttempts(i){
+        if(i<10 || i==undefined) return 1;
+        if(i<30) return 2;
+        if(i<50) return 3;
+        if(i<100) return 5;
+        if(i<300) return 10;
+        if(i<500) return 60;
+        return i/4;
+    }
+    function extendSub(sub){
+      sub.cl = "sub-notdone"
+      var date = new Date(sub.timestamp*1000);
+      sub.time = date.toLocaleString();
+      if(sub.compilation_outcome == null){
+        sub.status = "Compilazione in corso...";
+        updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
+      }
+      else if(sub.compilation_outcome == "fail"){
+        sub.cl = "sub-zero";
+        sub.status = "Compilazione fallita";
+      }
+      else if(sub.evaluation_outcome == null){
+        sub.status = "Valutazione in corso...";
+        updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
+      }
+      else if(sub.evaluation_outcome == "fail"){ // ???
+        sub.cl = "sub-zero";
+        sub.status = "Valutazione fallita";
+      }
+      else if(sub.score == null){
+        sub.status = "Assegnazione del punteggio";
+        updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
+      }
+      else{
+        var score = sub.score;
+        if(100-score < 0.01) sub.cl = "sub-full";
+        else if(score < 0.01) sub.cl = "sub-zero";
+        else sub.cl = "sub-partial";
+        sub.status = score + "/100";
+      }
+      return sub;
+    }
+    function addSub(name, sub) {
+      $rootScope.submissions[name].unshift(extendSub(sub));
+    }
+    function replaceSub(id, sub) {
+      for(name in $rootScope.submissions)
+        for(var i=0; i<$rootScope.submissions[name].length; i++)
+          if($rootScope.submissions[name][i]["id"] == id){
+              $rootScope.submissions[name][i] = extendSub(sub);
+              return;
+          }
+    }
+    function updSubs(){
+      timeout = $timeout(function(){
+        for(var i in updInterval){
+          updInterval[i]--;
+          if(updInterval[i] == 0){
+            if(updAttempts[i] == undefined)
+              updAttempts[i] = -1;
+            updAttempts[i]++;
+            delete updInterval[i];
+            $http.post('submission/' + i,
+            {"username": user.getUsername(), "token": user.getToken()})
+            .success(function(data, status, headers, config) {
+              replaceSub(i, data);
+            }).error(function(data, status, headers, config) {
+              hub.createAlert('danger', 'Errore di connessione', 2);
+            });
+          }
+        }
+        updSubs();
+      }, 1000);
+    }
+    this.addSub = addSub;
+    this.extendSub = extendSub;
+    this.replaceSub = replaceSub;
+    return this;
+  }])
   .controller('TasksCtrl',
     ['$scope', '$routeParams', '$location', '$http', '$window', 'notificationHub',
     function($scope, $routeParams, $location, $http, $window, hub) {
@@ -40,59 +139,25 @@ angular.module('pws.tasks', [])
     });
   }])
   .controller('TaskpageCtrl',
-    ['$scope', '$routeParams', '$location', '$http', '$window', 'userManager', 'notificationHub',
-    function($scope, $routeParams, $location, $http, $window, user, hub) {
+    ['$scope', '$routeParams', '$location', '$http', '$window', '$rootScope', 'userManager', 'notificationHub', 'subsDatabase',
+    function($scope, $routeParams, $location, $http, $window, $rootScope, user, hub, subs) {
     $scope.isLogged = user.isLogged;
+    $scope.taskName = $routeParams.taskName;
     $scope.setActiveTab = function(tab) {
-        $location.path("/" + tab + "/" + $routeParams.taskName);
+        $location.path("/" + tab + "/" + $scope.taskName);
     };
     $scope.isActiveTab = function(tab) {
       return $location.path().indexOf(tab) == 1;
     };
     $scope.$window = $window
-    $http.post('task/' + $routeParams.taskName, {})
+    $http.post('task/' + $scope.taskName, {})
       .success(function(data, status, headers, config) {
         $scope.$window.task = data;
       }).error(function(data, status, headers, config) {
         hub.createAlert('danger', 'Errore di connessione', 2);
     });
     if(user.isLogged() && $scope.isActiveTab("submissions")){
-      $http.post('submissions/' + $routeParams.taskName,
-        {"username": user.getUsername(), "token": user.getToken()})
-        .success(function(data, status, headers, config) {
-          $scope.submissions = [];
-          for(var i=0; i<data["submissions"].length; i++)
-            $scope.submissions.push($scope.parseSub(data["submissions"][i]));
-        }).error(function(data, status, headers, config) {
-          hub.createAlert('danger', 'Errore di connessione', 2);
-      });
-      $scope.parseSub = function(sub){
-        sub.cl = "sub-notdone"
-        var date = new Date(sub.timestamp*1000);
-        sub.time = date.toLocaleString();
-        if(sub.compilation_outcome == null)
-          sub.status = "Compilazione in corso...";
-        else if(sub.compilation_outcome == "fail"){
-          sub.cl = "sub-zero";
-          sub.status = "Compilazione fallita";
-        }
-        else if(sub.evaluation_outcome == null)
-          sub.status = "Valutazione in corso...";
-        else if(sub.evaluation_outcome == "fail"){ // ???
-          sub.cl = "sub-zero";
-          sub.status = "Valutazione fallita";
-        }
-        else if(sub.score == null)
-          sub.status = "Assegnazione del punteggio"
-        else{
-          var score = sub.score;
-          if(100-score < 0.01) sub.cl = "sub-full";
-          else if(score < 0.01) sub.cl = "sub-zero";
-          else sub.cl = "sub-partial";
-          sub.status = score + "/100";
-        }
-        return sub;
-      }
+      subs.load($scope.taskName);
       $scope.loadFiles = function(){
         var input = $("#submitform input");
         $window.loadCount = input.length;
@@ -125,10 +190,10 @@ angular.module('pws.tasks', [])
         data["files"] = $window.files;
         delete $window.files;
         delete $window.loadCount;
-        $http.post('submit/' + $routeParams.taskName, data)
+        $http.post('submit/' + $scope.taskName, data)
           .success(function(data, status, headers, config) {
             if(data["success"])
-              $scope.submissions.unshift($scope.parseSub(data));
+              subs.addSub($scope.taskName, data);
             else
               hub.createAlert('danger', data["error"], 2);
         }).error(function(data, status, headers, config) {
