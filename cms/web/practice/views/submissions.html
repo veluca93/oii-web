@@ -23,7 +23,21 @@
       <h3 class="panel-title">Sottoposizioni precedenti</h3>
     </div>
     <div class="panel-body row">
-      <!-- TODO -->
+      <table class="table table-bordered table-striped">
+        <tr>
+          <th>Id</th>
+          <th>Data e ora</th>
+          <th>Stato</th>
+        </tr>
+        <tr ng-show="submissions.length==0">
+            <td colspan=3 class="no-submissions">nessuna sottoposizione</td>
+        </tr>
+        <tr ng-repeat="sub in submissions">
+            <td>{{sub.id}}</td>
+            <td>{{sub.time}}</td>
+            <td class="{{sub.cl}}">{{sub.status}}</td>
+        </tr>
+      </table>
     </div>
   </div>
 </div>

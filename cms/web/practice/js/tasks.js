@@ -20,7 +20,9 @@
 /* Tasks page */
 
 angular.module('pws.tasks', [])
-  .controller('TasksCtrl', ['$scope', '$routeParams', '$location', '$http', '$window', function($scope, $routeParams, $location, $http, $window) {
+  .controller('TasksCtrl',
+    ['$scope', '$routeParams', '$location', '$http', '$window', 'notificationHub',
+    function($scope, $routeParams, $location, $http, $window, hub) {
     $scope.startIndex = parseInt($routeParams.startIndex);
     $scope.tasksPerPage = 5
     $scope.$window = $window
@@ -37,7 +39,9 @@ angular.module('pws.tasks', [])
         hub.createAlert('danger', 'Errore di connessione', 2);
     });
   }])
-  .controller('TaskpageCtrl', ['$scope', '$routeParams', '$location', '$http', '$window', 'userManager', function($scope, $routeParams, $location, $http, $window, user) {
+  .controller('TaskpageCtrl',
+    ['$scope', '$routeParams', '$location', '$http', '$window', 'userManager', 'notificationHub',
+    function($scope, $routeParams, $location, $http, $window, user, hub) {
     $scope.isLogged = user.isLogged;
     $scope.setActiveTab = function(tab) {
         $location.path("/" + tab + "/" + $routeParams.taskName);
@@ -52,4 +56,39 @@ angular.module('pws.tasks', [])
       }).error(function(data, status, headers, config) {
         hub.createAlert('danger', 'Errore di connessione', 2);
     });
+    if(user.isLogged() && $scope.isActiveTab("submissions")){
+      $http.post('submissions/' + $routeParams.taskName,
+        {"username": user.getUsername(), "token": user.getToken()})
+        .success(function(data, status, headers, config) {
+          $scope.submissions = data["submissions"];
+          for(var i=0; i<$scope.submissions.length; i++){
+            $scope.submissions[i].cl = "sub-notdone"
+            var date = new Date($scope.submissions[i].timestamp*1000);
+            $scope.submissions[i].time = date.toLocaleString();
+            if($scope.submissions[i].compilation_outcome == null)
+              $scope.submissions[i].status = "Compilazione in corso...";
+            else if($scope.submissions[i].compilation_outcome == "fail"){
+              $scope.submissions[i].cl = "sub-zero";
+              $scope.submissions[i].status = "Compilazione fallita";
+            }
+            else if($scope.submissions[i].evaluation_outcome == null)
+              $scope.submissions[i].status = "Valutazione in corso...";
+            else if($scope.submissions[i].evaluation_outcome == "fail"){ // ???
+              $scope.submissions[i].cl = "sub-zero";
+              $scope.submissions[i].status = "Valutazione fallita";
+            }
+            else if($scope.submissions[i].score == null)
+              $scope.submissions[i].status = "Assegnazione del punteggio"
+            else{
+              var score = $scope.submissions[i].score;
+              if(100-score < 0.01) $scope.submissions[i].cl = "sub-full";
+              else if(score < 0.01) $scope.submissions[i].cl = "sub-zero";
+              else $scope.submissions[i].cl = "sub-partial";
+              $scope.submissions[i].status = score + "/100";
+            }
+          }
+        }).error(function(data, status, headers, config) {
+          hub.createAlert('danger', 'Errore di connessione', 2);
+      });
+    }
   }]);

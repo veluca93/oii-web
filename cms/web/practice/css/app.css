@@ -69,6 +69,32 @@ a {
   top: 95px;
 }
 
+/* Submission page */
+.no-submissions {
+  text-align: center;
+  font-style: italic;
+}
+
+.sub-notdone {
+  color: rgb(58, 135, 173);
+  background-color: rgb(217, 237, 247) !important;
+}
+
+.sub-full {
+  color: rgb(70, 136, 71);
+  background-color: rgb(223, 240, 216) !important;
+}
+
+.sub-partial {
+  color: rgb(192, 152, 83);
+  background-color: rgb(252, 248, 227) !important;
+}
+
+.sub-zero {
+  color: rgb(185, 74, 72);
+  background-color: rgb(242, 222, 222) !important;
+}
+
 /* PDF.JS */
 
 .viewer {
