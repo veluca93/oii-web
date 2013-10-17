@@ -60,35 +60,80 @@ angular.module('pws.tasks', [])
       $http.post('submissions/' + $routeParams.taskName,
         {"username": user.getUsername(), "token": user.getToken()})
         .success(function(data, status, headers, config) {
-          $scope.submissions = data["submissions"];
-          for(var i=0; i<$scope.submissions.length; i++){
-            $scope.submissions[i].cl = "sub-notdone"
-            var date = new Date($scope.submissions[i].timestamp*1000);
-            $scope.submissions[i].time = date.toLocaleString();
-            if($scope.submissions[i].compilation_outcome == null)
-              $scope.submissions[i].status = "Compilazione in corso...";
-            else if($scope.submissions[i].compilation_outcome == "fail"){
-              $scope.submissions[i].cl = "sub-zero";
-              $scope.submissions[i].status = "Compilazione fallita";
-            }
-            else if($scope.submissions[i].evaluation_outcome == null)
-              $scope.submissions[i].status = "Valutazione in corso...";
-            else if($scope.submissions[i].evaluation_outcome == "fail"){ // ???
-              $scope.submissions[i].cl = "sub-zero";
-              $scope.submissions[i].status = "Valutazione fallita";
-            }
-            else if($scope.submissions[i].score == null)
-              $scope.submissions[i].status = "Assegnazione del punteggio"
-            else{
-              var score = $scope.submissions[i].score;
-              if(100-score < 0.01) $scope.submissions[i].cl = "sub-full";
-              else if(score < 0.01) $scope.submissions[i].cl = "sub-zero";
-              else $scope.submissions[i].cl = "sub-partial";
-              $scope.submissions[i].status = score + "/100";
-            }
-          }
+          $scope.submissions = [];
+          for(var i=0; i<data["submissions"].length; i++)
+            $scope.submissions.push($scope.parseSub(data["submissions"][i]));
         }).error(function(data, status, headers, config) {
           hub.createAlert('danger', 'Errore di connessione', 2);
       });
+      $scope.parseSub = function(sub){
+        sub.cl = "sub-notdone"
+        var date = new Date(sub.timestamp*1000);
+        sub.time = date.toLocaleString();
+        if(sub.compilation_outcome == null)
+          sub.status = "Compilazione in corso...";
+        else if(sub.compilation_outcome == "fail"){
+          sub.cl = "sub-zero";
+          sub.status = "Compilazione fallita";
+        }
+        else if(sub.evaluation_outcome == null)
+          sub.status = "Valutazione in corso...";
+        else if(sub.evaluation_outcome == "fail"){ // ???
+          sub.cl = "sub-zero";
+          sub.status = "Valutazione fallita";
+        }
+        else if(sub.score == null)
+          sub.status = "Assegnazione del punteggio"
+        else{
+          var score = sub.score;
+          if(100-score < 0.01) sub.cl = "sub-full";
+          else if(score < 0.01) sub.cl = "sub-zero";
+          else sub.cl = "sub-partial";
+          sub.status = score + "/100";
+        }
+        return sub;
+      }
+      $scope.loadFiles = function(){
+        var input = $("#submitform input");
+        $window.loadCount = input.length;
+        $window.files = {};
+        for(var i=0; i<input.length; i++){
+          if(input[i].files.length < 1){
+            hub.createAlert('danger', 'Files mancanti!', 2);
+            break;
+          }
+          var reader = FileReader();
+          reader.readAsBinaryString(input[i].files[0]);
+          reader.filename = input[i].files[0].name
+          reader.inputname = input[i].name
+          reader.onloadend = function(){
+            $window.loadCount -= 1;
+            $window.files[reader.inputname] = {
+                "filename": reader.filename,
+                "data": reader.result
+            }
+            if($window.loadCount == 0)
+              $scope.submitFiles()
+          }
+        }
+        $("#submitform").each(function(){this.reset();});
+      }
+      $scope.submitFiles = function(){
+        var data = {};
+        data["username"] = user.getUsername();
+        data["token"] = user.getToken();
+        data["files"] = $window.files;
+        delete $window.files;
+        delete $window.loadCount;
+        $http.post('submit/' + $routeParams.taskName, data)
+          .success(function(data, status, headers, config) {
+            if(data["success"])
+              $scope.submissions.unshift($scope.parseSub(data));
+            else
+              hub.createAlert('danger', data["error"], 2);
+        }).error(function(data, status, headers, config) {
+            hub.createAlert('danger', 'Errore di connessione', 2);
+        });
+      }
     }
   }]);
