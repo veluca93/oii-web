@@ -75,6 +75,36 @@ a {
   font-style: italic;
 }
 
+.submission {
+  cursor: pointer;
+}
+
+.submissions tbody+tbody {
+  border-top: none;
+}
+
+.submission .files {
+  padding: 0;
+}
+
+.submissions .files div>a {
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  display: block;
+  padding: 8px;
+}
+
+.submissions .files div li, .submissions .files div ul {
+  text-align: center;
+  width: 100%;
+}
+
+.submissions .files div {
+  display: block;
+  width: 100%;
+}
+
 .sub-notdone {
   color: rgb(58, 135, 173);
   background-color: rgb(217, 237, 247) !important;
