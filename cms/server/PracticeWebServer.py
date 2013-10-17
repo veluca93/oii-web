@@ -442,7 +442,8 @@ class APIHandler(object):
             lastsub = session.query(Submission)\
                 .filter(Submission.user_id == user.id)\
                 .order_by(desc(Submission.timestamp)).first()
-            if make_datetime() - lastsub.timestamp < timedelta(seconds=20):
+            if lastsub is not None and \
+               make_datetime() - lastsub.timestamp < timedelta(seconds=20):
                 resp = dict()
                 resp["success"] = 0
                 resp["error"] = "E' passato troppo poco tempo!"

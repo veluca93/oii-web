@@ -433,15 +433,7 @@ class FileCacher:
         raise: KeyError if the backend cannot find the file.
 
         """
-        cache_file_path = os.path.join(self.file_dir, digest)
-
-        fobj = self.backend.get_file(digest)
-
-        try:
-            with io.open(cache_file_path, 'wb') as dst:
-                copyfileobj(fobj, dst, self.CHUNK_SIZE)
-        finally:
-            fobj.close()
+        pass
 
     def get_file(self, digest):
         """Retrieve a file from the storage.
@@ -466,15 +458,7 @@ class FileCacher:
 
         logger.debug("Getting file %s." % digest)
 
-        if not os.path.exists(cache_file_path):
-            logger.debug("File %s not in cache, downloading "
-                         "from database." % digest)
-
-            self.load(digest)
-
-            logger.debug("File %s downloaded." % digest)
-
-        return io.open(cache_file_path, 'rb')
+        return self.backend.get_file(digest)
 
     def get_file_content(self, digest):
         """Retrieve a file from the storage.
