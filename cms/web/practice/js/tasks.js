@@ -1,5 +1,6 @@
 /* Contest Management System
  * Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+ * Copyright © 2013 Luca Versari <veluca93@gmail.com>
  * Copyright © 2013 William Di Luigi <williamdiluigi@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -93,6 +94,16 @@ angular.module('pws.tasks', [])
               return;
           }
     }
+    function subDetails(id){
+      $http.post('submission/' + id,
+      {"username": user.getUsername(), "token": user.getToken()})
+      .success(function(data, status, headers, config) {
+        replaceSub(id, data);
+        $rootScope.curSub = id;
+      }).error(function(data, status, headers, config) {
+        hub.createAlert('danger', 'Errore di connessione', 2);
+      });
+    }
     function updSubs(){
       timeout = $timeout(function(){
         for(var i in updInterval){
@@ -117,6 +128,7 @@ angular.module('pws.tasks', [])
     this.addSub = addSub;
     this.extendSub = extendSub;
     this.replaceSub = replaceSub;
+    this.subDetails = subDetails;
     return this;
   }])
   .controller('TasksCtrl',
@@ -199,6 +211,12 @@ angular.module('pws.tasks', [])
         }).error(function(data, status, headers, config) {
             hub.createAlert('danger', 'Errore di connessione', 2);
         });
+      }
+      $scope.showDetails = function(id){
+        if($rootScope.curSub == id)
+          $rootScope.curSub = 0;
+        else
+          subs.subDetails(id);
       }
     }
   }]);

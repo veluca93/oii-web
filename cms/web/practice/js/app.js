@@ -54,4 +54,18 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
     return function(input) {
       return input.replace(/.%l$/, ".(cpp|c|pas)")
     }
+  })
+  .filter('timeFmt', function() {
+    return function(input) {
+      return input.toFixed(3) + "s";
+    }
+  })
+  .filter('memoryFmt', function() {
+    return function(input) {
+      if(input>1024*1024)
+        return (input/(1024*1024)).toFixed(1) + " MiB";
+      else if(input>1024)
+        return (input/1024).toFixed(0) + " KiB";
+      return input + " B";
+    }
   });

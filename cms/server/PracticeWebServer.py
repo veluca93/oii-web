@@ -376,6 +376,12 @@ class APIHandler(object):
                 submission["id"] = s.id
                 submission["task_id"] = s.task_id
                 submission["timestamp"] = make_timestamp(s.timestamp)
+                submission["files"] = []
+                for name, f in s.files.iteritems():
+                    fi = dict()
+                    fi["name"] = name.replace("%l", s.language)
+                    fi["digest"] = f.digest
+                    submission["files"].append(fi)
                 result = s.get_result()
                 for i in ["compilation_outcome", "evaluation_outcome",
                           "score"]:
@@ -399,16 +405,31 @@ class APIHandler(object):
             submission["task_id"] = s.task_id
             submission["timestamp"] = make_timestamp(s.timestamp)
             submission["language"] = s.language
-            submission["files"] = dict()
+            submission["files"] = []
             for name, f in s.files.iteritems():
-                submission["files"][name] = f.digest
+                fi = dict()
+                fi["name"] = name.replace("%l", s.language)
+                fi["digest"] = f.digest
+                submission["files"].append(fi)
             result = s.get_result()
             for i in ["compilation_outcome", "evaluation_outcome",
                       "score", "compilation_stdout", "compilation_stderr",
                       "compilation_time", "compilation_memory"]:
                 submission[i] = getattr(result, i, None)
             if result.score_details is not None:
-                submission["score_details"] = json.loads(result.score_details)
+                tmp = json.loads(result.score_details)
+                if len(tmp)>0 and tmp[0].has_key("text"):
+                    subt = dict()
+                    subt["testcases"] = tmp
+                    subt["score"] = submission["score"]
+                    subt["max_score"] = 100
+                    submission["score_details"] = [subt]
+                else:
+                    submission["score_details"] = tmp
+                for subtask in submission["score_details"]:
+                    for testcase in subtask["testcases"]:
+                        data = json.loads(testcase["text"])
+                        testcase["text"] = data[0] % tuple(data[1:])
             else:
                 submission["score_details"] = None
             return self.dump_json(submission)
@@ -445,6 +466,7 @@ class APIHandler(object):
                     resp["success"] = 0
                     resp["error"] = "Mancano dei files!"
                     return self.dump_json(resp)
+                f["name"] = sfe.filename
                 files.append(f)
                 if sfe.filename.endswith(".%l"):
                     language = None
@@ -472,9 +494,9 @@ class APIHandler(object):
                 digest = self.file_cacher.put_file_content(
                     bytes(f["data"]),
                     "Submission file %s sent by %s at %d." % (
-                        f["filename"], user.username,
+                        f["name"], user.username,
                         make_timestamp(timestamp)))
-                session.add(File(f["filename"], digest, submission=submission))
+                session.add(File(f["name"], digest, submission=submission))
             session.add(submission)
             session.commit()
 
@@ -488,6 +510,12 @@ class APIHandler(object):
             resp["compilation_outcome"] = None
             resp["evaluation_outcome"] = None
             resp["score"] = None
+            resp["files"] = []
+            for name, f in submission.files.iteritems():
+                fi = dict()
+                fi["name"] = name.replace("%l", submission.language)
+                fi["digest"] = f.digest
+                resp["files"].append(fi)
             return self.dump_json(resp)
 
 
