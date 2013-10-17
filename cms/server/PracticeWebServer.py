@@ -117,9 +117,10 @@ class APIHandler(object):
             .filter(User.username == username)\
             .filter(User.password == token).first()
 
-    def get_req_user(self, session, contest, request):
+    def get_req_user(self, session, contest, request, data=None):
         try:
-            data = self.load_json(request)
+            if data is None:
+                data = self.load_json(request)
             username = data["username"]
             token = data["token"]
             user = self.get_user(session, contest, username, token)
@@ -414,8 +415,9 @@ class APIHandler(object):
 
     def submit_handler(self, request, task_name):
         with SessionGen() as session:
+            data = self.load_json(request)
             contest = Contest.get_from_id(self.contest, session)
-            user = self.get_req_user(session, contest, request)
+            user = self.get_req_user(session, contest, request, data=data)
             lastsub = session.query(Submission)\
                 .filter(Submission.user_id == user.id)\
                 .order_by(desc(Submission.timestamp)).first()
@@ -438,7 +440,7 @@ class APIHandler(object):
             files = []
             sub_language = None
             for sfe in task.submission_format:
-                f = request.files.get(sfe.filename)
+                f = data["files"].get(sfe.filename)
                 if f is None:
                     resp["success"] = 0
                     resp["error"] = "Mancano dei files!"
@@ -447,7 +449,7 @@ class APIHandler(object):
                 if sfe.filename.endswith(".%l"):
                     language = None
                     for ext, lang in SOURCE_EXT_TO_LANGUAGE_MAP.iteritems():
-                        if f.filename.endswith(ext):
+                        if f["filename"].endswith(ext):
                             language = lang
                     if language is None:
                         resp["success"] = 0
@@ -467,12 +469,12 @@ class APIHandler(object):
                                     user=user,
                                     task=task)
             for f in files:
-                digest = self.file_cacher.put_file_from_fobj(
-                    f.stream,
+                digest = self.file_cacher.put_file_content(
+                    bytes(f["data"]),
                     "Submission file %s sent by %s at %d." % (
-                        f.name, user.username,
+                        f["filename"], user.username,
                         make_timestamp(timestamp)))
-                session.add(File(f.name, digest, submission=submission))
+                session.add(File(f["filename"], digest, submission=submission))
             session.add(submission)
             session.commit()
 

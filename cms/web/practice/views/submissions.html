@@ -5,7 +5,7 @@
       <h3 class="panel-title">Invia una sottoposizione</h3>
     </div>
     <div class="panel-body">
-      <form class="form-horizontal" ng-submit="submitFile()">
+      <form class="form-horizontal" ng-submit="loadFiles()" id="submitform">
         <div class="form-group" ng-repeat="file in $window.task.submission_format">
           <label class="control-label col-lg-3" for="{{file}}">{{file | repext}}</label>
           <div class="col-lg-9">
