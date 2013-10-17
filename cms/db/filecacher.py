@@ -532,6 +532,7 @@ class FileCacher:
                 copyfileobj(src, fobj, self.CHUNK_SIZE)
         finally:
             fobj.close()
+            os.unlink(cache_file_path)
 
     def put_file_from_fobj(self, src, desc=""):
         """Store a file in the storage.
