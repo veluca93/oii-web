@@ -31,6 +31,7 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
     $routeProvider.when('/tests', {templateUrl: 'views/tests.html', controller: 'TestCtrl'});
     $routeProvider.when('/test/:testName', {templateUrl: 'views/testpage.html', controller: 'TestpageCtrl'});
     $routeProvider.when('/submissions/:taskName', {templateUrl: 'views/submissions.html', controller: 'TaskpageCtrl'});
+    $routeProvider.when('/attachments/:taskName', {templateUrl: 'views/attachments.html', controller: 'TaskpageCtrl'});
     $routeProvider.when('/stats/:taskName', {templateUrl: 'views/stats.html', controller: 'TaskpageCtrl'});
     $routeProvider.when('/signup', {templateUrl: 'views/signup.html', controller: 'SignupCtrl'});
     $routeProvider.otherwise({redirectTo: '/overview'});
