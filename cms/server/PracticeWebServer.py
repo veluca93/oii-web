@@ -581,7 +581,7 @@ class APIHandler(object):
                                     task=task)
             for f in files:
                 digest = self.file_cacher.put_file_content(
-                    bytes(f["data"]),
+                    f["data"].encode("utf-8"),
                     "Submission file %s sent by %s at %d." % (
                         f["name"], user.username,
                         make_timestamp(timestamp)))
