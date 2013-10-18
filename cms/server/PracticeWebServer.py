@@ -398,7 +398,6 @@ class APIHandler(object):
                 resp[i] = getattr(t.active_dataset, i)
             att = []
             for (name, obj) in t.attachments.iteritems():
-                print name, obj, obj.digest
                 att.append((name, obj.digest))
             resp["attachments"] = att
         return self.dump_json(resp)

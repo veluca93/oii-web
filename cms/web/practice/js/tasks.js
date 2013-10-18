@@ -150,9 +150,11 @@ angular.module('pws.tasks', [])
         hub.createAlert('danger', 'Errore di connessione', 2);
     });
   }])
-  .controller('TaskpageCtrl',
-    ['$scope', '$routeParams', '$location', '$http', '$window', '$rootScope', 'userManager', 'notificationHub', 'subsDatabase',
-    function($scope, $routeParams, $location, $http, $window, $rootScope, user, hub, subs) {
+  .controller('TaskpageCtrl', [
+      '$scope', '$routeParams', '$location', '$http', '$window', '$rootScope', 'userManager', 'notificationHub', 'subsDatabase',
+      function($scope, $routeParams, $location, $http, $window, $rootScope, user, hub, subs) {
+    $("#timeLimit").popover();
+    $("#memoLimit").popover();
     $scope.isLogged = user.isLogged;
     $scope.taskName = $routeParams.taskName;
     $scope.setActiveTab = function(tab) {
