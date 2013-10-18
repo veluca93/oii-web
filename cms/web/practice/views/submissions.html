@@ -22,94 +22,92 @@
     <div class="panel-heading">
       <h3 class="panel-title">Sottoposizioni precedenti</h3>
     </div>
-    <div class="panel-body row">
-      <table class="table table-bordered table-striped submissions">
-        <tbody>
-          <tr>
-            <th>Id</th>
-            <th>Data e ora</th>
-            <th>Stato</th>
-            <th>File</th>
-          </tr>
-        </tbody>
-        <tbody ng-show="submissions.length==0">
-          <tr>
-            <td colspan="4" class="no-submissions">nessuna sottoposizione</td>
-          </tr>
-        </tbody>
-        <tbody ng-repeat="sub in submissions[taskName]">
-          <tr class="submission">
-            <td ng-click="showDetails(sub.id)">{{sub.id}}</td>
-            <td ng-click="showDetails(sub.id)">{{sub.time}}</td>
-            <td class="{{sub.cl}}" ng-click="showDetails(sub.id)">{{sub.status}}</td>
-            <td class="files">
-              <div class="btn-group">
-                <a class="dropdown-toggle" data-toggle="dropdown">
-                  Scarica
-                  <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu" role="menu">
-                  <li ng-repeat="file in sub.files">
-                    <a href="/files/{{file['digest']}}/{{file['name']}}">{{file['name']}}</a>
-                  </li>
-                </ul>
-              </div>
-            </td>
-          </tr>
-          <tr ng-show="sub.id == curSub">
-            <td colspan="4">
-              <div ng-repeat="subtask in sub.score_details">
-                <h3 ng-show="sub.score_details.length > 1">
-                  Subtask {{subtask.idx}}
-                  <span class="pull-right">
-                    {{subtask.score}}/{{subtask.max_score}}
-                  </span>
-                </h3>
-                <ul class="list-group">
-                  <li class="list-group-item">
-                    <div class="col-sm-1">Testcase</div>
-                    <div class="col-sm-2">Risultato</div>
-                    <div class="col-sm-7">Dettagli</div>
-                    <div class="col-sm-1">Tempo</div>
-                    <div>Memoria</div>
-                  </li>
-                  <li class="list-group-item {{testcase.outcome | outcomeToClass}}" ng-repeat="testcase in subtask.testcases">
-                    <div class="col-sm-1">{{testcase.idx}}</div>
-                    <div class="col-sm-2">{{testcase.outcome}}</div>
-                    <div class="col-sm-7">{{testcase.text}}</div>
-                    <div class="col-sm-1">{{testcase.time | timeFmt}}</div>
-                    <div>{{testcase.memory | memoryFmt}}</div>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <!-- TODO: outputonly? -->
-                <h3>Dettagli della compilazione</h3>
-                <table class="table table-bordered">
-                  <tbody>
-                    <tr>
-                      <th>Esisto della compilazione</th>
-                      <td>{{sub.compilation_outcome}}</td>
-                    </tr>
-                    <tr>
-                      <th>Tempo di compilazione</th>
-                      <td>{{sub.compilation_time | timeFmt}}</td>
-                    </tr>
-                    <tr>
-                      <th>Memoria utilizzata</th>
-                      <td>{{sub.compilation_memory | memoryFmt}}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <h4>Standard output</h4>
-                <pre>{{sub.compilation_stdout}}</pre>
-                <h4>Standard error</h4>
-                <pre>{{sub.compilation_stderr}}</pre>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <table class="table table-bordered table-striped submissions">
+      <tbody>
+        <tr>
+          <th>Id</th>
+          <th>Data e ora</th>
+          <th>Stato</th>
+          <th>File</th>
+        </tr>
+      </tbody>
+      <tbody ng-show="submissions.length==0">
+        <tr>
+          <td colspan="4" class="no-submissions">nessuna sottoposizione</td>
+        </tr>
+      </tbody>
+      <tbody ng-repeat="sub in submissions[taskName]">
+        <tr class="submission">
+          <td ng-click="showDetails(sub.id)">{{sub.id}}</td>
+          <td ng-click="showDetails(sub.id)">{{sub.time}}</td>
+          <td class="{{sub.cl}}" ng-click="showDetails(sub.id)">{{sub.status}}</td>
+          <td class="files">
+            <div class="btn-group">
+              <a class="dropdown-toggle" data-toggle="dropdown">
+                Scarica
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu" role="menu">
+                <li ng-repeat="file in sub.files">
+                  <a href="/files/{{file['digest']}}/{{file['name']}}">{{file['name']}}</a>
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        <tr ng-show="sub.id == curSub">
+          <td colspan="4">
+            <div ng-repeat="subtask in sub.score_details">
+              <h3 ng-show="sub.score_details.length > 1">
+                Subtask {{subtask.idx}}
+                <span class="pull-right">
+                  {{subtask.score}}/{{subtask.max_score}}
+                </span>
+              </h3>
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <div class="col-sm-1">Testcase</div>
+                  <div class="col-sm-2">Risultato</div>
+                  <div class="col-sm-7">Dettagli</div>
+                  <div class="col-sm-1">Tempo</div>
+                  <div>Memoria</div>
+                </li>
+                <li class="list-group-item {{testcase.outcome | outcomeToClass}}" ng-repeat="testcase in subtask.testcases">
+                  <div class="col-sm-1">{{testcase.idx}}</div>
+                  <div class="col-sm-2">{{testcase.outcome}}</div>
+                  <div class="col-sm-7">{{testcase.text}}</div>
+                  <div class="col-sm-1">{{testcase.time | timeFmt}}</div>
+                  <div>{{testcase.memory | memoryFmt}}</div>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <!-- TODO: outputonly? -->
+              <h3>Dettagli della compilazione</h3>
+              <table class="table table-bordered">
+                <tbody>
+                  <tr>
+                    <th>Esisto della compilazione</th>
+                    <td>{{sub.compilation_outcome}}</td>
+                  </tr>
+                  <tr>
+                    <th>Tempo di compilazione</th>
+                    <td>{{sub.compilation_time | timeFmt}}</td>
+                  </tr>
+                  <tr>
+                    <th>Memoria utilizzata</th>
+                    <td>{{sub.compilation_memory | memoryFmt}}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <h4>Standard output</h4>
+              <pre>{{sub.compilation_stdout}}</pre>
+              <h4>Standard error</h4>
+              <pre>{{sub.compilation_stderr}}</pre>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
