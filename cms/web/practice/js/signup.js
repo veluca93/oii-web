@@ -20,7 +20,9 @@
 /* Signup page */
 
 angular.module('pws.signup', [])
-  .controller('SignupCtrl', ['$scope', '$http', '$location', 'notificationHub', function ($scope, $http, $location, hub) {
+  .controller('SignupCtrl', [
+      '$scope', '$http', '$location', 'notificationHub',
+      function ($scope, $http, $location, hub) {
     $(".avatar")
       .load(function() {
         $(".avatar-loader").hide();
