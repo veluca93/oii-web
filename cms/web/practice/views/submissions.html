@@ -73,7 +73,7 @@
                     <div class="col-sm-1">Tempo</div>
                     <div>Memoria</div>
                   </li>
-                  <li class="list-group-item" ng-repeat="testcase in subtask.testcases">
+                  <li class="list-group-item {{testcase.outcome | outcomeToClass}}" ng-repeat="testcase in subtask.testcases">
                     <div class="col-sm-1">{{testcase.idx}}</div>
                     <div class="col-sm-2">{{testcase.outcome}}</div>
                     <div class="col-sm-7">{{testcase.text}}</div>
