@@ -18,7 +18,9 @@
 'use strict';
 
 angular.module('pws.notifications', [])
-  .factory('notificationHub', [function() {
+  .factory('notificationHub', [
+      '$timeout',
+      function($timeout) {
     return {
       createAlert: function(type, msg, secs) {
         var alert = $('<div class="alert alert-' + type + ' hyphenate' +
@@ -26,9 +28,9 @@ angular.module('pws.notifications', [])
             'data-dismiss="alert" aria-hidden="true">&times;</button>' +
             msg + '</div>').hide();
         $(".notifications").prepend(alert);
-        alert.slideDown('slow');
-        window.setTimeout(function() {
-          alert.animate({'right': '-260px'}, 'slow', function() {
+        alert.slideDown('fast');
+        $timeout(function() {
+          alert.animate({'right': '-260px'}, function() {
             $(this).remove();
           });
         }, Math.round(1000 * secs));
