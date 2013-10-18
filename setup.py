@@ -165,6 +165,7 @@ def do_setup():
                   "cmsRemoveUser=cmscontrib.RemoveUser:main",
                   "cmsRemoveTask=cmscontrib.RemoveTask:main",
                   "cmsComputeComplexity=cmscontrib.ComputeComplexity:main",
+                  "cmsTestImporter=cmscontrib.TestImporter:main",
                   "cmsImporter=cmscontrib.Importer:main",
                   "cmsReimporter=cmscontrib.Reimporter:main",
                   "cmsSpoolExporter=cmscontrib.SpoolExporter:main",

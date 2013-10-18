@@ -69,6 +69,8 @@ __all__ = [
     "Watcher",
     # util
     "get_contest_list", "is_contest_id", "ask_for_contest",
+    # test
+    "Test", "TestQuestion"
     ]
 
 
@@ -94,6 +96,7 @@ from .submission import Submission, File, Token, SubmissionResult, \
 from .usertest import UserTest, UserTestFile, UserTestManager, \
     UserTestResult, UserTestExecutable
 from .fsobject import FSObject
+from .test import Test, TestQuestion, QuestionFile
 
 
 sa_entities = [
@@ -108,7 +111,9 @@ sa_entities = [
     Submission, File, Token, SubmissionResult, Executable, Evaluation,
     # usertest
     UserTest, UserTestFile, UserTestManager, UserTestResult,
-    UserTestExecutable]
+    UserTestExecutable,
+    # test
+    Test, TestQuestion, QuestionFile]
 
 
 from .init import init_db

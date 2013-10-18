@@ -35,7 +35,8 @@ from cms.log import initialize_logging
 from cms.io.WebGeventLibrary import WebService
 from cms.io import ServiceCoord
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Submission, File, Task
+from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, \
+    TestQuestion
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -61,6 +62,9 @@ class APIHandler(object):
             Rule("/login", methods=["POST"], endpoint="login"),
             Rule("/tasks", methods=["POST"], endpoint="tasks"),
             Rule("/task/<name>", methods=["GET", "POST"], endpoint="task"),
+            Rule("/tests", methods=["GET", "POST"], endpoint="tests"),
+            Rule("/test/<name>", methods=["GET", "POST"], endpoint="test"),
+            Rule("/answer/<name>", methods=["POST"], endpoint="answer"),
             Rule("/submissions/<name>", methods=["POST"],
                 endpoint="submissions"),
             Rule("/submission/<sid>", methods=["POST"], endpoint="submission"),
@@ -100,6 +104,12 @@ class APIHandler(object):
                 return self.task_handler(args["name"])
             elif endpoint == "tasks":
                 return self.tasks_handler(request)
+            elif endpoint == "test":
+                return self.test_handler(args["name"])
+            elif endpoint == "answer":
+                return self.answer_handler(request, args["name"])
+            elif endpoint == "tests":
+                return self.tests_handler()
             elif endpoint == "submissions":
                 return self.submissions_handler(request, args["name"])
             elif endpoint == "submission":
@@ -341,6 +351,8 @@ class APIHandler(object):
                 .filter(Task.name == name)\
                 .filter(Task.contest_id == contest.id)\
                 .first()
+            if t is None:
+                raise NotFound()
             resp["id"] = t.id
             resp["name"] = t.name
             resp["title"] = t.title
@@ -355,6 +367,81 @@ class APIHandler(object):
                 att[name] = obj.digest
             resp["attachments"] = att
         return self.dump_json(resp)
+
+    def tests_handler(self):
+        resp = dict()
+        with SessionGen() as session:
+            tests = session.query(Test).all()
+            resp["tests"] = []
+            for t in tests:
+                resp["tests"].append({
+                    "name": t.name,
+                    "description": t.description
+                })
+            return self.dump_json(resp)
+
+    def test_handler(self, name):
+        resp = dict()
+        with SessionGen() as session:
+            test = session.query(Test).filter(Test.name==name).first()
+            if test is None:
+                raise NotFound()
+            resp["name"] = test.name
+            resp["description"] = test.description
+            resp["questions"] = []
+            for i in test.questions:
+                q = dict()
+                q["type"] = i.type
+                q["text"] = i.text
+                q["max_score"] = i.score
+                ansdata = json.loads(i.answers)
+                if i.type == "choice":
+                    q["choices"] = [t[0] for t in ansdata]
+                else:
+                    q["answers"] = [[t[0], len(t[1])] for t in ansdata]
+                resp["questions"].append(q)
+            return self.dump_json(resp)
+
+    def answer_handler(self, request, name):
+        resp = dict()
+        with SessionGen() as session:
+            test = session.query(Test).filter(Test.name==name).first()
+            if test is None:
+                raise NotFound()
+            data = self.load_json(request)
+            for i in xrange(len(test.questions)):
+                q = test.questions[i]
+                ansdata = json.loads(q.answers)
+                if q.type == "choice":
+                    resp[i] = [q.wrong_score, "wrong"]
+                    try:
+                        if data[i] == None:
+                            resp[i] = [0, "empty"]
+                        elif ansdata[int(data[i])][1]:
+                            resp[i] = [q.score, "correct"]
+                    except IndexError:
+                        pass
+                    continue
+                else:
+                    for key, correct in ansdata:
+                        ans = data[i].get(key, None)
+                        if len(ans) != len(correct):
+                            resp[i] = [q.wrong_score, "wrong"]
+                        for a in xrange(len(ans)):
+                            if ans[a] is None:
+                                resp[i] = [0, "empty"]
+                                break
+                            if q.type == "number":
+                                an = float(ans[a])
+                                cor = float(correct[a])
+                            else:
+                                an = ans[a].lower()
+                                cor = correct[a].lower()
+                            if an != cor:
+                                resp[i] = [q.wrong_score, "wrong"]
+                    if resp.get(i, None) is None:
+                        resp[i] = [q.score, "correct"]
+            return self.dump_json(resp)
 
     def submissions_handler(self, request, name):
         resp = dict()

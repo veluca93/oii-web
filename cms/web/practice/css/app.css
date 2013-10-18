@@ -125,6 +125,49 @@ a {
   background-color: rgb(242, 222, 222) !important;
 }
 
+/* Tests */
+.input-group-addon:not(:first-child):not(:last-child), .input-group-btn:not(:first-child):not(:last-child), .input-group .form-control:not(:first-child):not(:last-child) {
+  border-right: 0px;
+}
+
+.test p {
+  text-align: justify;
+}
+
+.input-group .form-control.number {
+  width: 80px;
+  text-align: center;
+}
+
+.test .list-group-item .list-group {
+  border: 0;
+  box-shadow: none;
+}
+
+.correct, .correct.list-group-item {
+    color: rgb(70, 136, 71);
+    background-color: rgb(223, 240, 216);
+    border-color: rgb(214, 233, 198);
+}
+
+.empty, .empty.list-group-item {
+    color: rgb(58, 135, 173);
+    background-color: rgb(217, 237, 247);
+    border-color: rgb(188, 232, 241);
+}
+
+.partial, .partial.list-group-item {
+    color: rgb(192, 152, 83);
+    background-color: rgb(252, 248, 227);
+    border-color: rgb(251, 238, 213);
+}
+
+.wrong, .wrong.list-group-item {
+    color: rgb(185, 74, 72);
+    background-color: rgb(242, 222, 222);
+    border-color: rgb(238, 211, 215);
+}
+
 /* PDF.JS */
 
 .viewer {
