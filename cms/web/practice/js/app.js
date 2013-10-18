@@ -19,7 +19,7 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks', 'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup'])
+angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks', 'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup', 'pws.tests'])
   .config(['$locationProvider', '$routeProvider', function($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(false);
     $locationProvider.hashPrefix('!');
@@ -28,6 +28,8 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
     $routeProvider.when('/tasks/', {redirectTo: '/tasks/1'});
     $routeProvider.when('/tasks/:startIndex', {templateUrl: 'views/tasks.html', controller: 'TasksCtrl'});
     $routeProvider.when('/task/:taskName', {templateUrl: 'views/taskpage.html', controller: 'TaskpageCtrl'});
+    $routeProvider.when('/tests', {templateUrl: 'views/tests.html', controller: 'TestCtrl'});
+    $routeProvider.when('/test/:testName', {templateUrl: 'views/testpage.html', controller: 'TestpageCtrl'});
     $routeProvider.when('/submissions/:taskName', {templateUrl: 'views/submissions.html', controller: 'TaskpageCtrl'});
     $routeProvider.when('/stats/:taskName', {templateUrl: 'views/stats.html', controller: 'TaskpageCtrl'});
     $routeProvider.when('/signup', {templateUrl: 'views/signup.html', controller: 'SignupCtrl'});
