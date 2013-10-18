@@ -468,9 +468,10 @@ class APIHandler(object):
                     fi["digest"] = f.digest
                     submission["files"].append(fi)
                 result = s.get_result()
-                for i in ["compilation_outcome", "evaluation_outcome",
-                          "score"]:
+                for i in ["compilation_outcome", "evaluation_outcome"]:
                     submission[i] = getattr(result, i, None)
+                if result.score is not None:
+                    submission["score"] = round(result.score, 2)
                 submissions.append(submission)
         resp["submissions"] = submissions
         return self.dump_json(resp)
@@ -498,9 +499,11 @@ class APIHandler(object):
                 submission["files"].append(fi)
             result = s.get_result()
             for i in ["compilation_outcome", "evaluation_outcome",
-                      "score", "compilation_stdout", "compilation_stderr",
+                      "compilation_stdout", "compilation_stderr",
                       "compilation_time", "compilation_memory"]:
                 submission[i] = getattr(result, i, None)
+            if result.score is not None:
+                submission["score"] = round(result.score, 2)
             if result.score_details is not None:
                 tmp = json.loads(result.score_details)
                 if len(tmp)>0 and tmp[0].has_key("text"):
