@@ -1,8 +1,20 @@
 <div>
-  <legend>{{$window.task.title}}</legend>
+  <legend>
+    {{$window.task.title}}
+    <small class="pull-right">
+      Limite di tempo: {{$window.task.time_limit}} second{{{true: 'o', false: 'i'}[$window.task.time_limit == 1]}},
+      Limite di memoria: {{$window.task.memory_limit}} MiB
+    </small>
+  </legend>
   <ul class="nav nav-tabs">
     <li ng-class="{active: isActiveTab('task')}" ng-click="setActiveTab('task')">
       <a><i class="icon-file-text icon-large"></i> Testo</a>
+    </li>
+    <li ng-class="{active: isActiveTab('attachments')}" ng-click="setActiveTab('attachments')" ng-show="$window.task.attachments.length">
+      <a>
+        <span class="att-total badge pull-right">{{$window.task.attachments.length}}</span>
+        <i class="icon-paper-clip icon-large"></i> Allegati
+      </a>
     </li>
     <li ng-class="{active: isActiveTab('stats')}" ng-click="setActiveTab('stats')">
       <a><i class="icon-bar-chart icon-large"></i> Statistiche</a>

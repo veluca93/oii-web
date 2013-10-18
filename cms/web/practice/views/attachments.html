@@ -1,0 +1,13 @@
+<div class="container">
+  <taskbar></taskbar>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Allegati</h3>
+    </div>
+    <div class="panel-body">
+      <div class="list-group">
+        <a ng-repeat="att in $window.task.attachments" class="list-group-item" href="/files/{{att[1]}}/{{att[0]}}">{{att[0]}}</a>
+      </div>
+    </div>
+  </div>
+</div>

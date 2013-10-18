@@ -396,9 +396,10 @@ class APIHandler(object):
                 [sfe.filename for sfe in t.submission_format]
             for i in ["time_limit", "memory_limit", "task_type"]:
                 resp[i] = getattr(t.active_dataset, i)
-            att = dict()
+            att = []
             for (name, obj) in t.attachments.iteritems():
-                att[name] = obj.digest
+                print name, obj, obj.digest
+                att.append((name, obj.digest))
             resp["attachments"] = att
         return self.dump_json(resp)
 

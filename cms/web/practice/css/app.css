@@ -46,6 +46,12 @@ a {
   right: 0px;
 }
 
+/* Taskbar */
+
+.att-total {
+  margin-left: 5px;
+}
+
 /* Signup page */
 
 .user-preview {
