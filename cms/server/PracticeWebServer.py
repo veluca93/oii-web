@@ -25,6 +25,7 @@ import logging
 import hashlib
 import mimetypes
 import pkg_resources
+
 from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
@@ -32,11 +33,10 @@ from sqlalchemy import desc
 
 from cms import config, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.log import initialize_logging
-from cms.io.WebGeventLibrary import WebService
+from cms.io.GeventLibrary import Service
 from cms.io import ServiceCoord
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, \
-    TestQuestion
+from cms.db import SessionGen, User, Contest, Submission, File, Task, Test
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -45,8 +45,42 @@ from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound, BadRequest, \
     Unauthorized
 
+import gevent
+import gevent.wsgi
 
 logger = logging.getLogger(__name__)
+
+
+class WSGIHandler(gevent.wsgi.WSGIHandler):
+    def format_request(self):
+        if self.time_finish:
+            delta = '%.6f' % (self.time_finish - self.time_start)
+        else:
+            delta = '-'
+        client_address = self.environ['REMOTE_ADDR']
+        return '%s %s %s %s' % (
+            client_address or '-',
+            (getattr(self, 'status', None) or '000').split()[0],
+            delta,
+            getattr(self, 'requestline', ''))
+
+    def log_request(self):
+        logger.info(self.format_request())
+
+    def get_environ(self):
+        env = gevent.wsgi.WSGIHandler.get_environ(self)
+        # Proxy support
+        if config.is_proxy_used:
+            if 'HTTP_X_FORWARDED_FOR' in env:
+                env['REMOTE_ADDR'] = \
+                    env['HTTP_X_FORWARDED_FOR'].split(',')[0].strip()
+            elif 'HTTP_X_REAL_IP' in env:
+                env['REMOTE_ADDR'] = env['HTTP_X_REAL_IP']
+        return env
+
+
+class Server(gevent.wsgi.WSGIServer):
+    handler_class = WSGIHandler
 
 
 class APIHandler(object):
@@ -66,7 +100,7 @@ class APIHandler(object):
             Rule("/test/<name>", methods=["GET", "POST"], endpoint="test"),
             Rule("/answer/<name>", methods=["POST"], endpoint="answer"),
             Rule("/submissions/<name>", methods=["POST"],
-                endpoint="submissions"),
+                 endpoint="submissions"),
             Rule("/submission/<sid>", methods=["POST"], endpoint="submission"),
             Rule("/submit/<name>", methods=["POST"], endpoint="submit")
         ], encoding_errors="strict")
@@ -383,7 +417,7 @@ class APIHandler(object):
     def test_handler(self, name):
         resp = dict()
         with SessionGen() as session:
-            test = session.query(Test).filter(Test.name==name).first()
+            test = session.query(Test).filter(Test.name == name).first()
             if test is None:
                 raise NotFound()
             resp["name"] = test.name
@@ -405,7 +439,7 @@ class APIHandler(object):
     def answer_handler(self, request, name):
         resp = dict()
         with SessionGen() as session:
-            test = session.query(Test).filter(Test.name==name).first()
+            test = session.query(Test).filter(Test.name == name).first()
             if test is None:
                 raise NotFound()
             data = self.load_json(request)
@@ -415,7 +449,7 @@ class APIHandler(object):
                 if q.type == "choice":
                     resp[i] = [q.wrong_score, "wrong"]
                     try:
-                        if data[i] == None:
+                        if data[i] is None:
                             resp[i] = [0, "empty"]
                         elif ansdata[int(data[i])][1]:
                             resp[i] = [q.score, "correct"]
@@ -508,7 +542,7 @@ class APIHandler(object):
                 submission["score"] = round(result.score, 2)
             if result.score_details is not None:
                 tmp = json.loads(result.score_details)
-                if len(tmp)>0 and tmp[0].has_key("text"):
+                if len(tmp) > 0 and 'text' in tmp[0]:
                     subt = dict()
                     subt["testcases"] = tmp
                     subt["score"] = submission["score"]
@@ -610,21 +644,17 @@ class APIHandler(object):
             return self.dump_json(resp)
 
 
-class PracticeWebServer(WebService):
+class PracticeWebServer(Service):
     """Service that runs the web server for practice.
 
     """
     def __init__(self, shard, contest):
         initialize_logging("PracticeWebServer", shard)
 
-        WebService.__init__(
-            self,
-            config.contest_listen_port[shard],
-            [],
-            {},
-            shard=shard,
-            listen_address=config.contest_listen_address[shard])
+        Service.__init__(self, shard=shard)
 
+        self.address = config.contest_listen_address[shard]
+        self.port = config.contest_listen_port[shard]
         self.file_cacher = FileCacher(self)
         self.contest = contest
         self.evaluation_service = self.connect_to(
@@ -636,3 +666,8 @@ class PracticeWebServer(WebService):
             '/':        ("cms.web", "practice"),
             '/assets':  ("cms.web", "assets")
         })
+
+    def run(self):
+        server = Server((self.address, self.port), self.wsgi_app)
+        gevent.spawn(server.serve_forever)
+        Service.run(self)
