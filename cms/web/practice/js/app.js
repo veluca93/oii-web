@@ -57,6 +57,15 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
       return input.replace(/.%l$/, ".(cpp|c|pas)")
     }
   })
+  .filter('outcomeToClass', function() {
+    return function(input) {
+      if(input == "Correct")
+        return "sub-full";
+      if(input == "Not correct")
+        return "sub-zero";
+      return "sub-partial";
+    }
+  })
   .filter('timeFmt', function() {
     return function(input) {
       return input.toFixed(3) + "s";
