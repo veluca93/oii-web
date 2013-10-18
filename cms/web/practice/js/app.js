@@ -69,11 +69,13 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
   })
   .filter('timeFmt', function() {
     return function(input) {
+      if(input == undefined) return "N/A";
       return input.toFixed(3) + "s";
     }
   })
   .filter('memoryFmt', function() {
     return function(input) {
+      if(input == undefined) return "N/A";
       if(input>1024*1024)
         return (input/(1024*1024)).toFixed(1) + " MiB";
       else if(input>1024)

@@ -181,7 +181,7 @@ angular.module('pws.tasks', [])
             hub.createAlert('danger', 'Files mancanti!', 2);
             break;
           }
-          var reader = FileReader();
+          var reader = new FileReader();
           reader.readAsBinaryString(input[i].files[0]);
           reader.filename = input[i].files[0].name
           reader.inputname = input[i].name
