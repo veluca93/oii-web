@@ -504,7 +504,7 @@ class APIHandler(object):
                 result = s.get_result()
                 for i in ["compilation_outcome", "evaluation_outcome"]:
                     submission[i] = getattr(result, i, None)
-                if result.score is not None:
+                if result is not None and result.score is not None:
                     submission["score"] = round(result.score, 2)
                 submissions.append(submission)
         resp["submissions"] = submissions
@@ -536,9 +536,9 @@ class APIHandler(object):
                       "compilation_stdout", "compilation_stderr",
                       "compilation_time", "compilation_memory"]:
                 submission[i] = getattr(result, i, None)
-            if result.score is not None:
+            if result is not None and result.score is not None:
                 submission["score"] = round(result.score, 2)
-            if result.score_details is not None:
+            if result is not None and result.score_details is not None:
                 tmp = json.loads(result.score_details)
                 if len(tmp) > 0 and 'text' in tmp[0]:
                     subt = dict()
