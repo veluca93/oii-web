@@ -28,7 +28,9 @@ angular.module('pws.navbar', [])
       controller: 'NavbarCtrl',
     };
   }])
-  .controller('NavbarCtrl', ['$scope', '$location', 'userManager', function($scope, $location, user) {
+  .controller('NavbarCtrl', [
+      '$scope', '$location', 'userManager',
+      function($scope, $location, user) {
     $('.signin-form input').click(function(e) {
       e.stopPropagation();
     });

@@ -19,11 +19,15 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks', 'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup', 'pws.tests'])
-  .config(['$locationProvider', '$routeProvider', function($locationProvider, $routeProvider) {
+angular.module('pws', [
+    'ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks', 'pws.user',
+    'pws.footer', 'pws.notifications', 'pws.signup', 'pws.tests'
+  ])
+  .config([
+      '$locationProvider', '$routeProvider',
+      function($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(false);
     $locationProvider.hashPrefix('!');
-
     $routeProvider.when('/overview', {templateUrl: 'views/overview.html'});
     $routeProvider.when('/tasks/', {redirectTo: '/tasks/1'});
     $routeProvider.when('/tasks/:startIndex', {templateUrl: 'views/tasks.html', controller: 'TasksCtrl'});
@@ -40,7 +44,8 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
     return function(input) {
       var arr = input.split(' '), ret = "";
       for (var i=0; i<arr.length; i++) {
-        if (i > 0) ret += " ";
+        if (i > 0)
+          ret += " ";
         ret += arr[i].charAt(0).toUpperCase() + arr[i].slice(1).toLowerCase();
       }
       return ret;
@@ -60,25 +65,27 @@ angular.module('pws', ['ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
   })
   .filter('outcomeToClass', function() {
     return function(input) {
-      if(input == "Correct")
+      if (input == "Correct")
         return "sub-full";
-      if(input == "Not correct")
+      if (input == "Not correct")
         return "sub-zero";
       return "sub-partial";
     }
   })
   .filter('timeFmt', function() {
     return function(input) {
-      if(input == undefined) return "N/A";
+      if (input == undefined)
+        return "N/A";
       return input.toFixed(3) + "s";
     }
   })
   .filter('memoryFmt', function() {
     return function(input) {
-      if(input == undefined) return "N/A";
-      if(input>1024*1024)
+      if (input == undefined)
+        return "N/A";
+      if (input>1024*1024)
         return (input/(1024*1024)).toFixed(1) + " MiB";
-      else if(input>1024)
+      else if (input>1024)
         return (input/1024).toFixed(0) + " KiB";
       return input + " B";
     }
