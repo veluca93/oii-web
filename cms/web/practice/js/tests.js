@@ -32,8 +32,8 @@ angular.module('pws.tests', [])
       });
   }])
   .controller('TestpageCtrl', [
-      '$scope', '$routeParams', '$http', 'userManager', 'notificationHub',
-      function($scope, $routeParams, $http, user, hub) {
+      '$scope', '$stateParams', '$http', 'userManager', 'notificationHub',
+      function($scope, $stateParams, $http, user, hub) {
     $scope.score = function() {
       var data = [];
       for (var i in $scope.test["questions"]) {
@@ -51,7 +51,7 @@ angular.module('pws.tests', [])
           data.push(tmp);
         }
       }
-      $http.post('answer/' + $routeParams.testName, data)
+      $http.post('answer/' + $stateParams.testName, data)
         .success(function(data, status, headers, config) {
           var tot = 0;
           var maxtot = 0;
@@ -75,7 +75,7 @@ angular.module('pws.tests', [])
           hub.createAlert('danger', 'Errore di connessione', 2);
         });
     }
-    $http.post('test/' + $routeParams.testName, {})
+    $http.post('test/' + $stateParams.testName, {})
       .success(function(data, status, headers, config) {
         $scope.test = data;
         for (var i in data["questions"]) {
