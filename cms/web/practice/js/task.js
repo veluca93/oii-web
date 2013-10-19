@@ -34,7 +34,7 @@ angular.module('pws.task', [])
         $http, $window, $rootScope, userManager, notificationHub,
         subsDatabase, taskbarManager) {
     taskbarManager.setActiveTab(4);
-    subs.load($scope.taskName);
+    subsDatabase.load($scope.taskName);
     $scope.loadFiles = function() {
       var input = $("#submitform input");
       $window.loadCount = input.length;
@@ -72,7 +72,7 @@ angular.module('pws.task', [])
       $http.post('submit/' + $scope.taskName, data)
         .success(function(data, status, headers, config) {
           if (data["success"])
-            subs.addSub($scope.taskName, data);
+            subsDatabase.addSub($scope.taskName, data);
           else
             hub.createAlert('danger', data["error"], 2);
       }).error(function(data, status, headers, config) {
@@ -83,6 +83,6 @@ angular.module('pws.task', [])
       if ($rootScope.curSub == id)
         $rootScope.curSub = 0;
       else
-        subs.subDetails(id);
+        subsDatabase.subDetails(id);
     }
   });
