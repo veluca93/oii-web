@@ -22,7 +22,7 @@
 angular.module('pws', [
     'ui.router', 'ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
     'pws.task', 'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
-    'pws.tests'
+    'pws.tests', 'pws.overview'
   ])
   .config(function($locationProvider, $stateProvider, $urlRouterProvider) {
     $locationProvider.html5Mode(false).hashPrefix('!');
@@ -33,7 +33,8 @@ angular.module('pws', [
     $stateProvider
       .state('overview', {
         url: '/overview',
-        templateUrl: 'views/overview.html'
+        templateUrl: 'views/overview.html',
+        controller: 'OverviewCtrl'
       })
       .state('tasks', {
         url: '/tasks/{startIndex}',
@@ -43,27 +44,27 @@ angular.module('pws', [
       .state('task', {
         url: '/task/{taskName}',
         templateUrl: 'views/task.html',
-        controller: 'TaskpageCtrl'
+        controller: 'TaskbarCtrl'
       })
       .state('task.statement', {
         url: '/statement',
         templateUrl: 'views/task.statement.html',
-        controller: 'TaskpageCtrl'
+        controller: 'StatementCtrl'
       })
       .state('task.submissions', {
         url: '/submissions',
         templateUrl: 'views/task.submissions.html',
-        controller: 'TaskpageCtrl'
+        controller: 'SubmissionsCtrl'
       })
       .state('task.attachments', {
         url: '/attachments',
         templateUrl: 'views/task.attachments.html',
-        controller: 'TaskpageCtrl'
+        controller: 'AttachmentsCtrl'
       })
       .state('task.stats', {
         url: '/stats',
         templateUrl: 'views/task.stats.html',
-        controller: 'TaskpageCtrl'
+        controller: 'StatsCtrl'
       })
       .state('signup', {
         url: '/signup',
@@ -73,20 +74,13 @@ angular.module('pws', [
       .state('tests', {
         url: '/tests',
         templateUrl: 'views/tests.html',
-        controller: 'TestCtrl'
+        controller: 'TestsCtrl'
       })
       .state('test', {
         url: '/test/{testName}',
         templateUrl: 'views/testpage.html',
         controller: 'TestpageCtrl'
       });
-  })
-  .filter('range', function() {
-    return function(input, min, max) {
-      for (var i=min; i<max; i++)
-        input.push(i);
-      return input;
-    }
   })
   .filter('repext', function() {
     return function(input) {

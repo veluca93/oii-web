@@ -17,25 +17,33 @@
  */
 'use strict';
 
-angular.module('pws.navbar', [])
-  .directive('navbar', [function() {
+angular.module('pws.navbar', ['pws.user'])
+  .directive('navbar', function() {
     return {
       restrict: 'E',
       scope: {},
       templateUrl: 'partials/navbar.html',
       replace: true,
       transclude: true,
-      controller: 'NavbarCtrl',
+      controller: 'NavbarCtrl'
     };
-  }])
-  .controller('NavbarCtrl', [
-      '$scope', '$location', 'userManager',
-      function($scope, $location, user) {
+  })
+  .factory('navbarManager', function() {
+    var activeTab = 0;
+    return {
+      isActiveTab: function(tab) {
+        return tab == activeTab;
+      },
+      setActiveTab: function(tab) {
+        activeTab = tab;
+      }
+    };
+  })
+  .controller('NavbarCtrl', function($scope, $location, userManager,
+        navbarManager) {
     $('.signin-form input').click(function(e) {
       e.stopPropagation();
     });
-    $scope.getUsername = user.getUsername;
-    $scope.isActivePage = function(page) {
-      return $location.path().indexOf(page) == 1;
-    }
-  }]);
+    $scope.getUsername = userManager.getUsername;
+    $scope.isActiveTab = navbarManager.isActiveTab;
+  });

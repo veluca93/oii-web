@@ -20,9 +20,7 @@
 /* Signin page */
 
 angular.module('pws.user', [])
-  .factory('userManager', [
-      '$http', 'notificationHub',
-      function($http, hub) {
+  .factory('userManager', function($http, notificationHub) {
     return {
       isLogged: function() {
         return localStorage.getItem('token') !== null &&
@@ -41,47 +39,36 @@ angular.module('pws.user', [])
       signout: function() {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
-      },
-      loadSubs: function(callback) {
-        $http.post('submissions', {})
-          .success(function(data, status, headers, config) {
-            //~ hub.createAlert('success', 'Caricato tutto', 1);
-            //~ all = data.tasks;
-            //~ for (var item in all)
-              //~ allSize ++;
-            callback.call(this);
-          }).error(function(data, status, headers, config) {
-            hub.createAlert('danger', 'Errore di connessione', 2);
-          });
-      },
+      }
     };
-  }])
-  .controller('SignCtrl', [
-      '$scope', '$http', 'userManager', 'notificationHub',
-      function ($scope, $http, user, hub) {
+  })
+  .controller('SignCtrl', function ($scope, $http, userManager,
+        notificationHub) {
     $scope.user = {'username': '', 'password': ''};
-    $scope.isLogged = user.isLogged;
+    $scope.isLogged = userManager.isLogged;
     $scope.signin = function() {
       $http.post('login', $scope.user)
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
-          user.signin(data.token, $scope.user.username);
-          hub.createAlert('success', 'Bentornato, ' + user.getUsername(), 3);
+          userManager.signin(data.token, $scope.user.username);
+          notificationHub.createAlert('success', 'Bentornato, ' +
+              userManager.getUsername(), 3);
         }
         else if (data.success == 0) {
-          hub.createAlert('danger', 'Sign in error', 3);
+          notificationHub.createAlert('danger', 'Sign in error', 3);
         }
         else return;
         $scope.user.username = '';
         $scope.user.password = '';
       }).error(function(data, status, headers, config) {
-        hub.createAlert('danger', 'Errore interno ' +
-          'in fase di login: assicurati che la tua connessione a internet sia ' +
-          'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.', 5);
+        notificationHub.createAlert('danger', 'Errore interno in fase' +
+          ' di login: assicurati che la tua connessione a internet sia'+
+          ' funzionante e, se l\'errore dovesse ripetersi, contatta un'+
+          ' amministratore.', 5);
       });
     };
     $scope.signout = function(){
-      user.signout();
-      hub.createAlert('success', 'Arrivederci', 1);
+      userManager.signout();
+      notificationHub.createAlert('success', 'Arrivederci', 1);
     }
-  }]);
+  });

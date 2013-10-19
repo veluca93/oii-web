@@ -10,19 +10,19 @@
     </div>
     <div class="navbar-collapse collapse" ng-controller="SignCtrl">
       <ul class="nav navbar-nav">
-        <li ng-class="{active: isActivePage('overview')}">
+        <li ng-class="{active: isActiveTab(1)}">
           <a ui-sref="overview"><i class="icon-home icon-large"></i> Home</a>
         </li>
-        <li ng-class="{active: isActivePage('tasks')}">
+        <li ng-class="{active: isActiveTab(2)}">
           <a ui-sref="tasks"><i class="icon-list icon-large"></i> Archivio problemi</a>
         </li>
-        <li ng-class="{active: isActivePage('tests')}">
+        <li ng-class="{active: isActiveTab(3)}">
           <a ui-sref="tests"><i class="icon-pencil icon-large"></i> Test</a>
         </li>
-        <li ng-class="{active: isActivePage('ranks')}">
+        <li ng-class="{active: isActiveTab(4)}">
           <a ui-sref="ranks"><i class="icon-trophy icon-large"></i> Classifiche</a>
         </li>
-        <li ng-show="!isLogged()" ng-class="{active: isActivePage('signup')}">
+        <li ng-class="{active: isActiveTab(5)}" ng-show="!isLogged()">
           <a ui-sref="signup"><i class="icon-pencil icon-large"></i> Sign up</a>
         </li>
       </ul>

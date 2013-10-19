@@ -17,21 +17,9 @@
  */
 'use strict';
 
-angular.module('pws.notifications', [])
-  .factory('notificationHub', function($timeout) {
-    return {
-      createAlert: function(type, msg, secs) {
-        var alert = $('<div class="alert alert-' + type + ' hyphenate' +
-            ' alert-dismissable"><button type="button" class="close" ' +
-            'data-dismiss="alert" aria-hidden="true">&times;</button>' +
-            msg + '</div>').hide();
-        $(".notifications").prepend(alert);
-        alert.slideDown('fast');
-        $timeout(function() {
-          alert.animate({'right': '-260px'}, function() {
-            $(this).remove();
-          });
-        }, Math.round(1000 * secs));
-      },
-    };
+/* Signup page */
+
+angular.module('pws.overview', [])
+  .controller('OverviewCtrl', function (navbarManager) {
+    navbarManager.setActiveTab(1);
   });
