@@ -36,10 +36,4 @@ angular.module('pws.notifications', [])
         }, Math.round(1000 * secs));
       },
     };
-  }])
-  .directive('notifications', [function() {
-    return {
-      restrict: 'E',
-      template: '<div class="notifications"></div>',
-    };
   }]);

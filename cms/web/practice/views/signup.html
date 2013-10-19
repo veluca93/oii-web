@@ -70,7 +70,9 @@
           <img src="../../assets/ico/loader.gif" class="avatar-loader"/>
         </div>
         <h2>{{{true: user.username, false: '(username)'}[user.username.length > 0]}}</h2>
-        {{{true: user.firstname, false: '(nome)'}[user.firstname.length > 0] | capitalize}} {{{true: user.lastname, false: '(cognome)'}[user.lastname.length > 0] | capitalize}}
+        <span class="nome-cognome">
+          {{{true: user.firstname, false: '(nome)'}[user.firstname.length > 0] | lowercase}} {{{true: user.lastname, false: '(cognome)'}[user.lastname.length > 0] | lowercase}}
+        </span>
       </div>
     </div>
   </div>

@@ -58,6 +58,10 @@ a {
   text-align: center;
 }
 
+.user-preview .nome-cognome {
+  text-transform: capitalize;
+}
+
 .avatar-wrapper {
   position: relative;
   margin: auto;

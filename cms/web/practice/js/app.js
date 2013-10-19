@@ -20,36 +20,66 @@
 
 // Declare app level module which depends on filters, and services
 angular.module('pws', [
-    'ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks', 'pws.user',
-    'pws.footer', 'pws.notifications', 'pws.signup', 'pws.tests'
+    'ui.router', 'ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
+    'pws.task', 'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
+    'pws.tests'
   ])
-  .config([
-      '$locationProvider', '$routeProvider',
-      function($locationProvider, $routeProvider) {
-    $locationProvider.html5Mode(false);
-    $locationProvider.hashPrefix('!');
-    $routeProvider.when('/overview', {templateUrl: 'views/overview.html'});
-    $routeProvider.when('/tasks/', {redirectTo: '/tasks/1'});
-    $routeProvider.when('/tasks/:startIndex', {templateUrl: 'views/tasks.html', controller: 'TasksCtrl'});
-    $routeProvider.when('/task/:taskName', {templateUrl: 'views/taskpage.html', controller: 'TaskpageCtrl'});
-    $routeProvider.when('/tests', {templateUrl: 'views/tests.html', controller: 'TestCtrl'});
-    $routeProvider.when('/test/:testName', {templateUrl: 'views/testpage.html', controller: 'TestpageCtrl'});
-    $routeProvider.when('/submissions/:taskName', {templateUrl: 'views/submissions.html', controller: 'TaskpageCtrl'});
-    $routeProvider.when('/attachments/:taskName', {templateUrl: 'views/attachments.html', controller: 'TaskpageCtrl'});
-    $routeProvider.when('/stats/:taskName', {templateUrl: 'views/stats.html', controller: 'TaskpageCtrl'});
-    $routeProvider.when('/signup', {templateUrl: 'views/signup.html', controller: 'SignupCtrl'});
-    $routeProvider.otherwise({redirectTo: '/overview'});
-  }])
-  .filter('capitalize', function() {
-    return function(input) {
-      var arr = input.split(' '), ret = "";
-      for (var i=0; i<arr.length; i++) {
-        if (i > 0)
-          ret += " ";
-        ret += arr[i].charAt(0).toUpperCase() + arr[i].slice(1).toLowerCase();
-      }
-      return ret;
-    }
+  .config(function($locationProvider, $stateProvider, $urlRouterProvider) {
+    $locationProvider.html5Mode(false).hashPrefix('!');
+    $urlRouterProvider
+      .when('/tasks/', '/tasks/1')
+      .when('/task/{taskName}', '/task/{taskName}/statement')
+      .otherwise('/overview');
+    $stateProvider
+      .state('overview', {
+        url: '/overview',
+        templateUrl: 'views/overview.html'
+      })
+      .state('tasks', {
+        url: '/tasks/{startIndex}',
+        templateUrl: 'views/tasks.html',
+        controller: 'TasksCtrl'
+      })
+      .state('task', {
+        url: '/task/{taskName}',
+        templateUrl: 'views/task.html',
+        controller: 'TaskpageCtrl'
+      })
+      .state('task.statement', {
+        url: '/statement',
+        templateUrl: 'views/task.statement.html',
+        controller: 'TaskpageCtrl'
+      })
+      .state('task.submissions', {
+        url: '/submissions',
+        templateUrl: 'views/task.submissions.html',
+        controller: 'TaskpageCtrl'
+      })
+      .state('task.attachments', {
+        url: '/attachments',
+        templateUrl: 'views/task.attachments.html',
+        controller: 'TaskpageCtrl'
+      })
+      .state('task.stats', {
+        url: '/stats',
+        templateUrl: 'views/task.stats.html',
+        controller: 'TaskpageCtrl'
+      })
+      .state('signup', {
+        url: '/signup',
+        templateUrl: 'views/signup.html',
+        controller: 'SignupCtrl'
+      })
+      .state('tests', {
+        url: '/tests',
+        templateUrl: 'views/tests.html',
+        controller: 'TestCtrl'
+      })
+      .state('test', {
+        url: '/test/{testName}',
+        templateUrl: 'views/testpage.html',
+        controller: 'TestpageCtrl'
+      });
   })
   .filter('range', function() {
     return function(input, min, max) {
