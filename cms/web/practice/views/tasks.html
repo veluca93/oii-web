@@ -2,7 +2,7 @@
   <pagination total-items="$window.totalTasks" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="startIndex" on-select-page="updPage(page)" items-per-page="tasksPerPage">
   </pagination>
   <div class="list-group">
-    <a ng-repeat="task in tasks" class="list-group-item" href="#!/task/{{task.name}}">
+    <a ng-repeat="task in tasks" class="list-group-item" ui-sref="task.statement({ taskName: task.name })">
       <i class="icon-angle-right"></i> {{task.title}}
       <tt class="pull-right">{{task.name}}</tt>
     </a>
