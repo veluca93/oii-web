@@ -18,13 +18,38 @@
 'use strict';
 
 angular.module('pws.taskbar', [])
-  .directive('taskbar', [function() {
+  .directive('taskbar', function() {
     return {
       restrict: 'E',
       scope: {},
       templateUrl: 'partials/taskbar.html',
       replace: true,
       transclude: true,
-      controller: 'TaskpageCtrl',
+      controller: 'TaskbarCtrl',
     };
-  }]);
+  })
+  .factory('taskbarManager', function() {
+    var activeTab = 0;
+    return {
+      isActiveTab: function(tab) {
+        return tab == activeTab;
+      },
+      setActiveTab: function(tab) {
+        activeTab = tab;
+      }
+    };
+  })
+  .controller('TaskbarCtrl', function($scope, $stateParams, $http, $window,
+        userManager, notificationHub, taskbarManager) {
+    $("#timeLimit, #memoLimit").popover();
+    $scope.isActiveTab = taskbarManager.isActiveTab;
+    $scope.isLogged = userManager.isLogged;
+    $scope.taskName = $stateParams.taskName;
+    $scope.$window = $window;
+    $http.post('task/' + $scope.taskName, {})
+      .success(function(data, status, headers, config) {
+        $scope.$window.task = data;
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Errore di connessione', 2);
+    });
+  });

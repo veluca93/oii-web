@@ -21,19 +21,18 @@
 /* Test handling page */
 
 angular.module('pws.tests', [])
-  .controller('TestCtrl', [
-      '$scope', '$http', 'notificationHub',
-      function($scope, $http, hub) {
+  .controller('TestsCtrl', function($scope, $http, notificationHub,
+        navbarManager) {
+    navbarManager.setActiveTab(3);
     $http.post('tests', {})
       .success(function(data, status, headers, config) {
         $scope.tests = data["tests"];
       }).error(function(data, status, headers, config) {
-        hub.createAlert('danger', 'Errore di connessione', 2);
+        notificationHub.createAlert('danger', 'Errore di connessione', 2);
       });
-  }])
-  .controller('TestpageCtrl', [
-      '$scope', '$stateParams', '$http', 'userManager', 'notificationHub',
-      function($scope, $stateParams, $http, user, hub) {
+  })
+  .controller('TestpageCtrl', function($scope, $stateParams, $http,
+        notificationHub) {
     $scope.score = function() {
       var data = [];
       for (var i in $scope.test["questions"]) {
@@ -72,7 +71,7 @@ angular.module('pws.tests', [])
           else
             $scope.test["status"] = "correct";
         }).error(function(data, status, headers, config) {
-          hub.createAlert('danger', 'Errore di connessione', 2);
+          notificationHub.createAlert('danger', 'Errore di connessione', 2);
         });
     }
     $http.post('test/' + $stateParams.testName, {})
@@ -102,6 +101,6 @@ angular.module('pws.tests', [])
         }
         setTimeout("MathJax.Hub.Queue(['Typeset',MathJax.Hub])", 100);
       }).error(function(data, status, headers, config) {
-        hub.createAlert('danger', 'Errore di connessione', 2);
+        notificationHub.createAlert('danger', 'Errore di connessione', 2);
       });
-  }]);
+  });

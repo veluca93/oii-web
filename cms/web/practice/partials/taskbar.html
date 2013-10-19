@@ -1,19 +1,19 @@
 <div>
   <legend>{{$window.task.title}}</legend>
   <ul class="nav nav-tabs">
-    <li ng-class="{active: isActiveTab('statement')}">
+    <li ng-class="{active: isActiveTab(1)}">
       <a ui-sref=".statement"><i class="icon-file-text icon-large"></i> Testo</a>
     </li>
-    <li ng-class="{active: isActiveTab('attachments')}" ng-show="$window.task.attachments.length">
+    <li ng-class="{active: isActiveTab(2)}" ng-show="$window.task.attachments.length">
       <a ui-sref=".attachments">
         <span class="att-total badge pull-right">{{$window.task.attachments.length}}</span>
         <i class="icon-paper-clip icon-large"></i> Allegati
       </a>
     </li>
-    <li ng-class="{active: isActiveTab('stats')}">
+    <li ng-class="{active: isActiveTab(3)}">
       <a ui-sref=".stats"><i class="icon-bar-chart icon-large"></i> Statistiche</a>
     </li>
-    <li ng-class="{active: isActiveTab('submissions')}" ng-show="isLogged()">
+    <li ng-class="{active: isActiveTab(4)}" ng-show="isLogged()">
       <a ui-sref=".submissions"><i class="icon-code icon-large"></i> Sottoposizioni</a>
     </li>
     <li id="memoLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di memoria" data-content="La quantità di memoria, in MiB, disponibile per l'esecuzione di un testcase.">

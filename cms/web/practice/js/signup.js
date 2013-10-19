@@ -20,9 +20,8 @@
 /* Signup page */
 
 angular.module('pws.signup', [])
-  .controller('SignupCtrl', [
-      '$scope', '$http', '$location', 'notificationHub',
-      function ($scope, $http, $location, hub) {
+  .controller('SignupCtrl', function ($scope, $http, $location,
+        notificationHub) {
     $(".avatar")
       .load(function() {
         $(".avatar-loader").hide();
@@ -38,9 +37,25 @@ angular.module('pws.signup', [])
         avatar.attr('src', newSrc);
       }
     });
-    $scope.isBad = {'username': true, 'email': true, 'password': true, 'password2': true, 'email2': true};
-    $scope.user = {'username': '', 'email': '', 'email2': '', 'password': '', 'password2': ''};
-    $scope.errorMsg = {'password': 'Password troppo corta', 'password2': 'Non combacia', 'email2': 'Non combacia'};
+    $scope.isBad = {
+      'username': true,
+      'email': true,
+      'password': true,
+      'password2': true,
+      'email2': true
+    };
+    $scope.user = {
+      'username': '',
+      'email': '',
+      'email2': '',
+      'password': '',
+      'password2': ''
+    };
+    $scope.errorMsg = {
+      'password': 'Password troppo corta',
+      'password2': 'Non combacia',
+      'email2': 'Non combacia'
+    };
     $scope.submit = function() {
       $scope.checkUsername();
       $scope.checkEmail();
@@ -64,7 +79,7 @@ angular.module('pws.signup', [])
       $http.post('register', $scope.user)
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
-            hub.createAlert('success', 'Complimenti, ' +
+            notificationHub.createAlert('success', 'Complimenti, ' +
               'la registrazione è andata a buon fine, adesso puoi accedere con le credenziali ' +
               'del tuo nuovo account usando il modulo in alto a destra. Una volta entrato ' +
               'nel sistema avrai la possibilità di sottoporre le soluzioni ai task presenti ' +
@@ -72,7 +87,7 @@ angular.module('pws.signup', [])
             $location.path("tasks");
           }
         }).error(function(data, status, headers, config) {
-          hub.createAlert('danger', 'Errore interno ' +
+          notificationHub.createAlert('danger', 'Errore interno ' +
             'in fase di registrazione: assicurati che la tua connessione a internet sia ' +
             'funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.', 5);
         });
@@ -101,4 +116,4 @@ angular.module('pws.signup', [])
     $scope.matchEmail = function() {
       $scope.isBad['email2'] = ($scope.user.email !== $scope.user.email2);
     };
-  }]);
+  });
