@@ -52,6 +52,13 @@ a {
   margin-left: 5px;
 }
 
+/* Submissions */
+
+#submission_detail .modal-body {
+  max-height: 600px;
+  overflow-y: scroll;
+}
+
 /* Signup page */
 
 .user-preview {

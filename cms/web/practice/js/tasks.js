@@ -43,17 +43,17 @@ angular.module('pws.tasks', [])
       updSubs();
     }
     function intervalFromAttempts(i) {
-        if(i<10 || i==undefined)
+        if (i<10 || i==undefined)
           return 1;
-        if(i<30)
+        if (i<30)
           return 2;
-        if(i<50)
+        if (i<50)
           return 3;
-        if(i<100)
+        if (i<100)
           return 5;
-        if(i<300)
+        if (i<300)
           return 10;
-        if(i<500)
+        if (i<500)
           return 60;
         return i/4;
     }
@@ -97,9 +97,9 @@ angular.module('pws.tasks', [])
       $rootScope.submissions[name].unshift(extendSub(sub));
     }
     function replaceSub(id, sub) {
-      for(name in $rootScope.submissions)
-        for(var i=0; i<$rootScope.submissions[name].length; i++)
-          if($rootScope.submissions[name][i]["id"] == id){
+      for (name in $rootScope.submissions)
+        for (var i=0; i<$rootScope.submissions[name].length; i++)
+          if ($rootScope.submissions[name][i]["id"] == id) {
               $rootScope.submissions[name][i] = extendSub(sub);
               return;
           }
@@ -112,6 +112,7 @@ angular.module('pws.tasks', [])
       .success(function(data, status, headers, config) {
         replaceSub(id, data);
         $rootScope.curSub = id;
+        $rootScope.actualCurSub = data;
       }).error(function(data, status, headers, config) {
         notificationHub.createAlert('danger', 'Errore di connessione', 2);
       });

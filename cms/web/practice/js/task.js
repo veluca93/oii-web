@@ -61,11 +61,11 @@ angular.module('pws.task', [])
       $("#submitform").each(function() {
         this.reset();
       });
-    }
+    };
     $scope.submitFiles = function() {
       var data = {};
-      data["username"] = user.getUsername();
-      data["token"] = user.getToken();
+      data["username"] = userManager.getUsername();
+      data["token"] = userManager.getToken();
       data["files"] = $window.files;
       delete $window.files;
       delete $window.loadCount;
@@ -78,11 +78,8 @@ angular.module('pws.task', [])
       }).error(function(data, status, headers, config) {
           hub.createAlert('danger', 'Errore di connessione', 2);
       });
-    }
+    };
     $scope.showDetails = function(id) {
-      if ($rootScope.curSub == id)
-        $rootScope.curSub = 0;
-      else
-        subsDatabase.subDetails(id);
-    }
+      subsDatabase.subDetails(id);
+    };
   });
