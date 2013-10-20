@@ -32,7 +32,7 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from sqlalchemy.schema import Column, ForeignKey, CheckConstraint, \
-    UniqueConstraint, ForeignKeyConstraint
+    UniqueConstraint, ForeignKeyConstraint, Table
 from sqlalchemy.types import Boolean, Integer, Float, String, Unicode, \
     Interval, Enum
 from sqlalchemy.orm import backref, relationship
@@ -556,5 +556,33 @@ class Testcase(Base):
         String,
         nullable=False)
     output = Column(
+        String,
+        nullable=False)
+
+
+tasktags = Table(
+    'tasktags', Base.metadata,
+    Column('task_id', Integer, ForeignKey('tasks.id')),
+    Column('tag_id', Integer, ForeignKey('tags.id'))
+)
+
+
+class Tag(Base):
+    __tablename__ = 'tags'
+    id = Column(
+        Integer,
+        primary_key=True)
+
+    tasks = relationship(
+        "Task",
+        secondary=tasktags,
+        backref="tags")
+
+    name = Column(
+        String,
+        nullable=False,
+        unique=True)
+
+    description = Column(
         String,
         nullable=False)

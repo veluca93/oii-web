@@ -96,7 +96,7 @@ from .base import metadata, Base
 from .contest import Contest, Announcement
 from .user import User, Message, Question
 from .task import Task, Statement, Attachment, SubmissionFormatElement, \
-    Dataset, Manager, Testcase
+    Dataset, Manager, Testcase, Tag
 from .submission import Submission, File, Token, SubmissionResult, \
     Executable, Evaluation
 from .usertest import UserTest, UserTestFile, UserTestManager, \
