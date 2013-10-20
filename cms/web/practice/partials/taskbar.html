@@ -16,10 +16,10 @@
     <li ng-class="{active: isActiveTab(4)}" ng-show="isLogged()">
       <a ui-sref=".submissions"><i class="icon-code icon-large"></i> Sottoposizioni</a>
     </li>
-    <li id="memoLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di memoria" data-content="La quantità di memoria, in MiB, disponibile per l'esecuzione di un testcase.">
+    <li id="memoLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di memoria" data-content="La quantità di memoria, in MiB, disponibile per l'esecuzione di un testcase." ng-show="$window.task.memory_limit != undefined">
       <a><i class="icon-stackexchange icon-large"></i> {{$window.task.memory_limit}} MiB</a>
     </li>
-    <li id="timeLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di tempo" data-content="La quantità di tempo, in secondi, disponibile per l'esecuzione di un testcase.">
+    <li id="timeLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di tempo" data-content="La quantità di tempo, in secondi, disponibile per l'esecuzione di un testcase." ng-show="$window.task.time_limit != undefined">
       <a><i class="icon-time icon-large"></i> {{$window.task.time_limit}} sec</a>
     </li>
   </ul>

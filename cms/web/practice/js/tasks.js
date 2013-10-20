@@ -131,7 +131,7 @@ angular.module('pws.tasks', [])
               "token": userManager.getToken(),
             })
             .success(function(data, status, headers, config) {
-              replaceSub(i, data);
+              replaceSub(data["id"], data);
             }).error(function(data, status, headers, config) {
               notificationHub.createAlert('danger', 'Errore di connessione', 2);
             });

@@ -378,12 +378,13 @@ class JobGroup(object):
 
         sr.set_compilation_outcome(job.compilation_success)
         sr.compilation_text = json.dumps(job.text, encoding='utf-8')
-        sr.compilation_stdout = job.plus.get('stdout')
-        sr.compilation_stderr = job.plus.get('stderr')
-        sr.compilation_time = job.plus.get('execution_time')
-        sr.compilation_wall_clock_time = \
-            job.plus.get('execution_wall_clock_time')
-        sr.compilation_memory = job.plus.get('execution_memory')
+        if job.plus is not None:
+            sr.compilation_stdout = job.plus.get('stdout')
+            sr.compilation_stderr = job.plus.get('stderr')
+            sr.compilation_time = job.plus.get('execution_time')
+            sr.compilation_wall_clock_time = \
+                job.plus.get('execution_wall_clock_time')
+            sr.compilation_memory = job.plus.get('execution_memory')
         sr.compilation_shard = job.shard
         sr.compilation_sandbox = ":".join(job.sandboxes)
         for executable in job.executables.itervalues():

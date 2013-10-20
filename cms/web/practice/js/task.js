@@ -37,30 +37,30 @@ angular.module('pws.task', [])
     subsDatabase.load($scope.taskName);
     $scope.loadFiles = function() {
       var input = $("#submitform input");
-      $window.loadCount = input.length;
       $window.files = {};
-      for (var i=0; i<input.length; i++) {
-        if (input[i].files.length < 1) {
-          hub.createAlert('danger', 'Files mancanti!', 2);
-          break;
+      var reader = new FileReader();
+      function readFile(i){
+        if(i==input.length){
+          $scope.submitFiles()
+          return;
         }
-        var reader = new FileReader();
+        if(input[i].files.length < 1){
+            readFile(i+1);
+            return;
+        }
         reader.readAsBinaryString(input[i].files[0]);
         reader.filename = input[i].files[0].name
         reader.inputname = input[i].name
         reader.onloadend = function(){
-          $window.loadCount -= 1;
           $window.files[reader.inputname] = {
               "filename": reader.filename,
-              "data": reader.result,
+              "data": reader.result
           };
-          if ($window.loadCount == 0)
-            $scope.submitFiles();
-        }
+          console.log(reader.inputname)
+          readFile(i+1);
+        };
       }
-      $("#submitform").each(function() {
-        this.reset();
-      });
+      readFile(0);
     };
     $scope.submitFiles = function() {
       var data = {};
@@ -68,15 +68,19 @@ angular.module('pws.task', [])
       data["token"] = userManager.getToken();
       data["files"] = $window.files;
       delete $window.files;
-      delete $window.loadCount;
       $http.post('submit/' + $scope.taskName, data)
         .success(function(data, status, headers, config) {
-          if (data["success"])
+          if (data["success"]){
             subsDatabase.addSub($scope.taskName, data);
+            $("#submitform").each(function() {
+              this.reset();
+            });
+          }
           else
-            hub.createAlert('danger', data["error"], 2);
+            notificationHub.createAlert('danger', data["error"], 2);
       }).error(function(data, status, headers, config) {
-          hub.createAlert('danger', 'Errore di connessione', 2);
+          notificationHub.createAlert('danger', 'Errore di connessione', 2);
+          console.log(status)
       });
     };
     $scope.showDetails = function(id) {
