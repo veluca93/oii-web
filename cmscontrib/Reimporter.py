@@ -64,10 +64,11 @@ class Reimporter:
 
     """
 
-    def __init__(self, path, contest_id, force, loader_class, full):
+    def __init__(self, path, contest_id, force, loader_class, full, users):
         self.old_contest_id = contest_id
         self.force = force
         self.full = full
+        self.users = users
 
         self.file_cacher = FileCacher()
 
@@ -227,31 +228,33 @@ class Reimporter:
             # Do the actual merge: compare all users of the old and of
             # the new contest and see if we need to create, update or
             # delete them. Delete only if authorized, fail otherwise.
-            users = set(old_users.keys()) | set(new_users)
-            for username in users:
-                old_user = old_users.get(username, None)
+            # Skip the users by default
+            if self.users:
+                users = set(old_users.keys()) | set(new_users)
+                for username in users:
+                    old_user = old_users.get(username, None)
 
-                if old_user is None:
-                    # Create a new user.
-                    logger.info("Creating user %s" % username)
-                    new_user = self.loader.get_user(username)
-                    old_contest.users.append(new_user)
-                elif username in new_users:
-                    # Update an existing user.
-                    logger.info("Updating user %s" % username)
-                    new_user = self.loader.get_user(username)
-                    self._update_object(old_user, new_user)
-                else:
-                    # Delete an existing user.
-                    if self.force:
-                        logger.info("Deleting user %s" % username)
-                        old_contest.users.remove(old_user)
+                    if old_user is None:
+                        # Create a new user.
+                        logger.info("Creating user %s" % username)
+                        new_user = self.loader.get_user(username)
+                        old_contest.users.append(new_user)
+                    elif username in new_users:
+                        # Update an existing user.
+                        logger.info("Updating user %s" % username)
+                        new_user = self.loader.get_user(username)
+                        self._update_object(old_user, new_user)
                     else:
-                        logger.critical(
-                            "User %s exists in old contest, but "
-                            "not in the new one. Use -f to force." %
-                            username)
-                        return False
+                        # Delete an existing user.
+                        if self.force:
+                            logger.info("Deleting user %s" % username)
+                            old_contest.users.remove(old_user)
+                        else:
+                            logger.critical(
+                                "User %s exists in old contest, but "
+                                "not in the new one. Use -f to force." %
+                                username)
+                            return False
 
             # The same for tasks. Setting num for tasks requires a bit
             # of trickery, since we have to avoid triggering a
@@ -323,6 +326,8 @@ def main():
     parser.add_argument("-f", "--force", action="store_true",
                         help="force the reimport even if some users or tasks "
                         "may get lost")
+    parser.add_argument("-u", "--users", action="store_true",
+                        help="(re)load the users from the .yaml file")
     parser.add_argument("-L", "--loader", action="store", default=None,
                         help="use the specified loader (default: autodetect)")
     parser.add_argument("-F", "--full", action="store_true",
@@ -342,7 +347,8 @@ def main():
                contest_id=args.contest_id,
                force=args.force,
                loader_class=loader_class,
-               full=args.full).do_reimport()
+               full=args.full,
+               users=args.users).do_reimport()
 
 
 if __name__ == "__main__":
