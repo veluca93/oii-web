@@ -264,12 +264,13 @@ class JobGroup(object):
 
         sr.set_compilation_outcome(job.compilation_success)
         sr.compilation_text = json.dumps(job.text, encoding='utf-8')
-        sr.compilation_stdout = job.plus.get('stdout')
-        sr.compilation_stderr = job.plus.get('stderr')
-        sr.compilation_time = job.plus.get('execution_time')
-        sr.compilation_wall_clock_time = \
-            job.plus.get('execution_wall_clock_time')
-        sr.compilation_memory = job.plus.get('execution_memory')
+        if job.plus is not None:
+            sr.compilation_stdout = job.plus.get('stdout')
+            sr.compilation_stderr = job.plus.get('stderr')
+            sr.compilation_time = job.plus.get('execution_time')
+            sr.compilation_wall_clock_time = \
+                job.plus.get('execution_wall_clock_time')
+            sr.compilation_memory = job.plus.get('execution_memory')
         sr.compilation_shard = job.shard
         sr.compilation_sandbox = ":".join(job.sandboxes)
         for executable in job.executables.itervalues():
@@ -390,8 +391,8 @@ class JobGroup(object):
                 text=json.dumps(job.text, encoding='utf-8'),
                 outcome=job.outcome,
                 execution_time=job.plus.get('execution_time'),
-                execution_wall_clock_time= \
-                    job.plus.get('execution_wall_clock_time'),
+                execution_wall_clock_time=
+                job.plus.get('execution_wall_clock_time'),
                 execution_memory=job.plus.get('execution_memory'),
                 evaluation_shard=job.shard,
                 evaluation_sandbox=":".join(job.sandboxes),
@@ -457,7 +458,8 @@ class JobGroup(object):
         ur.evaluation_text = json.dumps(job.text, encoding='utf-8')
         ur.set_evaluation_outcome()  # FIXME use job.outcome
         ur.evaluation_time = job.plus.get('execution_time')
-        ur.evaluation_wall_clock_time = job.plus.get('execution_wall_clock_time')
+        ur.evaluation_wall_clock_time = \
+            job.plus.get('execution_wall_clock_time')
         ur.evaluation_memory = job.plus.get('execution_memory')
         ur.evaluation_shard = job.shard
         ur.evaluation_sandbox = ":".join(job.sandboxes)

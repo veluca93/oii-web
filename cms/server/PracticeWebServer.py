@@ -500,7 +500,10 @@ class APIHandler(object):
                 submission["files"] = []
                 for name, f in s.files.iteritems():
                     fi = dict()
-                    fi["name"] = name.replace("%l", s.language)
+                    if s.language is None:
+                        fi["name"] = name
+                    else:
+                        fi["name"] = name.replace("%l", s.language)
                     fi["digest"] = f.digest
                     submission["files"].append(fi)
                 result = s.get_result()
@@ -530,7 +533,10 @@ class APIHandler(object):
             submission["files"] = []
             for name, f in s.files.iteritems():
                 fi = dict()
-                fi["name"] = name.replace("%l", s.language)
+                if s.language is None:
+                    fi["name"] = name
+                else:
+                    fi["name"] = name.replace("%l", s.language)
                 fi["digest"] = f.digest
                 submission["files"].append(fi)
             result = s.get_result()
@@ -579,6 +585,8 @@ class APIHandler(object):
                 task = contest.get_task(task_name)
             except KeyError:
                 raise NotFound()
+            if 'files' not in data:
+                raise BadRequest()
             resp = dict()
             resp["success"] = 1
 
@@ -638,7 +646,10 @@ class APIHandler(object):
             resp["files"] = []
             for name, f in submission.files.iteritems():
                 fi = dict()
-                fi["name"] = name.replace("%l", submission.language)
+                if submission.language is None:
+                    fi["name"] = name
+                else:
+                    fi["name"] = name.replace("%l", submission.language)
                 fi["digest"] = f.digest
                 resp["files"].append(fi)
             return self.dump_json(resp)
