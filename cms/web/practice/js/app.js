@@ -43,8 +43,7 @@ angular.module('pws', [
       })
       .state('task', {
         url: '/task/{taskName}',
-        templateUrl: 'views/task.html',
-        controller: 'TaskbarCtrl'
+        templateUrl: 'views/task.html'
       })
       .state('task.statement', {
         url: '/statement',

@@ -31,30 +31,30 @@ angular.module('pws.task', [])
     taskbarManager.setActiveTab(3);
   })
   .controller('SubmissionsCtrl', function($scope, $stateParams, $location,
-        $http, $window, $rootScope, userManager, notificationHub,
-        subsDatabase, taskbarManager) {
+        $http, $window, userManager, notificationHub, subsDatabase,
+        taskbarManager) {
     taskbarManager.setActiveTab(4);
-    subsDatabase.load($scope.taskName);
+    subsDatabase.load($stateParams.taskName);
     $scope.loadFiles = function() {
       var input = $("#submitform input");
       $window.files = {};
       var reader = new FileReader();
-      function readFile(i){
-        if(i==input.length){
+      function readFile(i) {
+        if (i==input.length) {
           $scope.submitFiles()
           return;
         }
-        if(input[i].files.length < 1){
-            readFile(i+1);
-            return;
+        if (input[i].files.length < 1) {
+          readFile(i+1);
+          return;
         }
         reader.readAsBinaryString(input[i].files[0]);
         reader.filename = input[i].files[0].name
         reader.inputname = input[i].name
         reader.onloadend = function(){
           $window.files[reader.inputname] = {
-              "filename": reader.filename,
-              "data": reader.result
+            "filename": reader.filename,
+            "data": reader.result
           };
           console.log(reader.inputname)
           readFile(i+1);
@@ -70,7 +70,7 @@ angular.module('pws.task', [])
       delete $window.files;
       $http.post('submit/' + $scope.taskName, data)
         .success(function(data, status, headers, config) {
-          if (data["success"]){
+          if (data["success"]) {
             subsDatabase.addSub($scope.taskName, data);
             $("#submitform").each(function() {
               this.reset();
