@@ -21,11 +21,10 @@ angular.module('pws.taskbar', [])
   .directive('taskbar', function() {
     return {
       restrict: 'E',
-      scope: {},
       templateUrl: 'partials/taskbar.html',
       replace: true,
       transclude: true,
-      controller: 'TaskbarCtrl',
+      controller: 'TaskbarCtrl'
     };
   })
   .factory('taskbarManager', function() {
@@ -39,16 +38,15 @@ angular.module('pws.taskbar', [])
       }
     };
   })
-  .controller('TaskbarCtrl', function($scope, $stateParams, $http, $window,
-        userManager, notificationHub, taskbarManager) {
+  .controller('TaskbarCtrl', function($scope, $stateParams, $http,
+        $rootScope, userManager, notificationHub, taskbarManager) {
     $("#timeLimit, #memoLimit").popover();
     $scope.isActiveTab = taskbarManager.isActiveTab;
     $scope.isLogged = userManager.isLogged;
     $scope.taskName = $stateParams.taskName;
-    $scope.$window = $window;
     $http.post('task/' + $scope.taskName, {})
       .success(function(data, status, headers, config) {
-        $scope.$window.task = data;
+        $rootScope.task = data;
       }).error(function(data, status, headers, config) {
         notificationHub.createAlert('danger', 'Errore di connessione', 2);
     });

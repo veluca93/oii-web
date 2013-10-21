@@ -4,7 +4,7 @@
   </div>
   <div class="panel-body">
     <form class="form-horizontal" ng-submit="loadFiles()" id="submitform">
-      <div class="form-group" ng-repeat="file in $window.task.submission_format">
+      <div class="form-group" ng-repeat="file in task.submission_format">
         <label class="control-label col-lg-3" for="{{file}}">{{file | repext}}</label>
         <div class="col-lg-9">
           <input type="file" id="{{file}}" name="{{file}}"/>
@@ -49,7 +49,7 @@
       </td>
     </tr>
   </table>
-  <div class="modal fade" id="submission_detail">
+  <div class="modal fade" id="submission_detail" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
