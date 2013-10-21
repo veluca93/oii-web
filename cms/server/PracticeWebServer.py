@@ -34,7 +34,7 @@ from sqlalchemy import desc
 from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import Service
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Submission, File, Task, Test
+from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, Tag
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -96,6 +96,7 @@ class APIHandler(object):
             Rule("/task/<name>", methods=["GET", "POST"], endpoint="task"),
             Rule("/tests", methods=["GET", "POST"], endpoint="tests"),
             Rule("/test/<name>", methods=["GET", "POST"], endpoint="test"),
+            Rule("/tags", methods=["POST"], endpoint="tags"),
             Rule("/answer/<name>", methods=["POST"], endpoint="answer"),
             Rule("/submissions/<name>", methods=["POST"],
                  endpoint="submissions"),
@@ -136,6 +137,8 @@ class APIHandler(object):
                 return self.task_handler(args["name"])
             elif endpoint == "tasks":
                 return self.tasks_handler(request)
+            elif endpoint == "tags":
+                return self.tags_handler(request)
             elif endpoint == "test":
                 return self.test_handler(args["name"])
             elif endpoint == "answer":
@@ -360,12 +363,22 @@ class APIHandler(object):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
-            tasks = session.query(Task)\
-                .filter(Task.contest_id == contest.id)\
-                .order_by(desc(Task.id))\
-                .slice(data["first"], data["last"]).all()
-            resp["num"] = session.query(Task)\
-                .filter(Task.contest_id == contest.id).count()
+            if 'tag' in data:
+                tasks = session.query(Task)\
+                    .filter(Task.contest_id == contest.id)\
+                    .filter(Task.tags.any(name=data['tag']))\
+                    .order_by(desc(Task.id))\
+                    .slice(data["first"], data["last"]).all()
+                resp["num"] = session.query(Task)\
+                    .filter(Task.tags.any(name=data['tag']))\
+                    .filter(Task.contest_id == contest.id).count()
+            else:
+                tasks = session.query(Task)\
+                    .filter(Task.contest_id == contest.id)\
+                    .order_by(desc(Task.id))\
+                    .slice(data["first"], data["last"]).all()
+                resp["num"] = session.query(Task)\
+                    .filter(Task.contest_id == contest.id).count()
             resp["tasks"] = []
             for t in tasks:
                 task = dict()
@@ -398,7 +411,92 @@ class APIHandler(object):
             for (name, obj) in t.attachments.iteritems():
                 att.append((name, obj.digest))
             resp["attachments"] = att
+            resp["tags"] = [tag.name for tag in t.tags]
         return self.dump_json(resp)
+
+    def tags_handler(self, request):
+        data = self.load_json(request)
+        if 'action' not in data:
+            raise BadRequest()
+        resp = dict()
+        with SessionGen() as session:
+            if data['action'] == 'list':
+                tags = session.query(Tag).order_by(Tag.id).all()
+                resp["tags"] = [t.name for t in tags]
+                return self.dump_json(resp)
+
+            contest = Contest.get_from_id(self.contest, session)
+            self.get_req_user(session, contest, request, data)
+            resp['success'] = 0
+            if data['action'] == 'create':
+                try:
+                    if len(data['description']) < 5:
+                        resp['error'] = "Descrizione troppo corta!"
+                    else:
+                        tag = Tag(
+                            name=data['tag'],
+                            description=data['description']
+                        )
+                        session.add(tag)
+                        session.commit()
+                        resp['success'] = 1
+                except KeyError:
+                    resp['error'] = "Dati mancanti!"
+                except IntegrityError:
+                    resp['error'] = "Tag gia' esistente!"
+            elif data['action'] == 'delete':
+                try:
+                    tag = session.query(Tag)\
+                        .filter(Tag.name == data['tag']).first()
+                    if tag is None:
+                        resp['error'] = "Tag inesistente!"
+                    else:
+                        session.delete(tag)
+                        session.commit()
+                        resp['success'] = 1
+                except KeyError:
+                    resp['error'] = "Dati mancanti!"
+            elif data['action'] == 'add':
+                try:
+                    tag = session.query(Tag)\
+                        .filter(Tag.name == data['tag']).first()
+                    task = session.query(Task)\
+                        .filter(Task.name == data['task'])\
+                        .filter(Task.contest_id == contest.id).first()
+                    if tag is None:
+                        resp['error'] = "Tag inesistente!"
+                    elif task is None:
+                        resp['error'] = "Task inesistente!"
+                    elif tag in task.tags:
+                        resp['error'] = "Tag gia' associato al task!"
+                    else:
+                        task.tags.append(tag)
+                        session.commit()
+                        resp['success'] = 1
+                except KeyError:
+                    resp['error'] = "Dati mancanti!"
+            elif data['action'] == 'remove':
+                try:
+                    tag = session.query(Tag)\
+                        .filter(Tag.name == data['tag']).first()
+                    task = session.query(Task)\
+                        .filter(Task.name == data['task'])\
+                        .filter(Task.contest_id == contest.id).first()
+                    if tag is None:
+                        resp['error'] = "Tag inesistente!"
+                    elif task is None:
+                        resp['error'] = "Task inesistente!"
+                    elif tag not in task.tags:
+                        resp['error'] = "Il tag non e' associato al task!"
+                    else:
+                        task.tags.remove(tag)
+                        session.commit()
+                        resp['success'] = 1
+                except KeyError:
+                    resp['error'] = "Dati mancanti!"
+            else:
+                raise BadRequest()
+            return self.dump_json(resp)
 
     def tests_handler(self):
         resp = dict()
