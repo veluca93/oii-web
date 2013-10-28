@@ -72,6 +72,11 @@ class Task(Base):
         # are referenced by a foreign key defined on this table.
         autoincrement='ignore_fk')
 
+    # Access level required
+    access_level = Column(
+        Integer,
+        nullable=False)
+
     # Number of the task for sorting.
     num = Column(
         Integer,

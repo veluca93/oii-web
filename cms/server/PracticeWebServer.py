@@ -120,41 +120,60 @@ class APIHandler(object):
         except HTTPException:
             return NotFound()
 
-        request = Request(environ)
-
         try:
             if endpoint == "root":
                 return self.file_handler(environ, "index.html")
             elif endpoint == "dbfile":
                 return self.dbfile_handler(environ, args)
-            elif endpoint == "check":
-                return self.check_handler(request)
-            elif endpoint == "register":
-                return self.register_handler(request)
-            elif endpoint == "login":
-                return self.login_handler(request)
-            elif endpoint == "task":
-                return self.task_handler(args["name"])
-            elif endpoint == "tasks":
-                return self.tasks_handler(request)
-            elif endpoint == "tags":
-                return self.tags_handler(request)
-            elif endpoint == "test":
-                return self.test_handler(args["name"])
-            elif endpoint == "answer":
-                return self.answer_handler(request, args["name"])
-            elif endpoint == "tests":
-                return self.tests_handler()
-            elif endpoint == "submissions":
-                return self.submissions_handler(request, args["name"])
-            elif endpoint == "submission":
-                return self.submission_handler(request, args["sid"])
-            elif endpoint == "submit":
-                return self.submit_handler(request, args["name"])
         except HTTPException as e:
             return e
 
-        return NotFound()
+        request = Request(environ)
+        if request.mimetype != "application/json":
+            logger.warning("Request not in JSON")
+            data = dict()
+        else:
+            try:
+                data = json.load(request.stream)
+            except (ValueError, TypeError):
+                logger.warning("JSON parse error")
+                data = dict()
+
+        try:
+            if endpoint == "check":
+                ans = self.check_handler(data)
+            elif endpoint == "register":
+                ans = self.register_handler(data)
+            elif endpoint == "login":
+                ans = self.login_handler(data)
+            elif endpoint == "task":
+                ans = self.task_handler(data, args["name"])
+            elif endpoint == "tasks":
+                ans = self.tasks_handler(data)
+            elif endpoint == "tags":
+                ans = self.tags_handler(data)
+            elif endpoint == "test":
+                ans = self.test_handler(data, args["name"])
+            elif endpoint == "answer":
+                ans = self.answer_handler(data, args["name"])
+            elif endpoint == "tests":
+                ans = self.tests_handler(data)
+            elif endpoint == "submissions":
+                ans = self.submissions_handler(data, args["name"])
+            elif endpoint == "submission":
+                ans = self.submission_handler(data, args["sid"])
+            elif endpoint == "submit":
+                ans = self.submit_handler(data, args["name"])
+            else:
+                return NotFound()
+        except HTTPException as e:
+            return e
+
+        response = Response()
+        response.mimetype = "application/json"
+        response.status_code = 200
+        response.data = json.dumps(ans)
+        return response
 
     def get_user(self, session, contest, username, token):
         return session.query(User)\
@@ -162,10 +181,8 @@ class APIHandler(object):
             .filter(User.username == username)\
             .filter(User.password == token).first()
 
-    def get_req_user(self, session, contest, request, data=None):
+    def get_req_user(self, session, contest, data):
         try:
-            if data is None:
-                data = self.load_json(request)
             username = data["username"]
             token = data["token"]
             user = self.get_user(session, contest, username, token)
@@ -175,32 +192,22 @@ class APIHandler(object):
         except (BadRequest, KeyError):
             raise Unauthorized()
 
-    def load_json(self, request):
-        if request.mimetype != "application/json":
-            logger.warning("Request not in JSON")
-            raise BadRequest()
+    def get_access_level(self, session, contest, data, user=None):
         try:
-            req = json.load(request.stream)
-        except (ValueError, TypeError):
-            logger.warning("JSON parse error")
-            raise BadRequest()
-        return req
-
-    def dump_json(self, data):
-        response = Response()
-        response.mimetype = "application/json"
-        response.status_code = 200
-        response.data = json.dumps(data)
-        return response
+            if user is None:
+                user = self.get_req_user(session, contest, data)
+            return user.access_level
+        except Unauthorized:
+            return 7            # Access level of non-logged user
 
     def check_user(self, username):
         resp = dict()
         if len(username) < 4:
             resp["success"] = 0
-            resp["error"] = "Username troppo corto"
+            resp["error"] = "USERNAME_SHORT"
         elif not self.USERNAME_REG.match(username):
             resp["success"] = 0
-            resp["error"] = "Caratteri non validi nell'username"
+            resp["error"] = "USERNAME_INVALID"
         else:
             with SessionGen() as session:
                 contest = Contest.get_from_id(self.contest, session)
@@ -211,14 +218,14 @@ class APIHandler(object):
                     resp["success"] = 1
                 else:
                     resp["success"] = 0
-                    resp["error"] = "Username gia' esistente"
+                    resp["error"] = "USERNAME_EXISTS"
         return resp
 
     def check_email(self, email):
         resp = dict()
         if not self.EMAIL_REG.match(email):
             resp["success"] = 0
-            resp["error"] = "Indirizzo email non valido"
+            resp["error"] = "EMAIL_INVALID"
         else:
             with SessionGen() as session:
                 contest = Contest.get_from_id(self.contest, session)
@@ -229,7 +236,7 @@ class APIHandler(object):
                     resp["success"] = 1
                 else:
                     resp["success"] = 0
-                    resp["error"] = "Email gia' esistente"
+                    resp["error"] = "EMAIL_EXISTS"
         return resp
 
     def file_handler(self, environ, filename):
@@ -272,31 +279,29 @@ class APIHandler(object):
         response.direct_passthrough = True
         return response
 
-    def check_handler(self, request):
-        req = self.load_json(request)
+    def check_handler(self, data):
         try:
-            rtype = req["type"]
-            rvalue = req["value"]
+            rtype = data["type"]
+            rvalue = data["value"]
         except KeyError:
             logger.warning("Missing parameters")
             raise BadRequest()
 
         if rtype == "username":
-            return self.dump_json(self.check_user(rvalue))
+            return self.check_user(rvalue)
         elif rtype == "email":
-            return self.dump_json(self.check_email(rvalue))
+            return self.check_email(rvalue)
 
         logger.warning("Request type not understood")
         raise BadRequest()
 
-    def register_handler(self, request):
-        req = self.load_json(request)
+    def register_handler(self, data):
         try:
-            username = req["username"]
-            password = req["password"]
-            email = req["email"]
-            firstname = req["firstname"]
-            lastname = req["lastname"]
+            username = data["username"]
+            password = data["password"]
+            email = data["email"]
+            firstname = data["firstname"]
+            lastname = data["lastname"]
         except KeyError:
             logger.warning("Missing parameters")
             raise BadRequest()
@@ -308,10 +313,10 @@ class APIHandler(object):
 
         resp = self.check_user(username)
         if not resp["success"]:
-            return self.dump_json(resp)
+            return resp
         resp = self.check_email(email)
         if not resp["success"]:
-            return self.dump_json(resp)
+            return resp
 
         resp["success"] = 1
         with SessionGen() as session:
@@ -320,7 +325,8 @@ class APIHandler(object):
                 last_name=lastname,
                 username=username,
                 password=token,
-                email=email
+                email=email,
+                access_level=6
             )
             user.contest = Contest.get_from_id(self.contest, session)
             try:
@@ -329,13 +335,12 @@ class APIHandler(object):
             except IntegrityError:
                 resp["success"] = 0
                 resp["error"] = "USER_EXISTS"
-        return self.dump_json(resp)
+        return resp
 
-    def login_handler(self, request):
-        req = self.load_json(request)
+    def login_handler(self, data):
         try:
-            username = req["username"]
-            password = req["password"]
+            username = data["username"]
+            password = data["password"]
         except KeyError:
             logger.warning("Missing parameter")
             raise BadRequest()
@@ -354,30 +359,35 @@ class APIHandler(object):
             else:
                 resp["success"] = 1
                 resp["token"] = token
-        return self.dump_json(resp)
+                resp["access_level"] = user.access_level
+        return resp
 
-    def tasks_handler(self, request):
-        data = self.load_json(request)
+    def tasks_handler(self, data):
         if data["first"] > data["last"]:
             raise BadRequest()
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
+            access_level = self.get_access_level(session, contest, data)
             if 'tag' in data:
                 tasks = session.query(Task)\
                     .filter(Task.contest_id == contest.id)\
                     .filter(Task.tags.any(name=data['tag']))\
+                    .filter(Task.access_level >= access_level)\
                     .order_by(desc(Task.id))\
                     .slice(data["first"], data["last"]).all()
                 resp["num"] = session.query(Task)\
                     .filter(Task.tags.any(name=data['tag']))\
+                    .filter(Task.access_level >= access_level)\
                     .filter(Task.contest_id == contest.id).count()
             else:
                 tasks = session.query(Task)\
                     .filter(Task.contest_id == contest.id)\
+                    .filter(Task.access_level >= access_level)\
                     .order_by(desc(Task.id))\
                     .slice(data["first"], data["last"]).all()
                 resp["num"] = session.query(Task)\
+                    .filter(Task.access_level >= access_level)\
                     .filter(Task.contest_id == contest.id).count()
             resp["tasks"] = []
             for t in tasks:
@@ -386,15 +396,17 @@ class APIHandler(object):
                 task["name"] = t.name
                 task["title"] = t.title
                 resp["tasks"].append(task)
-        return self.dump_json(resp)
+        return resp
 
-    def task_handler(self, name):
+    def task_handler(self, data, name):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
+            access_level = self.get_access_level(session, contest, data)
             t = session.query(Task)\
                 .filter(Task.name == name)\
                 .filter(Task.contest_id == contest.id)\
+                .filter(Task.access_level >= access_level)\
                 .first()
             if t is None:
                 raise NotFound()
@@ -412,10 +424,9 @@ class APIHandler(object):
                 att.append((name, obj.digest))
             resp["attachments"] = att
             resp["tags"] = [tag.name for tag in t.tags]
-        return self.dump_json(resp)
+        return resp
 
-    def tags_handler(self, request):
-        data = self.load_json(request)
+    def tags_handler(self, data):
         if 'action' not in data:
             raise BadRequest()
         resp = dict()
@@ -423,12 +434,14 @@ class APIHandler(object):
             if data['action'] == 'list':
                 tags = session.query(Tag).order_by(Tag.id).all()
                 resp["tags"] = [t.name for t in tags]
-                return self.dump_json(resp)
+                return resp
 
             contest = Contest.get_from_id(self.contest, session)
-            self.get_req_user(session, contest, request, data)
+            access_level = self.get_access_level(session, contest, data)
             resp['success'] = 0
             if data['action'] == 'create':
+                if access_level >= 4:
+                    raise Unauthorized()
                 try:
                     if len(data['description']) < 5:
                         resp['error'] = "Descrizione troppo corta!"
@@ -445,6 +458,8 @@ class APIHandler(object):
                 except IntegrityError:
                     resp['error'] = "Tag gia' esistente!"
             elif data['action'] == 'delete':
+                if access_level >= 4:
+                    raise Unauthorized()
                 try:
                     tag = session.query(Tag)\
                         .filter(Tag.name == data['tag']).first()
@@ -457,6 +472,8 @@ class APIHandler(object):
                 except KeyError:
                     resp['error'] = "Dati mancanti!"
             elif data['action'] == 'add':
+                if access_level >= 5:
+                    raise Unauthorized()
                 try:
                     tag = session.query(Tag)\
                         .filter(Tag.name == data['tag']).first()
@@ -476,6 +493,8 @@ class APIHandler(object):
                 except KeyError:
                     resp['error'] = "Dati mancanti!"
             elif data['action'] == 'remove':
+                if access_level >= 5:
+                    raise Unauthorized()
                 try:
                     tag = session.query(Tag)\
                         .filter(Tag.name == data['tag']).first()
@@ -496,24 +515,32 @@ class APIHandler(object):
                     resp['error'] = "Dati mancanti!"
             else:
                 raise BadRequest()
-            return self.dump_json(resp)
+            return resp
 
-    def tests_handler(self):
+    def tests_handler(self, data):
         resp = dict()
         with SessionGen() as session:
-            tests = session.query(Test).all()
+            contest = Contest.get_from_id(self.contest, session)
+            access_level = self.get_access_level(session, contest, data)
+            tests = session.query(Test)\
+                .filter(Test.access_level >= access_level)\
+                .order_by(Test.id).all()
             resp["tests"] = []
             for t in tests:
                 resp["tests"].append({
                     "name": t.name,
                     "description": t.description
                 })
-            return self.dump_json(resp)
+            return resp
 
-    def test_handler(self, name):
+    def test_handler(self, data, name):
         resp = dict()
         with SessionGen() as session:
-            test = session.query(Test).filter(Test.name == name).first()
+            contest = Contest.get_from_id(self.contest, session)
+            access_level = self.get_access_level(session, contest, data)
+            test = session.query(Test)\
+                .filter(Test.name == name)\
+                .filter(Test.access_level >= access_level).first()
             if test is None:
                 raise NotFound()
             resp["name"] = test.name
@@ -530,15 +557,19 @@ class APIHandler(object):
                 else:
                     q["answers"] = [[t[0], len(t[1])] for t in ansdata]
                 resp["questions"].append(q)
-            return self.dump_json(resp)
+            return resp
 
-    def answer_handler(self, request, name):
+    def answer_handler(self, rdata, name):
         resp = dict()
         with SessionGen() as session:
-            test = session.query(Test).filter(Test.name == name).first()
+            contest = Contest.get_from_id(self.contest, session)
+            access_level = self.get_access_level(session, contest, rdata)
+            data = rdata["answers"]
+            test = session.query(Test)\
+                .filter(Test.name == name)\
+                .filter(Test.access_level >= access_level).first()
             if test is None:
                 raise NotFound()
-            data = self.load_json(request)
             for i in xrange(len(test.questions)):
                 q = test.questions[i]
                 ansdata = json.loads(q.answers)
@@ -571,13 +602,13 @@ class APIHandler(object):
                                 resp[i] = [q.wrong_score, "wrong"]
                     if resp.get(i, None) is None:
                         resp[i] = [q.score, "correct"]
-            return self.dump_json(resp)
+            return resp
 
-    def submissions_handler(self, request, name):
+    def submissions_handler(self, data, name):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
-            user = self.get_req_user(session, contest, request)
+            user = self.get_req_user(session, contest, data)
             task = session.query(Task)\
                 .filter(Task.contest_id == contest.id)\
                 .filter(Task.name == name).first()
@@ -609,12 +640,12 @@ class APIHandler(object):
                     submission["score"] = round(result.score, 2)
                 submissions.append(submission)
         resp["submissions"] = submissions
-        return self.dump_json(resp)
+        return resp
 
-    def submission_handler(self, request, sid):
+    def submission_handler(self, data, sid):
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
-            user = self.get_req_user(session, contest, request)
+            user = self.get_req_user(session, contest, data)
             s = session.query(Submission)\
                 .filter(Submission.id == sid).first()
             if s is None:
@@ -658,22 +689,18 @@ class APIHandler(object):
                         testcase["text"] = data[0] % tuple(data[1:])
             else:
                 submission["score_details"] = None
-            return self.dump_json(submission)
+            return submission
 
-    def submit_handler(self, request, task_name):
+    def submit_handler(self, data, task_name):
         with SessionGen() as session:
-            data = self.load_json(request)
             contest = Contest.get_from_id(self.contest, session)
-            user = self.get_req_user(session, contest, request, data=data)
+            user = self.get_req_user(session, contest, data)
             lastsub = session.query(Submission)\
                 .filter(Submission.user_id == user.id)\
                 .order_by(desc(Submission.timestamp)).first()
             if lastsub is not None and \
                make_datetime() - lastsub.timestamp < timedelta(seconds=20):
-                resp = dict()
-                resp["success"] = 0
-                resp["error"] = "E' passato troppo poco tempo!"
-                return self.dump_json(resp)
+                return {"success": 0, "error": "SHORT_INTERVAL"}
 
             # TODO: implement checks (size), archives and
             # (?) partial submissions
@@ -692,9 +719,7 @@ class APIHandler(object):
             for sfe in task.submission_format:
                 f = data["files"].get(sfe.filename)
                 if f is None:
-                    resp["success"] = 0
-                    resp["error"] = "Mancano dei files!"
-                    return self.dump_json(resp)
+                    return {"success": 0, "error": "FILES_MISSING"}
                 f["name"] = sfe.filename
                 files.append(f)
                 if sfe.filename.endswith(".%l"):
@@ -703,13 +728,9 @@ class APIHandler(object):
                         if f["filename"].endswith(ext):
                             language = lang
                     if language is None:
-                        resp["success"] = 0
-                        resp["error"] = "Linguaggio non riconosciuto"
-                        return self.dump_json(resp)
+                        return {"success": 0, "error": "LANGUAGE_UNKNOWN"}
                     elif sub_language is not None and sub_language != language:
-                        resp["success"] = 0
-                        resp["error"] = "Files di linguaggio diverso!"
-                        return self.dump_json(resp)
+                        return {"success": 0, "error": "LANGUAGE_DIFFERENT"}
                     else:
                         sub_language = language
 
@@ -748,7 +769,7 @@ class APIHandler(object):
                     fi["name"] = name.replace("%l", submission.language)
                 fi["digest"] = f.digest
                 resp["files"].append(fi)
-            return self.dump_json(resp)
+            return resp
 
 
 class PracticeWebServer(Service):

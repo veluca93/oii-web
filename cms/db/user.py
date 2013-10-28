@@ -61,6 +61,11 @@ class User(Base):
         Integer,
         primary_key=True)
 
+    # Access level
+    access_level = Column(
+        Integer,
+        nullable=False)
+
     # Real name (human readable) of the user.
     first_name = Column(
         Unicode,
