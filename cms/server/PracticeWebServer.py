@@ -86,30 +86,30 @@ class Server(gevent.wsgi.WSGIServer):
 class APIHandler(object):
     def __init__(self, parent):
         self.router = Map([
-            Rule("/", methods=["GET", "POST"], endpoint="root"),
-            Rule("/files/<digest>", methods=["GET", "POST"],
-                 endpoint="dbfile"),
-            Rule("/files/<digest>/<name>", methods=["GET", "POST"],
-                 endpoint="dbfile"),
-            Rule("/check", methods=["POST"], endpoint="check"),
-            Rule("/register", methods=["POST"], endpoint="register"),
-            Rule("/login", methods=["POST"], endpoint="login"),
-            Rule("/tasks", methods=["POST"], endpoint="tasks"),
-            Rule("/task/<name>", methods=["GET", "POST"], endpoint="task"),
-            Rule("/tests", methods=["GET", "POST"], endpoint="tests"),
-            Rule("/test/<name>", methods=["GET", "POST"], endpoint="test"),
-            Rule("/tags", methods=["POST"], endpoint="tags"),
-            Rule("/answer/<name>", methods=["POST"], endpoint="answer"),
-            Rule("/submissions/<name>", methods=["POST"],
-                 endpoint="submissions"),
-            Rule("/submission/<sid>", methods=["POST"], endpoint="submission"),
-            Rule("/submit/<name>", methods=["POST"], endpoint="submit")
-        ], encoding_errors="strict")
+            Rule('/', methods=['GET', 'POST'], endpoint='root'),
+            Rule('/files/<digest>', methods=['GET', 'POST'],
+                 endpoint='dbfile'),
+            Rule('/files/<digest>/<name>', methods=['GET', 'POST'],
+                 endpoint='dbfile'),
+            Rule('/check', methods=['POST'], endpoint='check'),
+            Rule('/register', methods=['POST'], endpoint='register'),
+            Rule('/login', methods=['POST'], endpoint='login'),
+            Rule('/tasks', methods=['POST'], endpoint='tasks'),
+            Rule('/task/<name>', methods=['GET', 'POST'], endpoint='task'),
+            Rule('/tests', methods=['GET', 'POST'], endpoint='tests'),
+            Rule('/test/<name>', methods=['GET', 'POST'], endpoint='test'),
+            Rule('/tags', methods=['POST'], endpoint='tags'),
+            Rule('/answer/<name>', methods=['POST'], endpoint='answer'),
+            Rule('/submissions/<name>', methods=['POST'],
+                 endpoint='submissions'),
+            Rule('/submission/<sid>', methods=['POST'], endpoint='submission'),
+            Rule('/submit/<name>', methods=['POST'], endpoint='submit')
+        ], encoding_errors='strict')
         self.file_cacher = parent.file_cacher
         self.contest = parent.contest
         self.evaluation_service = parent.evaluation_service
-        self.EMAIL_REG = re.compile(r"[^@]+@[^@]+\.[^@]+")
-        self.USERNAME_REG = re.compile(r"^[A-Za-z0-9_\.]+$")
+        self.EMAIL_REG = re.compile(r'[^@]+@[^@]+\.[^@]+')
+        self.USERNAME_REG = re.compile(r'^[A-Za-z0-9_\.]+$')
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -123,60 +123,61 @@ class APIHandler(object):
             return NotFound()
 
         try:
-            if endpoint == "root":
-                return self.file_handler(environ, "index.html")
-            elif endpoint == "dbfile":
+            if endpoint == 'root':
+                return self.file_handler(environ, 'index.html')
+            elif endpoint == 'dbfile':
                 return self.dbfile_handler(environ, args)
         except HTTPException as e:
             return e
 
         request = Request(environ)
-        if request.mimetype != "application/json":
-            logger.warning("Request not in JSON")
+        if request.mimetype != 'application/json':
+            logger.warning('Request not in JSON')
             data = dict()
         else:
             try:
                 data = json.load(request.stream)
             except (ValueError, TypeError):
-                logger.warning("JSON parse error")
+                logger.warning('JSON parse error')
                 data = dict()
 
         try:
-            if endpoint == "check":
+            if endpoint == 'check':
                 ans = self.check_handler(data)
-            elif endpoint == "register":
+            elif endpoint == 'register':
                 ans = self.register_handler(data)
-            elif endpoint == "login":
+            elif endpoint == 'login':
                 ans = self.login_handler(data)
-            elif endpoint == "task":
-                ans = self.task_handler(data, args["name"])
-            elif endpoint == "tasks":
+            elif endpoint == 'task':
+                ans = self.task_handler(data, args['name'])
+            elif endpoint == 'tasks':
                 ans = self.tasks_handler(data)
-            elif endpoint == "tags":
+            elif endpoint == 'tags':
                 ans = self.tags_handler(data)
-            elif endpoint == "test":
-                ans = self.test_handler(data, args["name"])
-            elif endpoint == "answer":
-                ans = self.answer_handler(data, args["name"])
-            elif endpoint == "tests":
+            elif endpoint == 'test':
+                ans = self.test_handler(data, args['name'])
+            elif endpoint == 'answer':
+                ans = self.answer_handler(data, args['name'])
+            elif endpoint == 'tests':
                 ans = self.tests_handler(data)
-            elif endpoint == "submissions":
-                ans = self.submissions_handler(data, args["name"])
-            elif endpoint == "submission":
-                ans = self.submission_handler(data, args["sid"])
-            elif endpoint == "submit":
-                ans = self.submit_handler(data, args["name"])
+            elif endpoint == 'submissions':
+                ans = self.submissions_handler(data, args['name'])
+            elif endpoint == 'submission':
+                ans = self.submission_handler(data, args['sid'])
+            elif endpoint == 'submit':
+                ans = self.submit_handler(data, args['name'])
             else:
                 return NotFound()
         except HTTPException as e:
             return e
 
         response = Response()
-        response.mimetype = "application/json"
+        response.mimetype = 'application/json'
         response.status_code = 200
         response.data = json.dumps(ans)
         return response
 
+    # Useful methods
     def get_user(self, session, contest, username, token):
         return session.query(User)\
             .filter(User.contest == contest)\
@@ -185,8 +186,8 @@ class APIHandler(object):
 
     def get_req_user(self, session, contest, data):
         try:
-            username = data["username"]
-            token = data["token"]
+            username = data['username']
+            token = data['token']
             user = self.get_user(session, contest, username, token)
             if user is None:
                 raise Unauthorized()
@@ -205,11 +206,11 @@ class APIHandler(object):
     def check_user(self, username):
         resp = dict()
         if len(username) < 4:
-            resp["success"] = 0
-            resp["error"] = "USERNAME_SHORT"
+            resp['success'] = 0
+            resp['error'] = 'USERNAME_SHORT'
         elif not self.USERNAME_REG.match(username):
-            resp["success"] = 0
-            resp["error"] = "USERNAME_INVALID"
+            resp['success'] = 0
+            resp['error'] = 'USERNAME_INVALID'
         else:
             with SessionGen() as session:
                 contest = Contest.get_from_id(self.contest, session)
@@ -217,17 +218,17 @@ class APIHandler(object):
                     .filter(User.contest == contest)\
                     .filter(User.username == username).first()
                 if user is None:
-                    resp["success"] = 1
+                    resp['success'] = 1
                 else:
-                    resp["success"] = 0
-                    resp["error"] = "USERNAME_EXISTS"
+                    resp['success'] = 0
+                    resp['error'] = 'USERNAME_EXISTS'
         return resp
 
     def check_email(self, email):
         resp = dict()
         if not self.EMAIL_REG.match(email):
-            resp["success"] = 0
-            resp["error"] = "EMAIL_INVALID"
+            resp['success'] = 0
+            resp['error'] = 'EMAIL_INVALID'
         else:
             with SessionGen() as session:
                 contest = Contest.get_from_id(self.contest, session)
@@ -235,20 +236,21 @@ class APIHandler(object):
                     .filter(User.contest == contest)\
                     .filter(User.email == email).first()
                 if user is None:
-                    resp["success"] = 1
+                    resp['success'] = 1
                 else:
-                    resp["success"] = 0
-                    resp["error"] = "EMAIL_EXISTS"
+                    resp['success'] = 0
+                    resp['error'] = 'EMAIL_EXISTS'
         return resp
 
+    # Handlers that do not require JSON data
     def file_handler(self, environ, filename):
         path = os.path.join(
-            pkg_resources.resource_filename("cms.web", "practice"),
+            pkg_resources.resource_filename('cms.web', 'practice'),
             filename)
 
         response = Response()
         response.status_code = 200
-        response.mimetype = "application/octect-stream"
+        response.mimetype = 'application/octect-stream'
         mimetype = mimetypes.guess_type(filename)[0]
         if mimetype is not None:
             response.mimetype = mimetype
@@ -261,18 +263,18 @@ class APIHandler(object):
 
     def dbfile_handler(self, environ, args):
         try:
-            fobj = self.file_cacher.get_file(args["digest"])
+            fobj = self.file_cacher.get_file(args['digest'])
         except KeyError:
             raise NotFound()
 
         response = Response()
         response.status_code = 200
 
-        response.mimetype = "application/octect-stream"
-        if "filename" in args:
+        response.mimetype = 'application/octect-stream'
+        if 'filename' in args:
             response.headers.add_header(
                 b'Content-Disposition', b'attachment',
-                filename=args["filename"])
+                filename=args['filename'])
             mimetype = mimetypes.guess_type(args['filename'])[0]
             if mimetype is not None:
                 response.mimetype = mimetype
@@ -281,31 +283,32 @@ class APIHandler(object):
         response.direct_passthrough = True
         return response
 
+    # Handlers that require JSON data
     def check_handler(self, data):
         try:
-            rtype = data["type"]
-            rvalue = data["value"]
+            rtype = data['type']
+            rvalue = data['value']
         except KeyError:
-            logger.warning("Missing parameters")
+            logger.warning('Missing parameters')
             raise BadRequest()
 
-        if rtype == "username":
+        if rtype == 'username':
             return self.check_user(rvalue)
-        elif rtype == "email":
+        elif rtype == 'email':
             return self.check_email(rvalue)
 
-        logger.warning("Request type not understood")
+        logger.warning('Request type not understood')
         raise BadRequest()
 
     def register_handler(self, data):
         try:
-            username = data["username"]
-            password = data["password"]
-            email = data["email"]
-            firstname = data["firstname"]
-            lastname = data["lastname"]
+            username = data['username']
+            password = data['password']
+            email = data['email']
+            firstname = data['firstname']
+            lastname = data['lastname']
         except KeyError:
-            logger.warning("Missing parameters")
+            logger.warning('Missing parameters')
             raise BadRequest()
 
         sha = hashlib.sha256()
@@ -314,13 +317,13 @@ class APIHandler(object):
         token = sha.hexdigest()
 
         resp = self.check_user(username)
-        if not resp["success"]:
+        if not resp['success']:
             return resp
         resp = self.check_email(email)
-        if not resp["success"]:
+        if not resp['success']:
             return resp
 
-        resp["success"] = 1
+        resp['success'] = 1
         with SessionGen() as session:
             user = User(
                 first_name=firstname,
@@ -335,16 +338,16 @@ class APIHandler(object):
                 session.add(user)
                 session.commit()
             except IntegrityError:
-                resp["success"] = 0
-                resp["error"] = "USER_EXISTS"
+                resp['success'] = 0
+                resp['error'] = 'USER_EXISTS'
         return resp
 
     def login_handler(self, data):
         try:
-            username = data["username"]
-            password = data["password"]
+            username = data['username']
+            password = data['password']
         except KeyError:
-            logger.warning("Missing parameter")
+            logger.warning('Missing parameter')
             raise BadRequest()
 
         sha = hashlib.sha256()
@@ -357,15 +360,15 @@ class APIHandler(object):
             contest = Contest.get_from_id(self.contest, session)
             user = self.get_user(session, contest, username, token)
             if user is None:
-                resp["success"] = 0
+                resp['success'] = 0
             else:
-                resp["success"] = 1
-                resp["token"] = token
-                resp["access_level"] = user.access_level
+                resp['success'] = 1
+                resp['token'] = token
+                resp['access_level'] = user.access_level
         return resp
 
     def tasks_handler(self, data):
-        if data["first"] > data["last"]:
+        if data['first'] > data['last']:
             raise BadRequest()
         resp = dict()
         with SessionGen() as session:
@@ -377,8 +380,8 @@ class APIHandler(object):
                     .filter(Task.tags.any(name=data['tag']))\
                     .filter(Task.access_level >= access_level)\
                     .order_by(desc(Task.id))\
-                    .slice(data["first"], data["last"]).all()
-                resp["num"] = session.query(Task)\
+                    .slice(data['first'], data['last']).all()
+                resp['num'] = session.query(Task)\
                     .filter(Task.tags.any(name=data['tag']))\
                     .filter(Task.access_level >= access_level)\
                     .filter(Task.contest_id == contest.id).count()
@@ -387,17 +390,17 @@ class APIHandler(object):
                     .filter(Task.contest_id == contest.id)\
                     .filter(Task.access_level >= access_level)\
                     .order_by(desc(Task.id))\
-                    .slice(data["first"], data["last"]).all()
-                resp["num"] = session.query(Task)\
+                    .slice(data['first'], data['last']).all()
+                resp['num'] = session.query(Task)\
                     .filter(Task.access_level >= access_level)\
                     .filter(Task.contest_id == contest.id).count()
-            resp["tasks"] = []
+            resp['tasks'] = []
             for t in tasks:
                 task = dict()
-                task["id"] = t.id
-                task["name"] = t.name
-                task["title"] = t.title
-                resp["tasks"].append(task)
+                task['id'] = t.id
+                task['name'] = t.name
+                task['title'] = t.title
+                resp['tasks'].append(task)
         return resp
 
     def task_handler(self, data, name):
@@ -412,20 +415,20 @@ class APIHandler(object):
                 .first()
             if t is None:
                 raise NotFound()
-            resp["id"] = t.id
-            resp["name"] = t.name
-            resp["title"] = t.title
-            resp["statements"] =\
+            resp['id'] = t.id
+            resp['name'] = t.name
+            resp['title'] = t.title
+            resp['statements'] =\
                 dict([(l, s.digest) for l, s in t.statements.iteritems()])
-            resp["submission_format"] =\
+            resp['submission_format'] =\
                 [sfe.filename for sfe in t.submission_format]
-            for i in ["time_limit", "memory_limit", "task_type"]:
+            for i in ['time_limit', 'memory_limit', 'task_type']:
                 resp[i] = getattr(t.active_dataset, i)
             att = []
             for (name, obj) in t.attachments.iteritems():
                 att.append((name, obj.digest))
-            resp["attachments"] = att
-            resp["tags"] = [tag.name for tag in t.tags]
+            resp['attachments'] = att
+            resp['tags'] = [tag.name for tag in t.tags]
         return resp
 
     def tags_handler(self, data):
@@ -435,7 +438,7 @@ class APIHandler(object):
         with SessionGen() as session:
             if data['action'] == 'list':
                 tags = session.query(Tag).order_by(Tag.id).all()
-                resp["tags"] = [t.name for t in tags]
+                resp['tags'] = [t.name for t in tags]
                 return resp
 
             contest = Contest.get_from_id(self.contest, session)
@@ -446,7 +449,7 @@ class APIHandler(object):
                     raise Unauthorized()
                 try:
                     if len(data['description']) < 5:
-                        resp['error'] = "Descrizione troppo corta!"
+                        resp['error'] = 'DESCRIPTION_SHORT'
                     else:
                         tag = Tag(
                             name=data['tag'],
@@ -456,9 +459,9 @@ class APIHandler(object):
                         session.commit()
                         resp['success'] = 1
                 except KeyError:
-                    resp['error'] = "Dati mancanti!"
+                    resp['error'] = 'DATA_MISSING'
                 except IntegrityError:
-                    resp['error'] = "Tag gia' esistente!"
+                    resp['error'] = 'TAG_EXISTS'
             elif data['action'] == 'delete':
                 if access_level >= 4:
                     raise Unauthorized()
@@ -466,13 +469,13 @@ class APIHandler(object):
                     tag = session.query(Tag)\
                         .filter(Tag.name == data['tag']).first()
                     if tag is None:
-                        resp['error'] = "Tag inesistente!"
+                        resp['error'] = 'TAG_DOESNT_EXIST'
                     else:
                         session.delete(tag)
                         session.commit()
                         resp['success'] = 1
                 except KeyError:
-                    resp['error'] = "Dati mancanti!"
+                    resp['error'] = 'DATA_MISSING'
             elif data['action'] == 'add':
                 if access_level >= 5:
                     raise Unauthorized()
@@ -483,17 +486,17 @@ class APIHandler(object):
                         .filter(Task.name == data['task'])\
                         .filter(Task.contest_id == contest.id).first()
                     if tag is None:
-                        resp['error'] = "Tag inesistente!"
+                        resp['error'] = 'TAG_DOESNT_EXIST'
                     elif task is None:
-                        resp['error'] = "Task inesistente!"
+                        resp['error'] = 'TASK_DOESNT_EXIST'
                     elif tag in task.tags:
-                        resp['error'] = "Tag gia' associato al task!"
+                        resp['error'] = 'TASK_TAG_ASSOC'
                     else:
                         task.tags.append(tag)
                         session.commit()
                         resp['success'] = 1
                 except KeyError:
-                    resp['error'] = "Dati mancanti!"
+                    resp['error'] = 'DATA_MISSING'
             elif data['action'] == 'remove':
                 if access_level >= 5:
                     raise Unauthorized()
@@ -504,17 +507,17 @@ class APIHandler(object):
                         .filter(Task.name == data['task'])\
                         .filter(Task.contest_id == contest.id).first()
                     if tag is None:
-                        resp['error'] = "Tag inesistente!"
+                        resp['error'] = 'TAG_DOESNT_EXIST'
                     elif task is None:
-                        resp['error'] = "Task inesistente!"
+                        resp['error'] = 'TASK_DOESNT_EXIST'
                     elif tag not in task.tags:
-                        resp['error'] = "Il tag non e' associato al task!"
+                        resp['error'] = 'TASK_TAG_NOT_ASSOC'
                     else:
                         task.tags.remove(tag)
                         session.commit()
                         resp['success'] = 1
                 except KeyError:
-                    resp['error'] = "Dati mancanti!"
+                    resp['error'] = 'DATA_MISSING'
             else:
                 raise BadRequest()
             return resp
@@ -527,11 +530,11 @@ class APIHandler(object):
             tests = session.query(Test)\
                 .filter(Test.access_level >= access_level)\
                 .order_by(Test.id).all()
-            resp["tests"] = []
+            resp['tests'] = []
             for t in tests:
-                resp["tests"].append({
-                    "name": t.name,
-                    "description": t.description
+                resp['tests'].append({
+                    'name': t.name,
+                    'description': t.description
                 })
             return resp
 
@@ -545,20 +548,20 @@ class APIHandler(object):
                 .filter(Test.access_level >= access_level).first()
             if test is None:
                 raise NotFound()
-            resp["name"] = test.name
-            resp["description"] = test.description
-            resp["questions"] = []
+            resp['name'] = test.name
+            resp['description'] = test.description
+            resp['questions'] = []
             for i in test.questions:
                 q = dict()
-                q["type"] = i.type
-                q["text"] = i.text
-                q["max_score"] = i.score
+                q['type'] = i.type
+                q['text'] = i.text
+                q['max_score'] = i.score
                 ansdata = json.loads(i.answers)
-                if i.type == "choice":
-                    q["choices"] = [t[0] for t in ansdata]
+                if i.type == 'choice':
+                    q['choices'] = [t[0] for t in ansdata]
                 else:
-                    q["answers"] = [[t[0], len(t[1])] for t in ansdata]
-                resp["questions"].append(q)
+                    q['answers'] = [[t[0], len(t[1])] for t in ansdata]
+                resp['questions'].append(q)
             return resp
 
     def answer_handler(self, rdata, name):
@@ -566,7 +569,7 @@ class APIHandler(object):
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
             access_level = self.get_access_level(session, contest, rdata)
-            data = rdata["answers"]
+            data = rdata['answers']
             test = session.query(Test)\
                 .filter(Test.name == name)\
                 .filter(Test.access_level >= access_level).first()
@@ -575,13 +578,13 @@ class APIHandler(object):
             for i in xrange(len(test.questions)):
                 q = test.questions[i]
                 ansdata = json.loads(q.answers)
-                if q.type == "choice":
-                    resp[i] = [q.wrong_score, "wrong"]
+                if q.type == 'choice':
+                    resp[i] = [q.wrong_score, 'wrong']
                     try:
                         if data[i] is None:
-                            resp[i] = [0, "empty"]
+                            resp[i] = [0, 'empty']
                         elif ansdata[int(data[i])][1]:
-                            resp[i] = [q.score, "correct"]
+                            resp[i] = [q.score, 'correct']
                     except IndexError:
                         pass
                     continue
@@ -589,21 +592,21 @@ class APIHandler(object):
                     for key, correct in ansdata:
                         ans = data[i].get(key, None)
                         if len(ans) != len(correct):
-                            resp[i] = [q.wrong_score, "wrong"]
+                            resp[i] = [q.wrong_score, 'wrong']
                         for a in xrange(len(ans)):
                             if ans[a] is None:
-                                resp[i] = [0, "empty"]
+                                resp[i] = [0, 'empty']
                                 break
-                            if q.type == "number":
+                            if q.type == 'number':
                                 an = float(ans[a])
                                 cor = float(correct[a])
                             else:
                                 an = ans[a].lower()
                                 cor = correct[a].lower()
                             if an != cor:
-                                resp[i] = [q.wrong_score, "wrong"]
+                                resp[i] = [q.wrong_score, 'wrong']
                     if resp.get(i, None) is None:
-                        resp[i] = [q.score, "correct"]
+                        resp[i] = [q.score, 'correct']
             return resp
 
     def submissions_handler(self, data, name):
@@ -623,25 +626,25 @@ class APIHandler(object):
             submissions = []
             for s in subs:
                 submission = dict()
-                submission["id"] = s.id
-                submission["task_id"] = s.task_id
-                submission["timestamp"] = make_timestamp(s.timestamp)
-                submission["files"] = []
+                submission['id'] = s.id
+                submission['task_id'] = s.task_id
+                submission['timestamp'] = make_timestamp(s.timestamp)
+                submission['files'] = []
                 for name, f in s.files.iteritems():
                     fi = dict()
                     if s.language is None:
-                        fi["name"] = name
+                        fi['name'] = name
                     else:
-                        fi["name"] = name.replace("%l", s.language)
-                    fi["digest"] = f.digest
-                    submission["files"].append(fi)
+                        fi['name'] = name.replace('%l', s.language)
+                    fi['digest'] = f.digest
+                    submission['files'].append(fi)
                 result = s.get_result()
-                for i in ["compilation_outcome", "evaluation_outcome"]:
+                for i in ['compilation_outcome', 'evaluation_outcome']:
                     submission[i] = getattr(result, i, None)
                 if result is not None and result.score is not None:
-                    submission["score"] = round(result.score, 2)
+                    submission['score'] = round(result.score, 2)
                 submissions.append(submission)
-        resp["submissions"] = submissions
+        resp['submissions'] = submissions
         return resp
 
     def submission_handler(self, data, sid):
@@ -655,42 +658,42 @@ class APIHandler(object):
             if s.user_id != user.id:
                 raise Unauthorized()
             submission = dict()
-            submission["id"] = s.id
-            submission["task_id"] = s.task_id
-            submission["timestamp"] = make_timestamp(s.timestamp)
-            submission["language"] = s.language
-            submission["files"] = []
+            submission['id'] = s.id
+            submission['task_id'] = s.task_id
+            submission['timestamp'] = make_timestamp(s.timestamp)
+            submission['language'] = s.language
+            submission['files'] = []
             for name, f in s.files.iteritems():
                 fi = dict()
                 if s.language is None:
-                    fi["name"] = name
+                    fi['name'] = name
                 else:
-                    fi["name"] = name.replace("%l", s.language)
-                fi["digest"] = f.digest
-                submission["files"].append(fi)
+                    fi['name'] = name.replace('%l', s.language)
+                fi['digest'] = f.digest
+                submission['files'].append(fi)
             result = s.get_result()
-            for i in ["compilation_outcome", "evaluation_outcome",
-                      "compilation_stdout", "compilation_stderr",
-                      "compilation_time", "compilation_memory"]:
+            for i in ['compilation_outcome', 'evaluation_outcome',
+                      'compilation_stdout', 'compilation_stderr',
+                      'compilation_time', 'compilation_memory']:
                 submission[i] = getattr(result, i, None)
             if result is not None and result.score is not None:
-                submission["score"] = round(result.score, 2)
+                submission['score'] = round(result.score, 2)
             if result is not None and result.score_details is not None:
                 tmp = json.loads(result.score_details)
                 if len(tmp) > 0 and 'text' in tmp[0]:
                     subt = dict()
-                    subt["testcases"] = tmp
-                    subt["score"] = submission["score"]
-                    subt["max_score"] = 100
-                    submission["score_details"] = [subt]
+                    subt['testcases'] = tmp
+                    subt['score'] = submission['score']
+                    subt['max_score'] = 100
+                    submission['score_details'] = [subt]
                 else:
-                    submission["score_details"] = tmp
-                for subtask in submission["score_details"]:
-                    for testcase in subtask["testcases"]:
-                        data = json.loads(testcase["text"])
-                        testcase["text"] = data[0] % tuple(data[1:])
+                    submission['score_details'] = tmp
+                for subtask in submission['score_details']:
+                    for testcase in subtask['testcases']:
+                        data = json.loads(testcase['text'])
+                        testcase['text'] = data[0] % tuple(data[1:])
             else:
-                submission["score_details"] = None
+                submission['score_details'] = None
             return submission
 
     def submit_handler(self, data, task_name):
@@ -702,7 +705,7 @@ class APIHandler(object):
                 .order_by(desc(Submission.timestamp)).first()
             if lastsub is not None and \
                make_datetime() - lastsub.timestamp < timedelta(seconds=20):
-                return {"success": 0, "error": "SHORT_INTERVAL"}
+                return {'success': 0, 'error': 'SHORT_INTERVAL'}
 
             # TODO: implement checks (size), archives and
             # (?) partial submissions
@@ -713,26 +716,26 @@ class APIHandler(object):
             if 'files' not in data:
                 raise BadRequest()
             resp = dict()
-            resp["success"] = 1
+            resp['success'] = 1
 
             # Detect language
             files = []
             sub_language = None
             for sfe in task.submission_format:
-                f = data["files"].get(sfe.filename)
+                f = data['files'].get(sfe.filename)
                 if f is None:
-                    return {"success": 0, "error": "FILES_MISSING"}
-                f["name"] = sfe.filename
+                    return {'success': 0, 'error': 'FILES_MISSING'}
+                f['name'] = sfe.filename
                 files.append(f)
-                if sfe.filename.endswith(".%l"):
+                if sfe.filename.endswith('.%l'):
                     language = None
                     for ext, lang in SOURCE_EXT_TO_LANGUAGE_MAP.iteritems():
-                        if f["filename"].endswith(ext):
+                        if f['filename'].endswith(ext):
                             language = lang
                     if language is None:
-                        return {"success": 0, "error": "LANGUAGE_UNKNOWN"}
+                        return {'success': 0, 'error': 'LANGUAGE_UNKNOWN'}
                     elif sub_language is not None and sub_language != language:
-                        return {"success": 0, "error": "LANGUAGE_DIFFERENT"}
+                        return {'success': 0, 'error': 'LANGUAGE_DIFFERENT'}
                     else:
                         sub_language = language
 
@@ -744,11 +747,11 @@ class APIHandler(object):
                                     task=task)
             for f in files:
                 digest = self.file_cacher.put_file_content(
-                    f["data"].encode("utf-8"),
-                    "Submission file %s sent by %s at %d." % (
-                        f["name"], user.username,
+                    f['data'].encode('utf-8'),
+                    'Submission file %s sent by %s at %d.' % (
+                        f['name'], user.username,
                         make_timestamp(timestamp)))
-                session.add(File(f["name"], digest, submission=submission))
+                session.add(File(f['name'], digest, submission=submission))
             session.add(submission)
             session.commit()
 
@@ -756,30 +759,30 @@ class APIHandler(object):
             self.evaluation_service.new_submission(submission_id=submission.id)
 
             # Answer with submission data
-            resp["id"] = submission.id
-            resp["task_id"] = submission.task_id
-            resp["timestamp"] = make_timestamp(submission.timestamp)
-            resp["compilation_outcome"] = None
-            resp["evaluation_outcome"] = None
-            resp["score"] = None
-            resp["files"] = []
+            resp['id'] = submission.id
+            resp['task_id'] = submission.task_id
+            resp['timestamp'] = make_timestamp(submission.timestamp)
+            resp['compilation_outcome'] = None
+            resp['evaluation_outcome'] = None
+            resp['score'] = None
+            resp['files'] = []
             for name, f in submission.files.iteritems():
                 fi = dict()
                 if submission.language is None:
-                    fi["name"] = name
+                    fi['name'] = name
                 else:
-                    fi["name"] = name.replace("%l", submission.language)
-                fi["digest"] = f.digest
-                resp["files"].append(fi)
+                    fi['name'] = name.replace('%l', submission.language)
+                fi['digest'] = f.digest
+                resp['files'].append(fi)
             return resp
 
 
 class PracticeWebServer(Service):
-    """Service that runs the web server for practice.
+    '''Service that runs the web server for practice.
 
-    """
+    '''
     def __init__(self, shard, contest):
-        initialize_logging("PracticeWebServer", shard)
+        initialize_logging('PracticeWebServer', shard)
 
         Service.__init__(self, shard=shard)
 
@@ -788,13 +791,13 @@ class PracticeWebServer(Service):
         self.file_cacher = FileCacher(self)
         self.contest = contest
         self.evaluation_service = self.connect_to(
-            ServiceCoord("EvaluationService", 0))
+            ServiceCoord('EvaluationService', 0))
 
         handler = APIHandler(self)
 
         self.wsgi_app = SharedDataMiddleware(handler, {
-            '/':        ("cms.web", "practice"),
-            '/assets':  ("cms.web", "assets")
+            '/':        ('cms.web', 'practice'),
+            '/assets':  ('cms.web', 'assets')
         })
 
     def run(self):
