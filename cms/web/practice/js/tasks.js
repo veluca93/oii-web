@@ -150,7 +150,7 @@ angular.module('pws.tasks', [])
         $http, $window, notificationHub, navbarManager, userManager) {
     navbarManager.setActiveTab(2);
     $scope.startIndex = parseInt($stateParams.startIndex);
-    $scope.tasksPerPage = 5;
+    $scope.tasksPerPage = 15;
     $scope.$window = $window;
     $scope.updPage = function(newIndex) {
       $location.path("tasks/" + newIndex);
