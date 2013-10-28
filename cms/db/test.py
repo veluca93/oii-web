@@ -23,6 +23,7 @@ from sqlalchemy.orm import relationship, backref
 
 from . import Base
 
+
 class Test(Base):
     """Class to store a test, like the first phase of the OII.
     """
@@ -42,8 +43,14 @@ class Test(Base):
         Unicode,
         nullable=False)
 
+    # Access level required
+    access_level = Column(
+        Integer,
+        nullable=False)
+
     def __init__(self):
         pass
+
 
 class TestQuestion(Base):
     """Class to store a single question of a test.
@@ -93,6 +100,7 @@ class TestQuestion(Base):
 
     def __init__(self):
         pass
+
 
 class QuestionFile(Base):
     """Class to store a question's files

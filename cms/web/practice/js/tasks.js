@@ -147,7 +147,7 @@ angular.module('pws.tasks', [])
     return this;
   })
   .controller('TasksCtrl', function($scope, $stateParams, $location,
-        $http, $window, notificationHub, navbarManager) {
+        $http, $window, notificationHub, navbarManager, userManager) {
     navbarManager.setActiveTab(2);
     $scope.startIndex = parseInt($stateParams.startIndex);
     $scope.tasksPerPage = 5;
@@ -158,6 +158,8 @@ angular.module('pws.tasks', [])
     $http.post('tasks', {
         "first": $scope.tasksPerPage * ($scope.startIndex-1),
         "last": $scope.tasksPerPage * $scope.startIndex,
+        "username": userManager.getUsername(),
+        "token": userManager.getToken(),
       })
       .success(function(data, status, headers, config) {
         $scope.tasks = data["tasks"];

@@ -22,9 +22,11 @@
 
 angular.module('pws.tests', [])
   .controller('TestsCtrl', function($scope, $http, notificationHub,
-        navbarManager) {
+        navbarManager, userManager) {
     navbarManager.setActiveTab(3);
-    $http.post('tests', {})
+    $http.post('tests', {
+        "username": userManager.getUsername(),
+        "token": userManager.getToken(),})
       .success(function(data, status, headers, config) {
         $scope.tests = data["tests"];
       }).error(function(data, status, headers, config) {
@@ -32,7 +34,7 @@ angular.module('pws.tests', [])
       });
   })
   .controller('TestpageCtrl', function($scope, $stateParams, $http,
-        notificationHub) {
+        notificationHub, userManager) {
     $scope.score = function() {
       var data = [];
       for (var i in $scope.test["questions"]) {
@@ -50,7 +52,11 @@ angular.module('pws.tests', [])
           data.push(tmp);
         }
       }
-      $http.post('answer/' + $stateParams.testName, data)
+      $http.post('answer/' + $stateParams.testName, {
+        "username": userManager.getUsername(),
+        "token": userManager.getToken(),
+        "answers": data,
+      })
         .success(function(data, status, headers, config) {
           var tot = 0;
           var maxtot = 0;
@@ -74,7 +80,10 @@ angular.module('pws.tests', [])
           notificationHub.createAlert('danger', 'Errore di connessione', 2);
         });
     }
-    $http.post('test/' + $stateParams.testName, {})
+    $http.post('test/' + $stateParams.testName, {
+          "username": userManager.getUsername(),
+          "token": userManager.getToken(),
+      })
       .success(function(data, status, headers, config) {
         $scope.test = data;
         for (var i in data["questions"]) {
