@@ -44,7 +44,12 @@ angular.module('pws.taskbar', [])
     $scope.isActiveTab = taskbarManager.isActiveTab;
     $scope.isLogged = userManager.isLogged;
     $scope.taskName = $stateParams.taskName;
-    $http.post('task/' + $scope.taskName, {})
+    $http.post('task', {
+        "name": $stateParams.taskName,
+        "username": userManager.getUsername(),
+        "token": userManager.getToken(),
+        "action": "get"
+      })
       .success(function(data, status, headers, config) {
         $rootScope.task = data;
       }).error(function(data, status, headers, config) {

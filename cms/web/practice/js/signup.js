@@ -76,7 +76,9 @@ angular.module('pws.signup', [])
         $scope.signupform.email2.$dirty = true;
         $("#email2").focus(); return;
       }
-      $http.post('register', $scope.user)
+      var data = $scope.user;
+      data["action"] = "new";
+      $http.post('user', data)
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
             notificationHub.createAlert('success', 'Complimenti, ' +

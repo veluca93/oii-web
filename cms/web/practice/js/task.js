@@ -67,8 +67,10 @@ angular.module('pws.task', [])
       data["username"] = userManager.getUsername();
       data["token"] = userManager.getToken();
       data["files"] = $window.files;
+      data["action"] = "new";
+      data["task_name"] = $scope.taskName;
       delete $window.files;
-      $http.post('submit/' + $scope.taskName, data)
+      $http.post('submission', data)
         .success(function(data, status, headers, config) {
           if (data["success"]) {
             subsDatabase.addSub($scope.taskName, data);

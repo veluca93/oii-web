@@ -47,7 +47,9 @@ angular.module('pws.user', [])
     $scope.user = {'username': '', 'password': ''};
     $scope.isLogged = userManager.isLogged;
     $scope.signin = function() {
-      $http.post('login', $scope.user)
+      var data = $scope.user;
+      data["action"] = "login";
+      $http.post('user', data)
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
           userManager.signin(data.token, $scope.user.username);
