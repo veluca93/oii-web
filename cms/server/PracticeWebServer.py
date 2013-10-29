@@ -834,7 +834,7 @@ class APIHandler(object):
             if data['action'] == 'list':
                 topic = session.query(Topic)\
                     .filter(Topic.id == data['topic']).first()
-                if topic is None:
+                if topic is None or topic.forum.access_level < access_level:
                     raise NotFound()
                 posts = session.query(Post)\
                     .filter(Post.topic_id == topic.id)\
