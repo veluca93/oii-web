@@ -22,7 +22,7 @@
 angular.module('pws', [
     'ui.router', 'ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
     'pws.task', 'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
-    'pws.tests', 'pws.overview'
+    'pws.tests', 'pws.overview', 'pws.forum'
   ])
   .config(function($locationProvider, $stateProvider, $urlRouterProvider) {
     $locationProvider.html5Mode(false).hashPrefix('!');
@@ -35,6 +35,21 @@ angular.module('pws', [
         url: '/overview',
         templateUrl: 'views/overview.html',
         controller: 'OverviewCtrl'
+      })
+      .state('forums', {
+        url: '/forums',
+        templateUrl: 'views/forums.html',
+        controller: 'ForumsCtrl'
+      })
+      .state('forum', {
+        url: '/forum/{forumId}',
+        templateUrl: 'views/forum.html',
+        controller: 'ForumCtrl'
+      })
+      .state('forum.topic', {
+        url: '/{topicId}',
+        templateUrl: 'views/forum.topic.html',
+        controller: 'TopicCtrl'
       })
       .state('tasks', {
         url: '/tasks/{startIndex}',
