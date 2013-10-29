@@ -70,7 +70,9 @@ __all__ = [
     # util
     "get_contest_list", "is_contest_id", "ask_for_contest",
     # test
-    "Test", "TestQuestion"
+    "Test", "TestQuestion",
+    # forum
+    "PrivateMessage", "Post", "Topic", "Forum"
     ]
 
 
@@ -97,6 +99,7 @@ from .usertest import UserTest, UserTestFile, UserTestManager, \
     UserTestResult, UserTestExecutable
 from .fsobject import FSObject
 from .test import Test, TestQuestion, QuestionFile
+from .forum import PrivateMessage, Forum, Topic, Post
 
 
 sa_entities = [
