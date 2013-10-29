@@ -34,7 +34,8 @@ from sqlalchemy import desc
 from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import Service
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, Tag
+from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, \
+    Tag, Forum, Topic, Post
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -138,7 +139,7 @@ class APIHandler(object):
         try:
             ans = getattr(self, endpoint + '_handler')(data)
         except AttributeError:
-            logger.error("Endpoint %s not implemented yet!" % endpoint)
+            logger.error('Endpoint %s not implemented yet!' % endpoint)
             return NotFound()
         except KeyError:
             return BadRequest()
@@ -169,7 +170,11 @@ class APIHandler(object):
         except (BadRequest, KeyError):
             raise Unauthorized()
 
-    def get_access_level(self, session, contest, data, user=None):
+    def get_access_level(self,
+                         session=None,
+                         contest=None,
+                         data=None,
+                         user=None):
         try:
             if user is None:
                 user = self.get_req_user(session, contest, data)
@@ -215,6 +220,11 @@ class APIHandler(object):
                     resp['success'] = 0
                     resp['error'] = 'EMAIL_EXISTS'
         return resp
+
+    def hash(self, string, algo='sha256'):
+        sha = getattr(hashlib, algo)()
+        sha.update(string)
+        return sha.hexdigest()
 
     # Handlers that do not require JSON data
     def file_handler(self, environ, filename):
@@ -286,10 +296,7 @@ class APIHandler(object):
                 logger.warning('Missing parameters')
                 raise BadRequest()
 
-            sha = hashlib.sha256()
-            sha.update(password)
-            sha.update(config.secret_key)
-            token = sha.hexdigest()
+            token = self.hash(password + config.secret_key)
 
             resp = self.check_user(username)
             if not resp['success']:
@@ -733,6 +740,130 @@ class APIHandler(object):
                         fi['name'] = name.replace('%l', submission.language)
                     fi['digest'] = f.digest
                     resp['files'].append(fi)
+            else:
+                raise BadRequest()
+        return resp
+
+    def forum_handler(self, data):
+        resp = dict()
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            access_level = self.get_access_level(session, contest, data)
+            if data['action'] == 'list':
+                forums = session.query(Forum)\
+                    .filter(Forum.access_level >= access_level)\
+                    .order_by(desc(Forum.id)).all()
+                resp['forums'] = []
+                for f in forums:
+                    forum = dict()
+                    forum['id'] = f.id
+                    forum['description'] = f.description
+                    forum['title'] = f.title
+                    resp['forums'].append(forum)
+            elif data['action'] == 'new':
+                if access_level > 1:
+                    raise Unauthorized()
+                forum = Forum(title=data['title'],
+                              description=data['description'],
+                              access_level=7)
+                session.add(forum)
+                session.commit()
+                resp['success'] = 1
+            else:
+                raise BadRequest()
+        return resp
+
+    def topic_handler(self, data):
+        resp = dict()
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            user = self.get_req_user(session, contest, data)
+            access_level = self.get_access_level(user=user)
+            if data['action'] == 'list':
+                forum = session.query(Forum)\
+                    .filter(Forum.access_level >= access_level)\
+                    .filter(Forum.id == data['forum']).first()
+                if forum is None:
+                    raise NotFound()
+                resp['title'] = forum.title
+                resp['description'] = forum.description
+                topics = session.query(Topic)\
+                    .filter(Topic.forum_id == forum.id)\
+                    .order_by(desc(Topic.timestamp))\
+                    .slice(data['first'], data['last']).all()
+                num = session.query(Topic)\
+                    .filter(Topic.forum_id == forum.id).count()
+                resp['num'] = num
+                resp['topics'] = []
+                for t in topics:
+                    topic = dict()
+                    topic['id'] = t.id
+                    topic['status'] = t.status
+                    topic['title'] = t.title
+                    topic['timestamp'] = make_timestamp(t.timestamp)
+                    resp['topics'].append(topic)
+            elif data['action'] == 'new':
+                forum = session.query(Forum)\
+                    .filter(Forum.access_level >= access_level)\
+                    .filter(Forum.id == data['forum']).first()
+                if forum is None:
+                    raise NotFound()
+                topic = Topic(status='open',
+                              title=data['title'],
+                              timestamp=make_datetime())
+                topic.forum = forum
+                post = Post(text=data['text'],
+                            timestamp=make_datetime())
+                post.author = self.user
+                post.topic = topic
+                session.add(topic)
+                session.add(post)
+                session.commit()
+                resp['success'] = 1
+            else:
+                raise BadRequest()
+        return resp
+
+    def post_handler(self, data):
+        resp = dict()
+        with SessionGen() as session:
+            contest = Contest.get_from_id(self.contest, session)
+            access_level = self.get_access_level(session, contest, data)
+            if data['action'] == 'list':
+                topic = session.query(Topic)\
+                    .filter(Topic.id == data['topic']).first()
+                if topic is None:
+                    raise NotFound()
+                posts = session.query(Post)\
+                    .filter(Post.topic_id == topic.id)\
+                    .order_by(Post.timestamp)\
+                    .slice(data['first'], data['last']).all()
+                num = session.query(Post)\
+                    .filter(Post.topic_id == topic.id).count()
+                resp['num'] = num
+                resp['posts'] = []
+                for p in posts:
+                    post = dict()
+                    post['id'] = p.id
+                    post['text'] = p.text
+                    post['timestamp'] = make_timestamp(p.timestamp)
+                    post['author_username'] = p.author.username
+                    post['author_mailhash'] = self.hash(p.author.email, 'md5')
+                    resp['post'].append(post)
+            elif data['action'] == 'new':
+                topic = session.query(Topic)\
+                    .filter(Topic.access_level >= access_level)\
+                    .filter(Topic.id == data['topic']).first()
+                if topic is None:
+                    raise NotFound()
+                post = Post(text=data['text'],
+                            timestamp=make_datetime())
+                post.author = self.user
+                post.topic = topic
+                topic.timestamp = post.timestamp
+                session.add(post)
+                session.commit()
+                resp['success'] = 1
             else:
                 raise BadRequest()
         return resp

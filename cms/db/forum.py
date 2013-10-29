@@ -125,7 +125,7 @@ class Topic(Base):
         Forum,
         backref=backref(
             'topics',
-            order_by="Topic.timestamp",
+            order_by="desc(Topic.timestamp)",
             cascade="all, delete-orphan",
             passive_deletes=True))
 
