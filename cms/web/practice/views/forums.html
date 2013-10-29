@@ -1,0 +1,7 @@
+<div class="container">
+  <div class="list-group">
+    <a ng-repeat="forum in forums" class="list-group-item" ui-sref="forum({ forumId: forum.id })">
+      <i class="icon-angle-right"></i> {{forum.title}} &mdash; <small>{{forum.description}}</small>
+    </a>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+<div class="container">
+<!--
+  <taskbar></taskbar>
+  <div ui-view></div>
+-->
+  <button class="btn btn-lg btn-info" ng-click="newTopic()">Nuovo topic</button>
+  <div class="list-group">
+    <a ng-repeat="topic in topics" class="list-group-item" ui-sref="forum.topic({ topicId: topic.id })">
+      <i class="icon-angle-right"></i> {{topic.status}} &mdash; {{topic.title}} &mdash; <small>{{topic.timestamp}}</small>
+    </a>
+  </div>
+</div>
