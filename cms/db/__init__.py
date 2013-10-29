@@ -75,7 +75,9 @@ __all__ = [
     "test_db_connection", "get_contest_list", "is_contest_id",
     "ask_for_contest",
     # test
-    "Test", "TestQuestion"
+    "Test", "TestQuestion",
+    # forum
+    "PrivateMessage", "Post", "Topic", "Forum"
     ]
 
 
@@ -104,6 +106,7 @@ from .usertest import UserTest, UserTestFile, UserTestManager, \
 from .printjob import PrintJob
 from .fsobject import FSObject
 from .test import Test, TestQuestion, QuestionFile
+from .forum import PrivateMessage, Forum, Topic, Post
 
 from .init import init_db
 from .drop import drop_db
