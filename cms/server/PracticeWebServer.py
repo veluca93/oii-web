@@ -24,6 +24,7 @@ import json
 import logging
 import hashlib
 import mimetypes
+import traceback
 import pkg_resources
 
 from datetime import datetime, timedelta
@@ -142,8 +143,10 @@ class APIHandler(object):
             ans = getattr(self, endpoint + '_handler')(data)
         except AttributeError:
             logger.error('Endpoint %s not implemented yet!' % endpoint)
+            logger.error(traceback.format_exc())
             return NotFound()
         except KeyError:
+            logger.error(traceback.format_exc())
             return BadRequest()
         except HTTPException as e:
             return e
@@ -816,7 +819,7 @@ class APIHandler(object):
                 topic.forum = forum
                 post = Post(text=data['text'],
                             timestamp=make_datetime())
-                post.author = self.user
+                post.author = user
                 post.topic = topic
                 session.add(topic)
                 session.add(post)
