@@ -28,9 +28,11 @@ angular.module('pws.tasks', [])
     var updAttempts = {};
     var timeout;
     this.load = function(name) {
-      $http.post('submissions/' + name, {
+      $http.post('submission', {
           "username": userManager.getUsername(),
           "token": userManager.getToken(),
+          "action": "list",
+          "task_name": name
         })
         .success(function(data, status, headers, config) {
           $rootScope.submissions[name] = [];
@@ -105,9 +107,11 @@ angular.module('pws.tasks', [])
           }
     }
     function subDetails(id) {
-      $http.post('submission/' + id, {
+      $http.post('submission', {
         "username": userManager.getUsername(),
         "token": userManager.getToken(),
+        "action": "details",
+        "id": id
       })
       .success(function(data, status, headers, config) {
         replaceSub(id, data);
@@ -126,9 +130,11 @@ angular.module('pws.tasks', [])
               updAttempts[i] = -1;
             updAttempts[i]++;
             delete updInterval[i];
-            $http.post('submission/' + i, {
+            $http.post('submission', {
               "username": userManager.getUsername(),
               "token": userManager.getToken(),
+              "action": "details",
+              "id": i
             })
             .success(function(data, status, headers, config) {
               replaceSub(data["id"], data);
@@ -155,11 +161,12 @@ angular.module('pws.tasks', [])
     $scope.updPage = function(newIndex) {
       $location.path("tasks/" + newIndex);
     };
-    $http.post('tasks', {
+    $http.post('task', {
         "first": $scope.tasksPerPage * ($scope.startIndex-1),
         "last": $scope.tasksPerPage * $scope.startIndex,
         "username": userManager.getUsername(),
         "token": userManager.getToken(),
+        "action": "list"
       })
       .success(function(data, status, headers, config) {
         $scope.tasks = data["tasks"];
