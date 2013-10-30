@@ -227,6 +227,8 @@ class APIHandler(object):
         return resp
 
     def hash(self, string, algo='sha256'):
+        if string is None:
+            string = ''
         sha = getattr(hashlib, algo)()
         sha.update(string)
         return sha.hexdigest()
@@ -768,6 +770,10 @@ class APIHandler(object):
             elif data['action'] == 'new':
                 if access_level > 1:
                     raise Unauthorized()
+                if data['title'] is None or len(data['title']) < 4:
+                    return {"success": 0, "error": "TITLE_SHORT"}
+                if data['description'] is None or len(data['description']) < 4:
+                    return {"success": 0, "error": "DESCRIPTION_SHORT"}
                 forum = Forum(title=data['title'],
                               description=data['description'],
                               access_level=7)
@@ -813,6 +819,10 @@ class APIHandler(object):
                     .filter(Forum.id == data['forum']).first()
                 if forum is None:
                     raise NotFound()
+                if data['title'] is None or len(data['title']) < 4:
+                    return {"success": 0, "error": "TITLE_SHORT"}
+                if data['text'] is None or len(data['text']) < 4:
+                    return {"success": 0, "error": "TEXT_SHORT"}
                 topic = Topic(status='open',
                               title=data['title'],
                               timestamp=make_datetime())
@@ -847,6 +857,7 @@ class APIHandler(object):
                 num = session.query(Post)\
                     .filter(Post.topic_id == topic.id).count()
                 resp['num'] = num
+                resp['title'] = topic.title
                 resp['posts'] = []
                 for p in posts:
                     post = dict()
@@ -861,6 +872,8 @@ class APIHandler(object):
                     .filter(Topic.id == data['topic']).first()
                 if topic is None or topic.forum.access_level < access_level:
                     raise NotFound()
+                if data['text'] is None or len(data['text']) < 4:
+                    return {"success": 0, "error": "TEXT_SHORT"}
                 post = Post(text=data['text'],
                             timestamp=make_datetime())
                 post.author = user

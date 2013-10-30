@@ -3,11 +3,12 @@
   <taskbar></taskbar>
   <div ui-view></div>
 -->
-  <legend>{{forumTitle}} &mdash; <small>{{forumDesc}}</small></legend>
-  <button class="btn btn-sm btn-info" ng-click="newTopic()">Nuovo topic</button>
+  <legend>{{forumTitle}}
+  <button class="btn btn-sm btn-info pull-right" ng-click="newTopic()">Nuovo topic</button>
+  </legend>
   <div class="list-group">
     <a ng-repeat="topic in topics" class="list-group-item" ui-sref="topic({ topicId: topic.id })">
-      <i class="icon-angle-right"></i> {{topic.status}} &mdash; {{topic.title}} &mdash; <small>{{topic.timestamp}}</small>
+      <i class="icon-angle-right"></i> {{topic.title}} <small class="pull-right">{{topic.date}}</small>
     </a>
   </div>
 </div>

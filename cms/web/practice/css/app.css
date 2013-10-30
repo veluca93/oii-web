@@ -185,6 +185,23 @@ a {
     border-color: rgb(238, 211, 215);
 }
 
+/* Forum */
+.topic table > tbody > tr > td {
+    border-top: none;
+}
+
+.topic li {
+    padding: 0;
+}
+
+.topic table {
+    margin: 0;
+}
+
+.topic table td:first-child {
+    border-right: 1px solid rgb(221, 221, 221);
+}
+
 /* PDF.JS */
 
 .viewer {

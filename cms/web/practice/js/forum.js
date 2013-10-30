@@ -35,22 +35,28 @@ angular.module('pws.forum', [])
   })
   .controller('ForumCtrl', function ($scope, $http, $stateParams,
         userManager, notificationHub) {
-    $http.post('topic', {
-        'action': 'list',
-        'username':   userManager.getUsername(),
-        'token':  userManager.getToken(),
-        'forum':  $stateParams.forumId,
-        'first':  0,
-        'last':   10000
-      })
-      .success(function(data, status, headers, config) {
-        $scope.topics = data.topics;
-        $scope.numTopics = data.num;
-        $scope.forumTitle = data.title;
-        $scope.forumDesc = data.description;
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
-      });
+    $scope.getTopics = function(){
+      $http.post('topic', {
+          'action': 'list',
+          'username':   userManager.getUsername(),
+          'token':  userManager.getToken(),
+          'forum':  $stateParams.forumId,
+          'first':  0,
+          'last':   10000
+        })
+        .success(function(data, status, headers, config) {
+          $scope.topics = data.topics;
+          $scope.numTopics = data.num;
+          $scope.forumTitle = data.title;
+          $scope.forumDesc = data.description;
+          for(var i in $scope.topics){
+            $scope.topics[i].date = new Date($scope.topics[i].timestamp*1000);
+            $scope.topics[i].date = $scope.topics[i].date.toLocaleString();
+          }
+        }).error(function(data, status, headers, config) {
+          notificationHub.createAlert('danger', 'Errore interno', 2);
+        });
+    }
     $scope.newTopic = function() {
       $http.post('topic', {
           'action': 'new',
@@ -62,28 +68,37 @@ angular.module('pws.forum', [])
         })
         .success(function(data, status, headers, config) {
           notificationHub.createAlert('info', 'Topic creato', 1);
+          $scope.getTopics();
           //~ $location.path();
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
     };
+    $scope.getTopics();
   })
   .controller('TopicCtrl', function ($scope, $http, $stateParams,
         userManager, notificationHub) {
-    $http.post('post', {
-        'action': 'list',
-        'username':   userManager.getUsername(),
-        'token':  userManager.getToken(),
-        'topic':  $stateParams.topicId,
-        'first':  0,
-        'last':   10000
-      })
-      .success(function(data, status, headers, config) {
-        $scope.posts = data.posts;
-        $scope.numPosts = data.num;
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
-      });
+    $scope.getPosts = function(){
+      $http.post('post', {
+          'action': 'list',
+          'username':   userManager.getUsername(),
+          'token':  userManager.getToken(),
+          'topic':  $stateParams.topicId,
+          'first':  0,
+          'last':   10000
+        })
+        .success(function(data, status, headers, config) {
+          $scope.posts = data.posts;
+          $scope.numPosts = data.num;
+          $scope.title = data.title;
+          for(var i in $scope.posts){
+            $scope.posts[i].date = new Date($scope.posts[i].timestamp*1000);
+            $scope.posts[i].date = $scope.posts[i].date.toLocaleString();
+          }
+        }).error(function(data, status, headers, config) {
+          notificationHub.createAlert('danger', 'Errore interno', 2);
+        });
+    }
     $scope.newPost = function() {
       $http.post('post', {
           'action': 'new',
@@ -94,9 +109,11 @@ angular.module('pws.forum', [])
         })
         .success(function(data, status, headers, config) {
           notificationHub.createAlert('info', 'Risposta inviata', 1);
+          $scope.getPosts();
           //~ $location.path();
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
     };
+    $scope.getPosts();
   });
