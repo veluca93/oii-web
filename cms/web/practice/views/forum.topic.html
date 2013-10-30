@@ -1,10 +1,7 @@
-<div class="panel panel-default">
-  <div class="panel-heading">
-    <h3 class="panel-title">Posts:</h3>
+<div class="container">
+  <legend>Ci sono {{numPosts}} post in questo topic:</legend>
+  <div class="list-group">
+    <a ng-repeat="post in posts" class="list-group-item"><small style="color:red">[{{post.author_username}}]</small> {{post.text}}</a>
   </div>
-  <div class="panel-body">
-    <div class="list-group">
-      <a ng-repeat="post in topic.posts" class="list-group-item">{{post}}</a>
-    </div>
-  </div>
+  <button class="btn btn-sm btn-info" ng-click="newPost()">Rispondi</button>
 </div>

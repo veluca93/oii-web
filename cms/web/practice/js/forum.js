@@ -61,10 +61,8 @@ angular.module('pws.forum', [])
           'forum':  $stateParams.forumId
         })
         .success(function(data, status, headers, config) {
-          $scope.topics = data.topics;
-          $scope.numTopics = data.num;
-          $scope.forumTitle = data.title;
-          $scope.forumDesc = data.description;
+          notificationHub.createAlert('info', 'Topic creato', 1);
+          //~ $location.path();
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
@@ -81,27 +79,22 @@ angular.module('pws.forum', [])
         'last':   10000
       })
       .success(function(data, status, headers, config) {
-        $scope.topics = data.topics;
-        $scope.numTopics = data.num;
-        $scope.forumTitle = data.title;
-        $scope.forumDesc = data.description;
+        $scope.posts = data.posts;
+        $scope.numPosts = data.num;
       }).error(function(data, status, headers, config) {
         notificationHub.createAlert('danger', 'Errore interno', 2);
       });
     $scope.newPost = function() {
       $http.post('post', {
           'action': 'new',
-          'title':  prompt('Titolo:'),
           'text':   prompt('Contenuto:'),
           'username':   userManager.getUsername(),
           'token':  userManager.getToken(),
-          'forum':  $stateParams.forumId
+          'topic':  $stateParams.topicId
         })
         .success(function(data, status, headers, config) {
-          $scope.topics = data.topics;
-          $scope.numTopics = data.num;
-          $scope.forumTitle = data.title;
-          $scope.forumDesc = data.description;
+          notificationHub.createAlert('info', 'Risposta inviata', 1);
+          //~ $location.path();
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });

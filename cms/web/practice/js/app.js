@@ -46,8 +46,8 @@ angular.module('pws', [
         templateUrl: 'views/forum.html',
         controller: 'ForumCtrl'
       })
-      .state('forum.topic', {
-        url: '/{topicId}',
+      .state('topic', {
+        url: '/topic/{topicId}',
         templateUrl: 'views/forum.topic.html',
         controller: 'TopicCtrl'
       })

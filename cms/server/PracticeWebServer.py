@@ -833,6 +833,7 @@ class APIHandler(object):
         resp = dict()
         with SessionGen() as session:
             contest = Contest.get_from_id(self.contest, session)
+            user = self.get_req_user(session, contest, data)
             access_level = self.get_access_level(session, contest, data)
             if data['action'] == 'list':
                 topic = session.query(Topic)\
@@ -854,16 +855,15 @@ class APIHandler(object):
                     post['timestamp'] = make_timestamp(p.timestamp)
                     post['author_username'] = p.author.username
                     post['author_mailhash'] = self.hash(p.author.email, 'md5')
-                    resp['post'].append(post)
+                    resp['posts'].append(post)
             elif data['action'] == 'new':
                 topic = session.query(Topic)\
-                    .filter(Topic.access_level >= access_level)\
                     .filter(Topic.id == data['topic']).first()
-                if topic is None:
+                if topic is None or topic.forum.access_level < access_level:
                     raise NotFound()
                 post = Post(text=data['text'],
                             timestamp=make_datetime())
-                post.author = self.user
+                post.author = user
                 post.topic = topic
                 topic.timestamp = post.timestamp
                 session.add(post)
