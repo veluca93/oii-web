@@ -21,7 +21,8 @@
 
 angular.module('pws.forum', [])
   .controller('ForumsCtrl', function ($scope, $http, userManager,
-        notificationHub) {
+        notificationHub, navbarManager) {
+    navbarManager.setActiveTab(6);
     $http.post('forum', {
         'action': 'list',
         'user':   userManager.getUsername(),
@@ -102,7 +103,7 @@ angular.module('pws.forum', [])
     $scope.newPost = function() {
       $http.post('post', {
           'action': 'new',
-          'text':   prompt('Contenuto:'),
+          'text':   $scope.newText,
           'username':   userManager.getUsername(),
           'token':  userManager.getToken(),
           'topic':  $stateParams.topicId

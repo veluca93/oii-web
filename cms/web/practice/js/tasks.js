@@ -158,20 +158,30 @@ angular.module('pws.tasks', [])
     $scope.startIndex = parseInt($stateParams.startIndex);
     $scope.tasksPerPage = 15;
     $scope.$window = $window;
+    $scope.search = {}
+    $scope.search.tag = '';
     $scope.updPage = function(newIndex) {
       $location.path("tasks/" + newIndex);
     };
-    $http.post('task', {
+    $scope.getTasks = function() {
+      var data = {
         "first": $scope.tasksPerPage * ($scope.startIndex-1),
         "last": $scope.tasksPerPage * $scope.startIndex,
         "username": userManager.getUsername(),
         "token": userManager.getToken(),
         "action": "list"
-      })
-      .success(function(data, status, headers, config) {
-        $scope.tasks = data["tasks"];
-        $scope.$window.totalTasks = data["num"];
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore di connessione', 2);
-      });
+      };
+      if ($scope.search.tag.length > 1) {
+        console.log($scope.search.tag);
+        data.tag = $scope.search.tag;
+      }
+      $http.post('task', data)
+        .success(function(data, status, headers, config) {
+          $scope.tasks = data["tasks"];
+          $scope.$window.totalTasks = data["num"];
+        }).error(function(data, status, headers, config) {
+          notificationHub.createAlert('danger', 'Errore di connessione', 2);
+        });
+    };
+    $scope.getTasks();
   });
