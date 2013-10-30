@@ -1,6 +1,15 @@
 <div class="container">
-  <pagination total-items="$window.totalTasks" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="startIndex" on-select-page="updPage(page)" items-per-page="tasksPerPage">
-  </pagination>
+  <div class="row container">
+    <pagination class="col-lg-6" total-items="$window.totalTasks" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="startIndex" on-select-page="updPage(page)" items-per-page="tasksPerPage">
+    </pagination>
+    <form class="form-horizontal" role="form" ng-submit="getTasks()">
+      <div class="col-lg-6 form-group">
+        <label class="control-label" for="tag">Ricerca per tag:</label>
+        <input class="form-control cerca-tag" maxlength="50" autocomplete="off" type="text" id="tag" name="tag" ng-model="search.tag"/>
+        <button type="submit" class="btn btn-sm btn-info">cerca</button>
+      </div>
+    </form>
+  </div>
   <div class="list-group">
     <a ng-repeat="task in tasks" class="list-group-item" ui-sref="task.statement({ taskName: task.name })">
       <i class="icon-angle-right"></i> {{task.title}}
