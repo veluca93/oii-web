@@ -154,7 +154,6 @@ angular.module('pws.tasks', [])
   })
   .controller('TasksCtrl', function($scope, $stateParams, $location,
         $http, $window, notificationHub, navbarManager, userManager) {
-    navbarManager.setActiveTab(2);
     $scope.startIndex = parseInt($stateParams.startIndex);
     $scope.tasksPerPage = 15;
     $scope.$window = $window;

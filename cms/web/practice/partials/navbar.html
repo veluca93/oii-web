@@ -10,27 +10,36 @@
     <div class="navbar-collapse collapse" ng-controller="SignCtrl">
       <ul class="nav navbar-nav">
         <li ng-class="{active: isActiveTab(1)}">
-          <a ui-sref="overview"><i class="icon-home icon-large"></i> Home</a>
+          <a ui-sref="overview"><i class="fa fa-home fa-lg"></i> Home</a>
         </li>
-        <li ng-class="{active: isActiveTab(2)}">
-          <a ui-sref="tasks"><i class="icon-list icon-large"></i> Archivio problemi</a>
-        </li>
-        <li ng-class="{active: isActiveTab(6)}">
-          <a ui-sref="forums"><i class="icon-comments icon-large"></i> Forum</a>
-        </li>
-        <li ng-class="{active: isActiveTab(3)}">
-          <a ui-sref="tests"><i class="icon-pencil icon-large"></i> Test</a>
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown">
+            <i class="fa fa-archive fa-lg"></i> Archivio problemi e test <b class="caret"></b>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a ui-sref="tasks"><i class="fa fa-list-ol fa-fw"></i> Tutti i problemi</a></li>
+            <li><a href="#"><i class="fa fa-flask fa-fw"></i> Tutti i problemi, per tecnica</a></li>
+            <li><a href="#"><i class="fa fa-ban fa-fw"></i> Fase nazionale OII, per anno</a></li>
+            <li><a href="#"><i class="fa fa-ban fa-fw"></i> Fase territoriale OII, per anno</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fa fa-ban fa-fw"></i> Problemi creati dagli utenti</a></li>
+            <li class="divider"></li>
+            <li><a ui-sref="tests"><i class="fa fa-pencil fa-fw"></i> Selezioni scolastiche</a></li>
+          </ul>
         </li>
         <li ng-class="{active: isActiveTab(4)}">
-          <a ui-sref="ranks"><i class="icon-trophy icon-large"></i> Classifiche</a>
+          <a ui-sref="ranks"><i class="fa fa-trophy fa-lg"></i> Classifiche</a>
+        </li>
+        <li ng-class="{active: isActiveTab(2)}">
+          <a ui-sref="forums"><i class="fa fa-comments fa-lg"></i> Forum</a>
         </li>
         <li ng-class="{active: isActiveTab(5)}" ng-show="!isLogged()">
-          <a ui-sref="signup"><i class="icon-pencil icon-large"></i> Sign up</a>
+          <a ui-sref="signup"><i class="fa fa-pencil fa-lg"></i> Sign up</a>
         </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li ng-show="!isLogged()" class="dropdown">
-          <a class="dropdown-toggle" data-toggle="dropdown"><i class="icon-user icon-large"></i> Sign in <b class="caret"></b></a>
+          <a class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user fa-lg"></i> Sign in <b class="caret"></b></a>
           <div class="dropdown-menu">
             <form class="signin-form" role="form" name="signinform" ng-submit="signin()">
               <div class="form-group">
@@ -39,14 +48,14 @@
               <div class="form-group">
                 <input class="form-control" type="password" id="password" name="password" ng-model="user.password" placeholder="Password" />
               </div>
-              <button type="submit" class="btn btn-success"><i class="icon-signin"></i> Sign in</button>
+              <button type="submit" class="btn btn-success"><i class="fa fa-signin"></i> Sign in</button>
             </form>
           </div>
         </li>
         <li ng-show="isLogged()">
           <form class="navbar-form navbar-right" name="signoutform" ng-submit="signout()">
             <b class="user-brand">{{getUsername()}}</b>
-            <button type="submit" class="btn btn-success"><i class="icon-signout"></i> Sign Out</button>
+            <button type="submit" class="btn btn-success"><i class="fa fa-signout"></i> Sign Out</button>
           </form>
         </li>
       </ul>

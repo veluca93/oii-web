@@ -1,9 +1,27 @@
 <div class="container">
   <legend>Elenco dei forum</legend>
-  <div class="list-group">
-    <a ng-repeat="forum in forums" class="list-group-item" ui-sref="forum({ forumId: forum.id })">
-      {{forum.title}} <br/>
-      <small>{{forum.description}}</small>
-    </a>
+  <div class="forum-group">
+    <ul class="head">
+      <li class="content">Nome categoria</li>
+      <li class="count">Topic</li>
+      <li class="count">Post</li>
+      <li class="lastpost">Ultimo post</li>
+    </ul>
+    <ul ng-repeat="forum in forums" class="main">
+      <li class)"content">
+        <a ui-sref="forum({ forumId: forum.id })"><b>{{forum.title}}</b></a>
+        </br>
+        {{forum.description}}
+      </li>
+      <li class="count">2</li> <!-- FIXME -->
+      <li class="count">9</li> <!-- FIXME -->
+      <li class="lastpost"> <!-- FIXME -->
+        <a ui-sref="forum({ forumId: forum.id })"><b>Calcolare la somma A+B</b></a>
+        </br>
+        da <a>wil93</a>
+        </br>
+        01/01/1970, 00:00
+      </li>
+    </ul>
   </div>
 </div>
