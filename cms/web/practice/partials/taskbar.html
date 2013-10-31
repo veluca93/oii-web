@@ -2,30 +2,30 @@
   <legend>{{task.title}}</legend>
   <ul class="nav nav-tabs">
     <li ng-class="{active: isActiveTab(1)}">
-      <a ui-sref=".statement"><i class="icon-file-text icon-large"></i> Testo</a>
+      <a ui-sref=".statement"><i class="fa fa-file-text fa-lg"></i> Testo</a>
     </li>
     <li ng-class="{active: isActiveTab(2)}" ng-show="task.attachments.length">
       <a ui-sref=".attachments">
         <span class="tab-badge-total badge pull-right">{{task.attachments.length}}</span>
-        <i class="icon-paper-clip icon-large"></i> Allegati
+        <i class="fa fa-paperclip fa-lg"></i> Allegati
       </a>
     </li>
     <li ng-class="{active: isActiveTab(3)}">
-      <a ui-sref=".stats"><i class="icon-bar-chart icon-large"></i> Statistiche</a>
+      <a ui-sref=".stats"><i class="fa fa-bar-chart-o fa-lg"></i> Statistiche</a>
     </li>
     <li ng-class="{active: isActiveTab(4)}" ng-show="isLogged()">
-      <a ui-sref=".submissions"><i class="icon-code icon-large"></i> Sottoposizioni</a>
+      <a ui-sref=".submissions"><i class="fa fa-code fa-lg"></i> Sottoposizioni</a>
     </li>
     <li id="memoLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di memoria" data-content="La quantità di memoria, in MiB, disponibile per l'esecuzione di un testcase." ng-show="task.memory_limit != undefined">
-      <a><i class="icon-stackexchange icon-large"></i> {{task.memory_limit}} MiB</a>
+      <a><i class="fa fa-stack-overflow fa-lg"></i> {{task.memory_limit}} MiB</a>
     </li>
     <li id="timeLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di tempo" data-content="La quantità di tempo, in secondi, disponibile per l'esecuzione di un testcase." ng-show="task.time_limit != undefined">
-      <a><i class="icon-time icon-large"></i> {{task.time_limit}} sec</a>
+      <a><i class="fa fa-clock-o fa-lg"></i> {{task.time_limit}} sec</a>
     </li>
     <li class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Tag" data-content="I tag servono per classificare e raggruppare i problemi in base ad una caratteristica comune, ad esempio: <i>greedy</i>, <i>grafi</i>, e così via." ng-show="task.tags != undefined && task.tags.length">
       <a data-toggle="modal" data-target="#tags_detail">
         <span class="tab-badge-total badge pull-right">{{task.tags.length}}</span>
-        <i class="icon-tags icon-large"></i> Tag
+        <i class="fa fa-tags fa-lg"></i> Tag
       </a>
     </li>
   </ul>
@@ -39,7 +39,7 @@
         <div class="modal-body">
           <div class="tag-group">
             <span class="tag-group-item" ng-repeat="tag in task.tags">
-              <a class="label btn-info"><i class="icon-tag"></i> {{tag}}</a>
+              <a class="label btn-info"><i class="fa fa-tag"></i> {{tag}}</a>
             </span>
           </div>
         </div>

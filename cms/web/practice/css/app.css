@@ -11,11 +11,12 @@ a {
   cursor: pointer;
 }
 
+a:focus {
+  outline: none;
+}
+
 .hyphenate {
   text-align: justify;
-   -ms-word-break: break-all;
-       word-break: break-all;
-       word-break: break-word;
   -webkit-hyphens: auto;
      -moz-hyphens: auto;
           hyphens: auto;

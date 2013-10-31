@@ -22,7 +22,7 @@
 angular.module('pws.forum', [])
   .controller('ForumsCtrl', function ($scope, $http, userManager,
         notificationHub, navbarManager) {
-    navbarManager.setActiveTab(6);
+    navbarManager.setActiveTab(2);
     $http.post('forum', {
         'action': 'list',
         'user':   userManager.getUsername(),
