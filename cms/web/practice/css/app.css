@@ -187,6 +187,36 @@ a:focus {
 }
 
 /* Forum */
+
+.forum-group dl {
+  margin: 0px;
+}
+
+.forum-group dd {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.forum-group .panel-body {
+  padding: 0px;
+}
+
+.forum-group .panel-body dl {
+  padding: 5px 15px 5px 15px;
+}
+
+.forum-group .panel-body dl:not(:first-child) {
+  border-top: 1px solid #EEE;
+}
+
+.forum-group .content {
+  width: 50%;
+}
+
+.forum-group .count {
+  width: 8%;
+}
+
 .topic table > tbody > tr > td {
     border-top: none;
 }
