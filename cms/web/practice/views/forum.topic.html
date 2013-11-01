@@ -1,6 +1,5 @@
 <div class="container">
   <ol class="breadcrumb">
-    <li><a ui-sref="overview">Home</a></li>
     <li><a ui-sref="forums">Forum</a></li>
     <li><a ui-sref="forum">{{forumTitle}}</a></li>
     <li class="active">{{title}}</li>
@@ -15,7 +14,7 @@
             {{post.author_username}}
           </td>
           <td>
-            <small class="pull-right">{{post.date}}</small>
+            <small class="pull-right">{{post.timestamp | dateFmt}}</small>
             {{post.text}}
           </td>
         </tr>

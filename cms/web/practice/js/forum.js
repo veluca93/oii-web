@@ -37,41 +37,50 @@ angular.module('pws.forum', [])
   .controller('ForumCtrl', function ($scope, $http, $stateParams,
         userManager, navbarManager, notificationHub) {
     navbarManager.setActiveTab(0);
-    $scope.getTopics = function() {
+    $scope.onlyUnans = function() {
+      $scope.getTopics(true);
+      $('#showNoAns').hide();
+      $('#showAll').show();
+    };
+    $scope.showAll = function() {
+      $scope.getTopics(false);
+      $('#showAll').hide();
+      $('#showNoAns').show();
+    };
+    $scope.getTopics = function(onlyUnanswered) {
+      onlyUnanswered = (typeof onlyUnanswered !== 'undefined') ? onlyUnanswered : false;
       $http.post('topic', {
-          'action': 'list',
-          'username':   userManager.getUsername(),
-          'token':  userManager.getToken(),
-          'forum':  $stateParams.forumId,
-          'first':  0,
-          'last':   10000
+          'action':   'list',
+          'username': userManager.getUsername(),
+          'token':    userManager.getToken(),
+          'forum':    $stateParams.forumId,
+          'first':    0,
+          'last':     10000,
+          'noAnswer': onlyUnanswered
         })
         .success(function(data, status, headers, config) {
           $scope.topics = data.topics;
           $scope.numTopics = data.num;
+          $scope.unansweredTopics = data.numUnanswered;
           $scope.forumTitle = data.title;
           $scope.forumDesc = data.description;
-          for (var i in $scope.topics) {
-            $scope.topics[i].date = new Date($scope.topics[i].timestamp * 1000);
-            $scope.topics[i].date = $scope.topics[i].date.toLocaleString();
-          }
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
-    }
+    };
     $scope.newTopic = function() {
       $http.post('topic', {
-          'action': 'new',
-          'title':  prompt('Titolo:'),
-          'text':   prompt('Contenuto:'),
-          'username':   userManager.getUsername(),
-          'token':  userManager.getToken(),
-          'forum':  $stateParams.forumId
+          'action':   'new',
+          'title':    prompt('Titolo:'),
+          'text':     prompt('Contenuto:'),
+          'username': userManager.getUsername(),
+          'token':    userManager.getToken(),
+          'forum':    $stateParams.forumId
         })
         .success(function(data, status, headers, config) {
           notificationHub.createAlert('info', 'Topic creato', 1);
           $scope.getTopics();
-          //~ $location.path();
+          //~ $location.path(); // TODO: redirect al topic creato?
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
@@ -83,41 +92,44 @@ angular.module('pws.forum', [])
     navbarManager.setActiveTab(2);
     $scope.getPosts = function() {
       $http.post('post', {
-          'action': 'list',
-          'username':   userManager.getUsername(),
-          'token':  userManager.getToken(),
-          'topic':  $stateParams.topicId,
-          'first':  0,
-          'last':   10000
+          'action':   'list',
+          'username': userManager.getUsername(),
+          'token':    userManager.getToken(),
+          'topic':    $stateParams.topicId,
+          'first':    0,
+          'last':     10000
         })
         .success(function(data, status, headers, config) {
           $scope.posts = data.posts;
           $scope.numPosts = data.num;
           $scope.title = data.title;
           $scope.forumTitle = data.forumTitle;
-          for (var i in $scope.posts) {
-            $scope.posts[i].date = new Date($scope.posts[i].timestamp * 1000);
-            $scope.posts[i].date = $scope.posts[i].date.toLocaleString();
-          }
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
     }
     $scope.newPost = function() {
       $http.post('post', {
-          'action': 'new',
-          'text':   $scope.newText,
-          'username':   userManager.getUsername(),
-          'token':  userManager.getToken(),
-          'topic':  $stateParams.topicId
+          'action':   'new',
+          'text':     $scope.newText,
+          'username': userManager.getUsername(),
+          'token':    userManager.getToken(),
+          'topic':    $stateParams.topicId
         })
         .success(function(data, status, headers, config) {
           notificationHub.createAlert('info', 'Risposta inviata', 1);
           $scope.getPosts();
-          //~ $location.path();
+          //~ $location.path(); // TODO: redirect al post creato?
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
     };
     $scope.getPosts();
+  })
+  .filter('getIcon', function() {
+    return function(input) {
+      if (input === 'closed')
+        return 'lock';
+      return 'angle-right';
+    };
   });

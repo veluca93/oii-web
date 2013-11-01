@@ -1,14 +1,47 @@
 <div class="container">
   <ol class="breadcrumb">
-    <li><a ui-sref="overview">Home</a></li>
     <li><a ui-sref="forums">Forum</a></li>
     <li class="active">{{forumTitle}}</li>
   </ol>
-  <button class="btn btn-sm btn-info pull-right" ng-click="newTopic()">Nuovo topic</button>
-  </legend>
-  <div class="list-group">
-    <a ng-repeat="topic in topics" class="list-group-item" ui-sref="topic({ topicId: topic.id })">
-      <i class="icon-angle-right"></i> {{topic.title}} <small class="pull-right">{{topic.date}}</small>
-    </a>
+  <button class="topic-top btn btn-md btn-success" ng-click="newTopic()">
+    <i class="fa fa-file-text"></i>
+    Scrivi un nuovo argomento
+  </button>
+  <button id="showNoAns" class="topic-top btn btn-md btn-info" ng-show="unansweredTopics" ng-click="onlyUnans()">
+    <span class="badge pull-right">{{unansweredTopics}}</span>
+    Argomenti senza risposte
+  </button>
+  <button id="showAll" class="topic-top btn btn-md btn-warning" ng-click="showAll()">
+    Tutti gli argomenti
+  </button>
+  <div class="forum-group panel panel-info">
+    <div class="panel-heading">
+      <dl>
+        <dd class="content"><b>Argomenti</b></dd>
+        <dd class="count">Risposte</dd>
+        <dd class="count">Visite</dd>
+        <dd class="lastpost">Ultimo messaggio</d>
+      </dl>
+    </div>
+    <div class="panel-body">
+      <dl ng-repeat="topic in topics">
+        <dd class="content">
+          <i class="fa fa-{{topic.status | getIcon}}"></i>
+          <a ui-sref="topic({ topicId: topic.id })"><b>{{topic.title}}</b></a>
+          </br>
+          di <a>wil93</a> &middot; {{topic.timestamp | dateFmt}} <!-- FIXME -->
+        </dd>
+        <dd class="count">2</dd> <!-- FIXME -->
+        <dd class="count">9</dd> <!-- FIXME -->
+        <dd class="lastpost"> <!-- FIXME -->
+          di <a>wil93</a>
+          <a ui-sref="overview" title="Vai al messaggio">
+            <i class="fa fa-angle-double-right"></i>
+          </a>
+          </br>
+          {{0 | dateFmt}}
+        </dd>
+      </dl>
+    </div>
   </div>
 </div>
