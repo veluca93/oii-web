@@ -1,9 +1,9 @@
 <div class="container">
-<!--
-  <taskbar></taskbar>
-  <div ui-view></div>
--->
-  <legend>{{forumTitle}}
+  <ol class="breadcrumb">
+    <li><a ui-sref="overview">Home</a></li>
+    <li><a ui-sref="forums">Forum</a></li>
+    <li class="active">{{forumTitle}}</li>
+  </ol>
   <button class="btn btn-sm btn-info pull-right" ng-click="newTopic()">Nuovo topic</button>
   </legend>
   <div class="list-group">

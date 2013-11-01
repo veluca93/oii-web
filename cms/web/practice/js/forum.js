@@ -35,8 +35,9 @@ angular.module('pws.forum', [])
       });
   })
   .controller('ForumCtrl', function ($scope, $http, $stateParams,
-        userManager, notificationHub) {
-    $scope.getTopics = function(){
+        userManager, navbarManager, notificationHub) {
+    navbarManager.setActiveTab(0);
+    $scope.getTopics = function() {
       $http.post('topic', {
           'action': 'list',
           'username':   userManager.getUsername(),
@@ -50,8 +51,8 @@ angular.module('pws.forum', [])
           $scope.numTopics = data.num;
           $scope.forumTitle = data.title;
           $scope.forumDesc = data.description;
-          for(var i in $scope.topics){
-            $scope.topics[i].date = new Date($scope.topics[i].timestamp*1000);
+          for (var i in $scope.topics) {
+            $scope.topics[i].date = new Date($scope.topics[i].timestamp * 1000);
             $scope.topics[i].date = $scope.topics[i].date.toLocaleString();
           }
         }).error(function(data, status, headers, config) {
@@ -78,8 +79,9 @@ angular.module('pws.forum', [])
     $scope.getTopics();
   })
   .controller('TopicCtrl', function ($scope, $http, $stateParams,
-        userManager, notificationHub) {
-    $scope.getPosts = function(){
+        userManager, navbarManager, notificationHub) {
+    navbarManager.setActiveTab(2);
+    $scope.getPosts = function() {
       $http.post('post', {
           'action': 'list',
           'username':   userManager.getUsername(),
@@ -92,8 +94,9 @@ angular.module('pws.forum', [])
           $scope.posts = data.posts;
           $scope.numPosts = data.num;
           $scope.title = data.title;
-          for(var i in $scope.posts){
-            $scope.posts[i].date = new Date($scope.posts[i].timestamp*1000);
+          $scope.forumTitle = data.forumTitle;
+          for (var i in $scope.posts) {
+            $scope.posts[i].date = new Date($scope.posts[i].timestamp * 1000);
             $scope.posts[i].date = $scope.posts[i].date.toLocaleString();
           }
         }).error(function(data, status, headers, config) {

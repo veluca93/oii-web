@@ -37,7 +37,7 @@ angular.module('pws', [
         controller: 'OverviewCtrl'
       })
       .state('forums', {
-        url: '/forums',
+        url: '/forum',
         templateUrl: 'views/forums.html',
         controller: 'ForumsCtrl'
       })
@@ -47,7 +47,7 @@ angular.module('pws', [
         controller: 'ForumCtrl'
       })
       .state('topic', {
-        url: '/topic/{topicId}',
+        url: '/forum/{forumId}/topic/{topicId}',
         templateUrl: 'views/forum.topic.html',
         controller: 'TopicCtrl'
       })
