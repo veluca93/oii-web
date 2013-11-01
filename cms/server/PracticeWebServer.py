@@ -51,6 +51,7 @@ import gevent
 import gevent.wsgi
 
 logger = logging.getLogger(__name__)
+local = gevent.local.local()
 
 
 class WSGIHandler(gevent.wsgi.WSGIHandler):
@@ -139,17 +140,30 @@ class APIHandler(object):
                 logger.warning('JSON parse error')
                 data = dict()
 
-        try:
-            ans = getattr(self, endpoint + '_handler')(data)
-        except AttributeError:
-            logger.error('Endpoint %s not implemented yet!' % endpoint)
-            logger.error(traceback.format_exc())
-            return NotFound()
-        except KeyError:
-            logger.error(traceback.format_exc())
-            return BadRequest()
-        except HTTPException as e:
-            return e
+        with SessionGen() as local.session:
+            local.contest = Contest.get_from_id(self.contest, local.session)
+            try:
+                username = str(data['username'])
+                token = str(data['token'])
+                local.user = self.get_user(username, token)
+            except (BadRequest, KeyError):
+                local.user = None
+            if local.user is None:
+                local.access_level = 7  # Access level of unlogged user
+            else:
+                local.access_level = local.user.access_level
+
+            try:
+                ans = getattr(self, endpoint + '_handler')(data)
+            except AttributeError:
+                logger.error('Endpoint %s not implemented yet!' % endpoint)
+                logger.error(traceback.format_exc())
+                return NotFound()
+            except KeyError:
+                logger.error(traceback.format_exc())
+                return BadRequest()
+            except HTTPException as e:
+                return e
 
         response = Response()
         response.mimetype = 'application/json'
@@ -158,34 +172,11 @@ class APIHandler(object):
         return response
 
     # Useful methods
-    def get_user(self, session, contest, username, token):
-        return session.query(User)\
-            .filter(User.contest == contest)\
+    def get_user(self, username, token):
+        return local.session.query(User)\
+            .filter(User.contest == local.contest)\
             .filter(User.username == username)\
             .filter(User.password == token).first()
-
-    def get_req_user(self, session, contest, data):
-        try:
-            username = data['username']
-            token = data['token']
-            user = self.get_user(session, contest, username, token)
-            if user is None:
-                raise Unauthorized()
-            return user
-        except (BadRequest, KeyError):
-            raise Unauthorized()
-
-    def get_access_level(self,
-                         session=None,
-                         contest=None,
-                         data=None,
-                         user=None):
-        try:
-            if user is None:
-                user = self.get_req_user(session, contest, data)
-            return user.access_level
-        except Unauthorized:
-            return 7            # Access level of non-logged user
 
     def check_user(self, username):
         resp = dict()
@@ -196,16 +187,14 @@ class APIHandler(object):
             resp['success'] = 0
             resp['error'] = 'USERNAME_INVALID'
         else:
-            with SessionGen() as session:
-                contest = Contest.get_from_id(self.contest, session)
-                user = session.query(User)\
-                    .filter(User.contest == contest)\
-                    .filter(User.username == username).first()
-                if user is None:
-                    resp['success'] = 1
-                else:
-                    resp['success'] = 0
-                    resp['error'] = 'USERNAME_EXISTS'
+            user = local.session.query(User)\
+                .filter(User.contest == local.contest)\
+                .filter(User.username == username).first()
+            if user is None:
+                resp['success'] = 1
+            else:
+                resp['success'] = 0
+                resp['error'] = 'USERNAME_EXISTS'
         return resp
 
     def check_email(self, email):
@@ -214,16 +203,14 @@ class APIHandler(object):
             resp['success'] = 0
             resp['error'] = 'EMAIL_INVALID'
         else:
-            with SessionGen() as session:
-                contest = Contest.get_from_id(self.contest, session)
-                user = session.query(User)\
-                    .filter(User.contest == contest)\
-                    .filter(User.email == email).first()
-                if user is None:
-                    resp['success'] = 1
-                else:
-                    resp['success'] = 0
-                    resp['error'] = 'EMAIL_EXISTS'
+            user = local.session.query(User)\
+                .filter(User.contest == local.contest)\
+                .filter(User.email == email).first()
+            if user is None:
+                resp['success'] = 1
+            else:
+                resp['success'] = 0
+                resp['error'] = 'EMAIL_EXISTS'
         return resp
 
     def hash(self, string, algo='sha256'):
@@ -313,22 +300,21 @@ class APIHandler(object):
                 return resp
 
             resp['success'] = 1
-            with SessionGen() as session:
-                user = User(
-                    first_name=firstname,
-                    last_name=lastname,
-                    username=username,
-                    password=token,
-                    email=email,
-                    access_level=6
-                )
-                user.contest = Contest.get_from_id(self.contest, session)
-                try:
-                    session.add(user)
-                    session.commit()
-                except IntegrityError:
-                    resp['success'] = 0
-                    resp['error'] = 'USER_EXISTS'
+            user = User(
+                first_name=firstname,
+                last_name=lastname,
+                username=username,
+                password=token,
+                email=email,
+                access_level=6
+            )
+            user.contest = local.contest
+            try:
+                local.session.add(user)
+                local.session.commit()
+            except IntegrityError:
+                resp['success'] = 0
+                resp['error'] = 'USER_EXISTS'
         elif data['action'] == 'login':
             try:
                 username = data['username']
@@ -343,301 +329,256 @@ class APIHandler(object):
             token = sha.hexdigest()
 
             resp = dict()
-            with SessionGen() as session:
-                contest = Contest.get_from_id(self.contest, session)
-                user = self.get_user(session, contest, username, token)
-                if user is None:
-                    resp['success'] = 0
-                else:
-                    resp['success'] = 1
-                    resp['token'] = token
-                    resp['access_level'] = user.access_level
+            user = self.get_user(username, token)
+            if user is None:
+                resp['success'] = 0
+            else:
+                resp['success'] = 1
+                resp['token'] = token
             return resp
         elif data['action'] == 'get_access_level':
-            with SessionGen() as session:
-                contest = Contest.get_from_id(self.contest, session)
-                resp['access_level'] = self.get_access_level(session,
-                                                             contest,
-                                                             data)
+            resp['access_level'] = local.access_level
         else:
             raise BadRequest()
         return resp
 
     def task_handler(self, data):
         resp = dict()
-        with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest, session)
-            access_level = self.get_access_level(session, contest, data)
-            if data['action'] == 'list':
-                if 'tag' in data:
-                    tasks = session.query(Task)\
-                        .filter(Task.contest_id == contest.id)\
-                        .filter(Task.tags.any(name=data['tag']))\
-                        .filter(Task.access_level >= access_level)\
-                        .order_by(desc(Task.id))\
-                        .slice(data['first'], data['last']).all()
-                    resp['num'] = session.query(Task)\
-                        .filter(Task.tags.any(name=data['tag']))\
-                        .filter(Task.access_level >= access_level)\
-                        .filter(Task.contest_id == contest.id).count()
-                else:
-                    tasks = session.query(Task)\
-                        .filter(Task.contest_id == contest.id)\
-                        .filter(Task.access_level >= access_level)\
-                        .order_by(desc(Task.id))\
-                        .slice(data['first'], data['last']).all()
-                    resp['num'] = session.query(Task)\
-                        .filter(Task.access_level >= access_level)\
-                        .filter(Task.contest_id == contest.id).count()
-                resp['tasks'] = []
-                for t in tasks:
-                    task = dict()
-                    task['id'] = t.id
-                    task['name'] = t.name
-                    task['title'] = t.title
-                    resp['tasks'].append(task)
-            elif data['action'] == 'get':
-                t = session.query(Task)\
-                    .filter(Task.name == data['name'])\
-                    .filter(Task.contest_id == contest.id)\
-                    .filter(Task.access_level >= access_level)\
-                    .first()
-                if t is None:
-                    raise NotFound()
-                resp['id'] = t.id
-                resp['name'] = t.name
-                resp['title'] = t.title
-                resp['statements'] =\
-                    dict([(l, s.digest) for l, s in t.statements.iteritems()])
-                resp['submission_format'] =\
-                    [sfe.filename for sfe in t.submission_format]
-                for i in ['time_limit', 'memory_limit', 'task_type']:
-                    resp[i] = getattr(t.active_dataset, i)
-                att = []
-                for (name, obj) in t.attachments.iteritems():
-                    att.append((name, obj.digest))
-                resp['attachments'] = att
-                resp['tags'] = [tag.name for tag in t.tags]
+        if data['action'] == 'list':
+            if 'tag' in data:
+                tasks = local.session.query(Task)\
+                    .filter(Task.contest_id == local.contest.id)\
+                    .filter(Task.tags.any(name=data['tag']))\
+                    .filter(Task.access_level >= local.access_level)\
+                    .order_by(desc(Task.id))\
+                    .slice(data['first'], data['last']).all()
+                resp['num'] = local.session.query(Task)\
+                    .filter(Task.tags.any(name=data['tag']))\
+                    .filter(Task.access_level >= local.access_level)\
+                    .filter(Task.contest_id == local.contest.id).count()
             else:
-                raise BadRequest()
+                tasks = local.session.query(Task)\
+                    .filter(Task.contest_id == local.contest.id)\
+                    .filter(Task.access_level >= local.access_level)\
+                    .order_by(desc(Task.id))\
+                    .slice(data['first'], data['last']).all()
+                resp['num'] = local.session.query(Task)\
+                    .filter(Task.access_level >= local.access_level)\
+                    .filter(Task.contest_id == local.contest.id).count()
+            resp['tasks'] = []
+            for t in tasks:
+                task = dict()
+                task['id'] = t.id
+                task['name'] = t.name
+                task['title'] = t.title
+                resp['tasks'].append(task)
+        elif data['action'] == 'get':
+            t = local.session.query(Task)\
+                .filter(Task.name == data['name'])\
+                .filter(Task.contest_id == local.contest.id)\
+                .filter(Task.access_level >= local.access_level)\
+                .first()
+            if t is None:
+                raise NotFound()
+            resp['id'] = t.id
+            resp['name'] = t.name
+            resp['title'] = t.title
+            resp['statements'] =\
+                dict([(l, s.digest) for l, s in t.statements.iteritems()])
+            resp['submission_format'] =\
+                [sfe.filename for sfe in t.submission_format]
+            for i in ['time_limit', 'memory_limit', 'task_type']:
+                resp[i] = getattr(t.active_dataset, i)
+            att = []
+            for (name, obj) in t.attachments.iteritems():
+                att.append((name, obj.digest))
+            resp['attachments'] = att
+            resp['tags'] = [tag.name for tag in t.tags]
+        else:
+            raise BadRequest()
         return resp
 
     def tag_handler(self, data):
         resp = dict()
-        with SessionGen() as session:
-            if data['action'] == 'list':
-                tags = session.query(Tag).order_by(Tag.id).all()
-                resp['tags'] = [t.name for t in tags]
-                return resp
-
-            contest = Contest.get_from_id(self.contest, session)
-            access_level = self.get_access_level(session, contest, data)
-            resp['success'] = 0
-            if data['action'] == 'create':
-                if access_level >= 4:
-                    raise Unauthorized()
-                try:
-                    if len(data['description']) < 5:
-                        resp['error'] = 'DESCRIPTION_SHORT'
-                    else:
-                        tag = Tag(
-                            name=data['tag'],
-                            description=data['description']
-                        )
-                        session.add(tag)
-                        session.commit()
-                        resp['success'] = 1
-                except KeyError:
-                    resp['error'] = 'DATA_MISSING'
-                except IntegrityError:
-                    resp['error'] = 'TAG_EXISTS'
-            elif data['action'] == 'delete':
-                if access_level >= 4:
-                    raise Unauthorized()
-                try:
-                    tag = session.query(Tag)\
-                        .filter(Tag.name == data['tag']).first()
-                    if tag is None:
-                        resp['error'] = 'TAG_DOESNT_EXIST'
-                    else:
-                        session.delete(tag)
-                        session.commit()
-                        resp['success'] = 1
-                except KeyError:
-                    resp['error'] = 'DATA_MISSING'
-            elif data['action'] == 'add':
-                if access_level >= 5:
-                    raise Unauthorized()
-                try:
-                    tag = session.query(Tag)\
-                        .filter(Tag.name == data['tag']).first()
-                    task = session.query(Task)\
-                        .filter(Task.name == data['task'])\
-                        .filter(Task.contest_id == contest.id).first()
-                    if tag is None:
-                        resp['error'] = 'TAG_DOESNT_EXIST'
-                    elif task is None:
-                        resp['error'] = 'TASK_DOESNT_EXIST'
-                    elif tag in task.tags:
-                        resp['error'] = 'TASK_TAG_ASSOC'
-                    else:
-                        task.tags.append(tag)
-                        session.commit()
-                        resp['success'] = 1
-                except KeyError:
-                    resp['error'] = 'DATA_MISSING'
-            elif data['action'] == 'remove':
-                if access_level >= 5:
-                    raise Unauthorized()
-                try:
-                    tag = session.query(Tag)\
-                        .filter(Tag.name == data['tag']).first()
-                    task = session.query(Task)\
-                        .filter(Task.name == data['task'])\
-                        .filter(Task.contest_id == contest.id).first()
-                    if tag is None:
-                        resp['error'] = 'TAG_DOESNT_EXIST'
-                    elif task is None:
-                        resp['error'] = 'TASK_DOESNT_EXIST'
-                    elif tag not in task.tags:
-                        resp['error'] = 'TASK_TAG_NOT_ASSOC'
-                    else:
-                        task.tags.remove(tag)
-                        session.commit()
-                        resp['success'] = 1
-                except KeyError:
-                    resp['error'] = 'DATA_MISSING'
-            else:
-                raise BadRequest()
+        if data['action'] == 'list':
+            tags = local.session.query(Tag).order_by(Tag.id).all()
+            resp['tags'] = [t.name for t in tags]
             return resp
+
+        resp['success'] = 0
+        if data['action'] == 'create':
+            if local.access_level >= 4:
+                raise Unauthorized()
+            try:
+                if len(data['description']) < 5:
+                    resp['error'] = 'DESCRIPTION_SHORT'
+                else:
+                    tag = Tag(
+                        name=data['tag'],
+                        description=data['description']
+                    )
+                    local.session.add(tag)
+                    local.session.commit()
+                    resp['success'] = 1
+            except KeyError:
+                resp['error'] = 'DATA_MISSING'
+            except IntegrityError:
+                resp['error'] = 'TAG_EXISTS'
+        elif data['action'] == 'delete':
+            if local.access_level >= 4:
+                raise Unauthorized()
+            try:
+                tag = local.session.query(Tag)\
+                    .filter(Tag.name == data['tag']).first()
+                if tag is None:
+                    resp['error'] = 'TAG_DOESNT_EXIST'
+                else:
+                    local.session.delete(tag)
+                    local.session.commit()
+                    resp['success'] = 1
+            except KeyError:
+                resp['error'] = 'DATA_MISSING'
+        elif data['action'] == 'add':
+            if local.access_level >= 5:
+                raise Unauthorized()
+            try:
+                tag = local.session.query(Tag)\
+                    .filter(Tag.name == data['tag']).first()
+                task = local.session.query(Task)\
+                    .filter(Task.name == data['task'])\
+                    .filter(Task.contest_id == local.contest.id).first()
+                if tag is None:
+                    resp['error'] = 'TAG_DOESNT_EXIST'
+                elif task is None:
+                    resp['error'] = 'TASK_DOESNT_EXIST'
+                elif tag in task.tags:
+                    resp['error'] = 'TASK_TAG_ASSOC'
+                else:
+                    task.tags.append(tag)
+                    local.session.commit()
+                    resp['success'] = 1
+            except KeyError:
+                resp['error'] = 'DATA_MISSING'
+        elif data['action'] == 'remove':
+            if local.access_level >= 5:
+                raise Unauthorized()
+            try:
+                tag = local.session.query(Tag)\
+                    .filter(Tag.name == data['tag']).first()
+                task = local.session.query(Task)\
+                    .filter(Task.name == data['task'])\
+                    .filter(Task.contest_id == local.contest.id).first()
+                if tag is None:
+                    resp['error'] = 'TAG_DOESNT_EXIST'
+                elif task is None:
+                    resp['error'] = 'TASK_DOESNT_EXIST'
+                elif tag not in task.tags:
+                    resp['error'] = 'TASK_TAG_NOT_ASSOC'
+                else:
+                    task.tags.remove(tag)
+                    local.session.commit()
+                    resp['success'] = 1
+            except KeyError:
+                resp['error'] = 'DATA_MISSING'
+        else:
+            raise BadRequest()
+        return resp
 
     def test_handler(self, data):
         resp = dict()
-        with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest, session)
-            access_level = self.get_access_level(session, contest, data)
-            if data['action'] == 'list':
-                tests = session.query(Test)\
-                    .filter(Test.access_level >= access_level)\
-                    .order_by(Test.id).all()
-                resp['tests'] = []
-                for t in tests:
-                    resp['tests'].append({
-                        'name': t.name,
-                        'description': t.description
-                    })
-            elif data['action'] == 'get':
-                test = session.query(Test)\
-                    .filter(Test.name == data['test_name'])\
-                    .filter(Test.access_level >= access_level).first()
-                if test is None:
-                    raise NotFound()
-                resp['name'] = test.name
-                resp['description'] = test.description
-                resp['questions'] = []
-                for i in test.questions:
-                    q = dict()
-                    q['type'] = i.type
-                    q['text'] = i.text
-                    q['max_score'] = i.score
-                    ansdata = json.loads(i.answers)
-                    if i.type == 'choice':
-                        q['choices'] = [t[0] for t in ansdata]
-                    else:
-                        q['answers'] = [[t[0], len(t[1])] for t in ansdata]
-                    resp['questions'].append(q)
-            elif data['action'] == 'answer':
-                test = session.query(Test)\
-                    .filter(Test.name == data['test_name'])\
-                    .filter(Test.access_level >= access_level).first()
-                if test is None:
-                    raise NotFound()
-                data = data['answers']
-                for i in xrange(len(test.questions)):
-                    q = test.questions[i]
-                    ansdata = json.loads(q.answers)
-                    if q.type == 'choice':
-                        resp[i] = [q.wrong_score, 'wrong']
-                        try:
-                            if data[i] is None:
-                                resp[i] = [0, 'empty']
-                            elif ansdata[int(data[i])][1]:
-                                resp[i] = [q.score, 'correct']
-                        except IndexError:
-                            pass
-                        continue
-                    else:
-                        for key, correct in ansdata:
-                            ans = data[i].get(key, None)
-                            if len(ans) != len(correct):
-                                resp[i] = [q.wrong_score, 'wrong']
-                            for a in xrange(len(ans)):
-                                if ans[a] is None:
-                                    resp[i] = [0, 'empty']
-                                    break
-                                if q.type == 'number':
-                                    an = float(ans[a])
-                                    cor = float(correct[a])
-                                else:
-                                    an = ans[a].lower()
-                                    cor = correct[a].lower()
-                                if an != cor:
-                                    resp[i] = [q.wrong_score, 'wrong']
-                        if resp.get(i, None) is None:
+        if data['action'] == 'list':
+            tests = local.session.query(Test)\
+                .filter(Test.access_level >= local.access_level)\
+                .order_by(Test.id).all()
+            resp['tests'] = []
+            for t in tests:
+                resp['tests'].append({
+                    'name': t.name,
+                    'description': t.description
+                })
+        elif data['action'] == 'get':
+            test = local.session.query(Test)\
+                .filter(Test.name == data['test_name'])\
+                .filter(Test.access_level >= local.access_level).first()
+            if test is None:
+                raise NotFound()
+            resp['name'] = test.name
+            resp['description'] = test.description
+            resp['questions'] = []
+            for i in test.questions:
+                q = dict()
+                q['type'] = i.type
+                q['text'] = i.text
+                q['max_score'] = i.score
+                ansdata = json.loads(i.answers)
+                if i.type == 'choice':
+                    q['choices'] = [t[0] for t in ansdata]
+                else:
+                    q['answers'] = [[t[0], len(t[1])] for t in ansdata]
+                resp['questions'].append(q)
+        elif data['action'] == 'answer':
+            test = local.session.query(Test)\
+                .filter(Test.name == data['test_name'])\
+                .filter(Test.access_level >= local.access_level).first()
+            if test is None:
+                raise NotFound()
+            data = data['answers']
+            for i in xrange(len(test.questions)):
+                q = test.questions[i]
+                ansdata = json.loads(q.answers)
+                if q.type == 'choice':
+                    resp[i] = [q.wrong_score, 'wrong']
+                    try:
+                        if data[i] is None:
+                            resp[i] = [0, 'empty']
+                        elif ansdata[int(data[i])][1]:
                             resp[i] = [q.score, 'correct']
-            else:
-                raise BadRequest()
-            return resp
+                    except IndexError:
+                        pass
+                    continue
+                else:
+                    for key, correct in ansdata:
+                        ans = data[i].get(key, None)
+                        if len(ans) != len(correct):
+                            resp[i] = [q.wrong_score, 'wrong']
+                        for a in xrange(len(ans)):
+                            if ans[a] is None:
+                                resp[i] = [0, 'empty']
+                                break
+                            if q.type == 'number':
+                                an = float(ans[a])
+                                cor = float(correct[a])
+                            else:
+                                an = ans[a].lower()
+                                cor = correct[a].lower()
+                            if an != cor:
+                                resp[i] = [q.wrong_score, 'wrong']
+                    if resp.get(i, None) is None:
+                        resp[i] = [q.score, 'correct']
+        else:
+            raise BadRequest()
+        return resp
 
     def submission_handler(self, data):
         resp = dict()
-        with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest, session)
-            user = self.get_req_user(session, contest, data)
-            if data['action'] == 'list':
-                task = session.query(Task)\
-                    .filter(Task.contest_id == contest.id)\
-                    .filter(Task.name == data['task_name']).first()
-                if task is None:
-                    raise NotFound()
-                subs = session.query(Submission)\
-                    .filter(Submission.user_id == user.id)\
-                    .filter(Submission.task_id == task.id)\
-                    .order_by(desc(Submission.timestamp)).all()
-                submissions = []
-                for s in subs:
-                    submission = dict()
-                    submission['id'] = s.id
-                    submission['task_id'] = s.task_id
-                    submission['timestamp'] = make_timestamp(s.timestamp)
-                    submission['files'] = []
-                    for name, f in s.files.iteritems():
-                        fi = dict()
-                        if s.language is None:
-                            fi['name'] = name
-                        else:
-                            fi['name'] = name.replace('%l', s.language)
-                        fi['digest'] = f.digest
-                        submission['files'].append(fi)
-                    result = s.get_result()
-                    for i in ['compilation_outcome', 'evaluation_outcome']:
-                        submission[i] = getattr(result, i, None)
-                    if result is not None and result.score is not None:
-                        submission['score'] = round(result.score, 2)
-                    submissions.append(submission)
-                resp['submissions'] = submissions
-            elif data['action'] == 'details':
-                s = session.query(Submission)\
-                    .filter(Submission.id == data['id']).first()
-                if s is None:
-                    raise NotFound()
-                if s.user_id != user.id:
-                    raise Unauthorized()
+        if data['action'] == 'list':
+            task = local.session.query(Task)\
+                .filter(Task.contest_id == local.contest.id)\
+                .filter(Task.name == data['task_name']).first()
+            if task is None:
+                raise NotFound()
+            if local.user is None:
+                raise Unauthorized()
+            subs = local.session.query(Submission)\
+                .filter(Submission.user_id == local.user.id)\
+                .filter(Submission.task_id == task.id)\
+                .order_by(desc(Submission.timestamp)).all()
+            submissions = []
+            for s in subs:
                 submission = dict()
                 submission['id'] = s.id
                 submission['task_id'] = s.task_id
                 submission['timestamp'] = make_timestamp(s.timestamp)
-                submission['language'] = s.language
                 submission['files'] = []
                 for name, f in s.files.iteritems():
                     fi = dict()
@@ -648,247 +589,286 @@ class APIHandler(object):
                     fi['digest'] = f.digest
                     submission['files'].append(fi)
                 result = s.get_result()
-                for i in ['compilation_outcome', 'evaluation_outcome',
-                          'compilation_stdout', 'compilation_stderr',
-                          'compilation_time', 'compilation_memory']:
+                for i in ['compilation_outcome', 'evaluation_outcome']:
                     submission[i] = getattr(result, i, None)
                 if result is not None and result.score is not None:
                     submission['score'] = round(result.score, 2)
-                if result is not None and result.score_details is not None:
-                    tmp = json.loads(result.score_details)
-                    if len(tmp) > 0 and 'text' in tmp[0]:
-                        subt = dict()
-                        subt['testcases'] = tmp
-                        subt['score'] = submission['score']
-                        subt['max_score'] = 100
-                        submission['score_details'] = [subt]
-                    else:
-                        submission['score_details'] = tmp
-                    for subtask in submission['score_details']:
-                        for testcase in subtask['testcases']:
-                            data = json.loads(testcase['text'])
-                            testcase['text'] = data[0] % tuple(data[1:])
+                submissions.append(submission)
+            resp['submissions'] = submissions
+        elif data['action'] == 'details':
+            s = local.session.query(Submission)\
+                .filter(Submission.id == data['id']).first()
+            if s is None:
+                raise NotFound()
+            if local.user is None or s.user_id != local.user.id:
+                raise Unauthorized()
+            submission = dict()
+            submission['id'] = s.id
+            submission['task_id'] = s.task_id
+            submission['timestamp'] = make_timestamp(s.timestamp)
+            submission['language'] = s.language
+            submission['files'] = []
+            for name, f in s.files.iteritems():
+                fi = dict()
+                if s.language is None:
+                    fi['name'] = name
                 else:
-                    submission['score_details'] = None
-                resp = submission
-            elif data['action'] == 'new':
-                lastsub = session.query(Submission)\
-                    .filter(Submission.user_id == user.id)\
-                    .order_by(desc(Submission.timestamp)).first()
-                if lastsub is not None and \
-                   make_datetime() - lastsub.timestamp < timedelta(seconds=20):
-                    return {'success': 0, 'error': 'SHORT_INTERVAL'}
-
-                # TODO: implement checks (size), archives and
-                # (?) partial submissions
-                try:
-                    task = contest.get_task(data['task_name'])
-                except KeyError:
-                    raise NotFound()
-                resp = dict()
-                resp['success'] = 1
-
-                # Detect language
-                files = []
-                sub_lang = None
-                for sfe in task.submission_format:
-                    f = data['files'].get(sfe.filename)
-                    if f is None:
-                        return {'success': 0, 'error': 'FILES_MISSING'}
-                    f['name'] = sfe.filename
-                    files.append(f)
-                    if sfe.filename.endswith('.%l'):
-                        language = None
-                        for ext, l in SOURCE_EXT_TO_LANGUAGE_MAP.iteritems():
-                            if f['filename'].endswith(ext):
-                                language = l
-                        if language is None:
-                            return {'success': 0, 'error': 'LANGUAGE_UNKNOWN'}
-                        elif sub_lang is not None and sub_lang != language:
-                            return {'success': 0,
-                                    'error': 'LANGUAGE_DIFFERENT'}
-                        else:
-                            sub_lang = language
-
-                # Add the submission
-                timestamp = make_datetime()
-                submission = Submission(timestamp,
-                                        sub_lang,
-                                        user=user,
-                                        task=task)
-                for f in files:
-                    digest = self.file_cacher.put_file_content(
-                        f['data'].encode('utf-8'),
-                        'Submission file %s sent by %s at %d.' % (
-                            f['name'], user.username,
-                            make_timestamp(timestamp)))
-                    session.add(File(f['name'], digest, submission=submission))
-                session.add(submission)
-                session.commit()
-
-                # Notify ES
-                self.evaluation_service.new_submission(
-                    submission_id=submission.id
-                )
-
-                # Answer with submission data
-                resp['id'] = submission.id
-                resp['task_id'] = submission.task_id
-                resp['timestamp'] = make_timestamp(submission.timestamp)
-                resp['compilation_outcome'] = None
-                resp['evaluation_outcome'] = None
-                resp['score'] = None
-                resp['files'] = []
-                for name, f in submission.files.iteritems():
-                    fi = dict()
-                    if submission.language is None:
-                        fi['name'] = name
-                    else:
-                        fi['name'] = name.replace('%l', submission.language)
-                    fi['digest'] = f.digest
-                    resp['files'].append(fi)
+                    fi['name'] = name.replace('%l', s.language)
+                fi['digest'] = f.digest
+                submission['files'].append(fi)
+            result = s.get_result()
+            for i in ['compilation_outcome', 'evaluation_outcome',
+                      'compilation_stdout', 'compilation_stderr',
+                      'compilation_time', 'compilation_memory']:
+                submission[i] = getattr(result, i, None)
+            if result is not None and result.score is not None:
+                submission['score'] = round(result.score, 2)
+            if result is not None and result.score_details is not None:
+                tmp = json.loads(result.score_details)
+                if len(tmp) > 0 and 'text' in tmp[0]:
+                    subt = dict()
+                    subt['testcases'] = tmp
+                    subt['score'] = submission['score']
+                    subt['max_score'] = 100
+                    submission['score_details'] = [subt]
+                else:
+                    submission['score_details'] = tmp
+                for subtask in submission['score_details']:
+                    for testcase in subtask['testcases']:
+                        data = json.loads(testcase['text'])
+                        testcase['text'] = data[0] % tuple(data[1:])
             else:
-                raise BadRequest()
+                submission['score_details'] = None
+            resp = submission
+        elif data['action'] == 'new':
+            if local.user is None:
+                raise Unauthorized()
+            lastsub = local.session.query(Submission)\
+                .filter(Submission.user_id == local.user.id)\
+                .order_by(desc(Submission.timestamp)).first()
+            if lastsub is not None and \
+               make_datetime() - lastsub.timestamp < timedelta(seconds=20):
+                return {'success': 0, 'error': 'SHORT_INTERVAL'}
+
+            # TODO: implement checks (size), archives and
+            # (?) partial submissions
+            try:
+                task = local.contest.get_task(data['task_name'])
+            except KeyError:
+                raise NotFound()
+            resp = dict()
+            resp['success'] = 1
+
+            # Detect language
+            files = []
+            sub_lang = None
+            for sfe in task.submission_format:
+                f = data['files'].get(sfe.filename)
+                if f is None:
+                    return {'success': 0, 'error': 'FILES_MISSING'}
+                f['name'] = sfe.filename
+                files.append(f)
+                if sfe.filename.endswith('.%l'):
+                    language = None
+                    for ext, l in SOURCE_EXT_TO_LANGUAGE_MAP.iteritems():
+                        if f['filename'].endswith(ext):
+                            language = l
+                    if language is None:
+                        return {'success': 0, 'error': 'LANGUAGE_UNKNOWN'}
+                    elif sub_lang is not None and sub_lang != language:
+                        return {'success': 0,
+                                'error': 'LANGUAGE_DIFFERENT'}
+                    else:
+                        sub_lang = language
+
+            # Add the submission
+            timestamp = make_datetime()
+            submission = Submission(timestamp,
+                                    sub_lang,
+                                    user=local.user,
+                                    task=task)
+            for f in files:
+                digest = self.file_cacher.put_file_content(
+                    f['data'].encode('utf-8'),
+                    'Submission file %s sent by %s at %d.' % (
+                        f['name'], local.user.username,
+                        make_timestamp(timestamp)))
+                local.session.add(File(f['name'],
+                                       digest,
+                                       submission=submission))
+            local.session.add(submission)
+            local.session.commit()
+
+            # Notify ES
+            self.evaluation_service.new_submission(
+                submission_id=submission.id
+            )
+
+            # Answer with submission data
+            resp['id'] = submission.id
+            resp['task_id'] = submission.task_id
+            resp['timestamp'] = make_timestamp(submission.timestamp)
+            resp['compilation_outcome'] = None
+            resp['evaluation_outcome'] = None
+            resp['score'] = None
+            resp['files'] = []
+            for name, f in submission.files.iteritems():
+                fi = dict()
+                if submission.language is None:
+                    fi['name'] = name
+                else:
+                    fi['name'] = name.replace('%l', submission.language)
+                fi['digest'] = f.digest
+                resp['files'].append(fi)
+        else:
+            raise BadRequest()
         return resp
 
     def forum_handler(self, data):
         resp = dict()
-        with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest, session)
-            access_level = self.get_access_level(session, contest, data)
-            if data['action'] == 'list':
-                forums = session.query(Forum)\
-                    .filter(Forum.access_level >= access_level)\
-                    .order_by(desc(Forum.id)).all()
-                resp['forums'] = []
-                for f in forums:
-                    forum = dict()
-                    forum['id'] = f.id
-                    forum['description'] = f.description
-                    forum['title'] = f.title
-                    forum['topics'] = 2 # FIXME
-                    forum['posts'] = 9 # FIXME
-                    resp['forums'].append(forum)
-            elif data['action'] == 'new':
-                if access_level > 1:
-                    raise Unauthorized()
-                if data['title'] is None or len(data['title']) < 4:
-                    return {"success": 0, "error": "TITLE_SHORT"}
-                if data['description'] is None or len(data['description']) < 4:
-                    return {"success": 0, "error": "DESCRIPTION_SHORT"}
-                forum = Forum(title=data['title'],
-                              description=data['description'],
-                              access_level=7)
-                session.add(forum)
-                session.commit()
-                resp['success'] = 1
-            else:
-                raise BadRequest()
+        if data['action'] == 'list':
+            forums = local.session.query(Forum)\
+                .filter(Forum.access_level >= local.access_level)\
+                .order_by(Forum.id).all()
+            resp['forums'] = []
+            for f in forums:
+                forum = dict()
+                forum['id'] = f.id
+                forum['description'] = f.description
+                forum['title'] = f.title
+                forum['topics'] = f.ntopic
+                forum['posts'] = f.npost
+                resp['forums'].append(forum)
+        elif data['action'] == 'new':
+            if local.access_level > 1:
+                raise Unauthorized()
+            if data['title'] is None or len(data['title']) < 4:
+                return {"success": 0, "error": "TITLE_SHORT"}
+            if data['description'] is None or len(data['description']) < 4:
+                return {"success": 0, "error": "DESCRIPTION_SHORT"}
+            forum = Forum(title=data['title'],
+                          description=data['description'],
+                          access_level=7,
+                          ntopic=0,
+                          npost=0)
+            local.session.add(forum)
+            local.session.commit()
+            resp['success'] = 1
+        else:
+            raise BadRequest()
         return resp
 
     def topic_handler(self, data):
         resp = dict()
-        with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest, session)
-            user = self.get_req_user(session, contest, data)
-            access_level = self.get_access_level(user=user)
-            if data['action'] == 'list':
-                # TODO: se data['noAnswer'] = True, elenca solo i topic senza risposta
-                forum = session.query(Forum)\
-                    .filter(Forum.access_level >= access_level)\
-                    .filter(Forum.id == data['forum']).first()
-                if forum is None:
-                    raise NotFound()
-                resp['title'] = forum.title
-                resp['description'] = forum.description
-                topics = session.query(Topic)\
-                    .filter(Topic.forum_id == forum.id)\
-                    .order_by(desc(Topic.timestamp))\
-                    .slice(data['first'], data['last']).all()
-                num = session.query(Topic)\
-                    .filter(Topic.forum_id == forum.id).count()
-                resp['num'] = num
-                resp['numUnanswered'] = 42 # FIXME
-                resp['topics'] = []
-                for t in topics:
-                    topic = dict()
-                    topic['id'] = t.id
-                    topic['status'] = t.status
-                    topic['title'] = t.title
-                    topic['timestamp'] = make_timestamp(t.timestamp)
-                    resp['topics'].append(topic)
-            elif data['action'] == 'new':
-                forum = session.query(Forum)\
-                    .filter(Forum.access_level >= access_level)\
-                    .filter(Forum.id == data['forum']).first()
-                if forum is None:
-                    raise NotFound()
-                if data['title'] is None or len(data['title']) < 4:
-                    return {"success": 0, "error": "TITLE_SHORT"}
-                if data['text'] is None or len(data['text']) < 4:
-                    return {"success": 0, "error": "TEXT_SHORT"}
-                topic = Topic(status='open',
-                              title=data['title'],
-                              timestamp=make_datetime())
-                topic.forum = forum
-                post = Post(text=data['text'],
-                            timestamp=make_datetime())
-                post.author = user
-                post.topic = topic
-                session.add(topic)
-                session.add(post)
-                session.commit()
-                resp['success'] = 1
-            else:
-                raise BadRequest()
+        if data['action'] == 'list':
+            forum = local.session.query(Forum)\
+                .filter(Forum.access_level >= local.access_level)\
+                .filter(Forum.id == data['forum']).first()
+            if forum is None:
+                raise NotFound()
+            noAnswer = 'noAnswer' in data and data['noAnswer']
+            resp['title'] = forum.title
+            resp['description'] = forum.description
+            topics = local.session.query(Topic)\
+                .filter(Topic.forum_id == forum.id)\
+                .order_by(desc(Topic.timestamp))\
+                .slice(data['first'], data['last']).all()
+            resp['num'] = local.session.query(Topic)\
+                .filter(Topic.forum_id == forum.id).count()
+            resp['numUnanswered'] = local.session.query(Topic)\
+                .filter(Topic.forum_id == forum.id)\
+                .filter(Topic.answered == False).count()
+            resp['topics'] = []
+            for t in topics:
+                if noAnswer and t.answered == True:
+                    continue
+                topic = dict()
+                topic['id'] = t.id
+                topic['status'] = t.status
+                topic['title'] = t.title
+                topic['timestamp'] = make_timestamp(t.timestamp)
+                resp['topics'].append(topic)
+        elif data['action'] == 'new':
+            if local.user is None:
+                raise Unauthorized()
+            forum = local.session.query(Forum)\
+                .filter(Forum.access_level >= local.access_level)\
+                .filter(Forum.id == data['forum']).first()
+            if forum is None:
+                raise NotFound()
+            if data['title'] is None or len(data['title']) < 4:
+                return {"success": 0, "error": "TITLE_SHORT"}
+            if data['text'] is None or len(data['text']) < 4:
+                return {"success": 0, "error": "TEXT_SHORT"}
+            topic = Topic(status='open',
+                          title=data['title'],
+                          timestamp=make_datetime(),
+                          answered=False)
+            topic.forum = forum
+            post = Post(text=data['text'],
+                        timestamp=make_datetime())
+            post.author = local.user
+            post.topic = topic
+            post.forum = forum
+            local.session.add(topic)
+            local.session.add(post)
+            forum.ntopic = len(forum.topics)
+            forum.npost = local.session.query(Post)\
+                .filter(Post.forum_id == forum.id).count()
+            local.session.commit()
+            resp['success'] = 1
+        else:
+            raise BadRequest()
         return resp
 
     def post_handler(self, data):
         resp = dict()
-        with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest, session)
-            user = self.get_req_user(session, contest, data)
-            access_level = self.get_access_level(session, contest, data)
-            if data['action'] == 'list':
-                topic = session.query(Topic)\
-                    .filter(Topic.id == data['topic']).first()
-                if topic is None or topic.forum.access_level < access_level:
-                    raise NotFound()
-                posts = session.query(Post)\
-                    .filter(Post.topic_id == topic.id)\
-                    .order_by(Post.timestamp)\
-                    .slice(data['first'], data['last']).all()
-                num = session.query(Post)\
-                    .filter(Post.topic_id == topic.id).count()
-                resp['num'] = num
-                resp['title'] = topic.title
-                resp['forumTitle'] = topic.forum.title
-                resp['posts'] = []
-                for p in posts:
-                    post = dict()
-                    post['id'] = p.id
-                    post['text'] = p.text
-                    post['timestamp'] = make_timestamp(p.timestamp)
-                    post['author_username'] = p.author.username
-                    post['author_mailhash'] = self.hash(p.author.email, 'md5')
-                    resp['posts'].append(post)
-            elif data['action'] == 'new':
-                topic = session.query(Topic)\
-                    .filter(Topic.id == data['topic']).first()
-                if topic is None or topic.forum.access_level < access_level:
-                    raise NotFound()
-                if data['text'] is None or len(data['text']) < 4:
-                    return {"success": 0, "error": "TEXT_SHORT"}
-                post = Post(text=data['text'],
-                            timestamp=make_datetime())
-                post.author = user
-                post.topic = topic
-                topic.timestamp = post.timestamp
-                session.add(post)
-                session.commit()
-                resp['success'] = 1
-            else:
-                raise BadRequest()
+        if data['action'] == 'list':
+            topic = local.session.query(Topic)\
+                .filter(Topic.id == data['topic']).first()
+            if topic is None or topic.forum.access_level < local.access_level:
+                raise NotFound()
+            posts = local.session.query(Post)\
+                .filter(Post.topic_id == topic.id)\
+                .order_by(Post.timestamp)\
+                .slice(data['first'], data['last']).all()
+            num = local.session.query(Post)\
+                .filter(Post.topic_id == topic.id).count()
+            resp['num'] = num
+            resp['title'] = topic.title
+            resp['forumTitle'] = topic.forum.title
+            resp['posts'] = []
+            for p in posts:
+                post = dict()
+                post['id'] = p.id
+                post['text'] = p.text
+                post['timestamp'] = make_timestamp(p.timestamp)
+                post['author_username'] = p.author.username
+                post['author_mailhash'] = self.hash(p.author.email, 'md5')
+                resp['posts'].append(post)
+        elif data['action'] == 'new':
+            if local.user is None:
+                raise Unauthorized()
+            topic = local.session.query(Topic)\
+                .filter(Topic.id == data['topic']).first()
+            if topic is None or topic.forum.access_level < local.access_level:
+                raise NotFound()
+            if data['text'] is None or len(data['text']) < 4:
+                return {"success": 0, "error": "TEXT_SHORT"}
+            post = Post(text=data['text'],
+                        timestamp=make_datetime())
+            post.author = local.user
+            post.topic = topic
+            post.forum = topic.forum
+            topic.timestamp = post.timestamp
+            topic.answered = True
+            local.session.add(post)
+            topic.forum.npost = local.session.query(Post)\
+                .filter(Post.forum_id == topic.forum.id).count()
+            local.session.commit()
+            resp['success'] = 1
+        else:
+            raise BadRequest()
         return resp
 
 
