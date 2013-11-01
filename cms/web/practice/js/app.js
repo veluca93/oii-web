@@ -99,7 +99,7 @@ angular.module('pws', [
   .filter('repext', function() {
     return function(input) {
       return input.replace(/.%l$/, ".(cpp|c|pas)")
-    }
+    };
   })
   .filter('outcomeToClass', function() {
     return function(input) {
@@ -108,14 +108,14 @@ angular.module('pws', [
       if (input == "Not correct")
         return "sub-zero";
       return "sub-partial";
-    }
+    };
   })
   .filter('timeFmt', function() {
     return function(input) {
       if (input == undefined)
         return "N/A";
       return input.toFixed(3) + "s";
-    }
+    };
   })
   .filter('memoryFmt', function() {
     return function(input) {
@@ -126,5 +126,19 @@ angular.module('pws', [
       else if (input>1024)
         return (input/1024).toFixed(0) + " KiB";
       return input + " B";
-    }
+    };
+  })
+  .filter('dateFmt', function() {
+    return function(input) {
+      var d = new Date(+input);
+      if (d.toDateString() == new Date(Date.now()).toDateString())
+        return "Oggi, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
+      d.setDate(d.getDate() - 1);
+      if (d.toDateString() == new Date(Date.now()).toDateString())
+        return "Ieri, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
+      d.setDate(d.getDate() + 1);
+      return ('0' + d.getDate()).substr(-2) + "/" + ('0' + (d.getMonth()+1)).substr(-2)
+             + "/" + d.getFullYear() + ", " + ('0' + d.getHours()).substr(-2) + ":"
+             + ('0' + d.getMinutes()).substr(-2);
+    };
   });

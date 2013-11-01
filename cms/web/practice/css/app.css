@@ -217,6 +217,19 @@ a:focus {
   width: 8%;
 }
 
+button.topic-top {
+  margin-bottom: 10px;
+}
+
+button.topic-top .badge {
+  margin-left: 5px;
+  margin-top: 2px;
+}
+
+#showAll {
+  display: none;
+}
+
 .topic table > tbody > tr > td {
     border-top: none;
 }

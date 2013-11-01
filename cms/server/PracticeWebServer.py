@@ -766,6 +766,8 @@ class APIHandler(object):
                     forum['id'] = f.id
                     forum['description'] = f.description
                     forum['title'] = f.title
+                    forum['topics'] = 2 # FIXME
+                    forum['posts'] = 9 # FIXME
                     resp['forums'].append(forum)
             elif data['action'] == 'new':
                 if access_level > 1:
@@ -791,6 +793,7 @@ class APIHandler(object):
             user = self.get_req_user(session, contest, data)
             access_level = self.get_access_level(user=user)
             if data['action'] == 'list':
+                # TODO: se data['noAnswer'] = True, elenca solo i topic senza risposta
                 forum = session.query(Forum)\
                     .filter(Forum.access_level >= access_level)\
                     .filter(Forum.id == data['forum']).first()
@@ -805,6 +808,7 @@ class APIHandler(object):
                 num = session.query(Topic)\
                     .filter(Topic.forum_id == forum.id).count()
                 resp['num'] = num
+                resp['numUnanswered'] = 42 # FIXME
                 resp['topics'] = []
                 for t in topics:
                     topic = dict()
