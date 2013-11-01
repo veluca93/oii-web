@@ -19,7 +19,7 @@
 
 
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, Unicode, String, DateTime
+from sqlalchemy.types import Integer, Unicode, String, DateTime, Boolean
 from sqlalchemy.orm import relationship, backref
 
 from . import Base
@@ -91,6 +91,14 @@ class Forum(Base):
         Unicode,
         nullable=False)
 
+    ntopic = Column(
+        Integer,
+        nullable=False)
+
+    npost = Column(
+        Integer,
+        nullable=False)
+
     description = Column(
         Unicode,
         nullable=False)
@@ -110,6 +118,8 @@ class Topic(Base):
     status = Column(
         String,
         nullable=False)
+
+    answered = Column(Boolean)
 
     timestamp = Column(
         DateTime,
@@ -156,6 +166,20 @@ class Post(Base):
         backref=backref(
             'posts',
             order_by="Post.timestamp",
+            cascade="all, delete-orphan",
+            passive_deletes=True))
+
+    forum_id = Column(
+        Integer,
+        ForeignKey(Forum.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    forum = relationship(
+        Forum,
+        backref=backref(
+            'posts',
+            order_by="desc(Topic.timestamp)",
             cascade="all, delete-orphan",
             passive_deletes=True))
 

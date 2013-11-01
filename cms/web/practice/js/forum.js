@@ -25,7 +25,7 @@ angular.module('pws.forum', [])
     navbarManager.setActiveTab(2);
     $http.post('forum', {
         'action': 'list',
-        'user':   userManager.getUsername(),
+        'username':   userManager.getUsername(),
         'token':  userManager.getToken()
       })
       .success(function(data, status, headers, config) {
