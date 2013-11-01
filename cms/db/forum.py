@@ -29,21 +29,13 @@ from . import User
 class PrivateMessage(Base):
     __tablename__ = "privatemessages"
 
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
-    timestamp = Column(
-        DateTime,
-        nullable=False)
+    timestamp = Column(DateTime, nullable=False)
 
-    text = Column(
-        Unicode,
-        nullable=False)
+    text = Column(Unicode, nullable=False)
 
-    title = Column(
-        Unicode,
-        nullable=False)
+    title = Column(Unicode, nullable=False)
 
     sender_id = Column(
         Integer,
@@ -79,51 +71,31 @@ class PrivateMessage(Base):
 class Forum(Base):
     __tablename__ = "forums"
 
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
-    access_level = Column(
-        Integer,
-        nullable=False)
+    access_level = Column(Integer, nullable=False, default=7)
 
-    title = Column(
-        Unicode,
-        nullable=False)
+    title = Column(Unicode, nullable=False)
 
-    ntopic = Column(
-        Integer,
-        nullable=False)
+    ntopic = Column(Integer, nullable=False, default=0)
 
-    npost = Column(
-        Integer,
-        nullable=False)
+    npost = Column(Integer, nullable=False, default=0)
 
-    description = Column(
-        Unicode,
-        nullable=False)
+    description = Column(Unicode, nullable=False)
 
 
 class Topic(Base):
     __tablename__ = "topics"
 
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
-    title = Column(
-        Unicode,
-        nullable=False)
+    title = Column(Unicode, nullable=False)
 
-    status = Column(
-        String,
-        nullable=False)
+    status = Column(String, nullable=False)
 
-    answered = Column(Boolean)
+    answered = Column(Boolean, default=False)
 
-    timestamp = Column(
-        DateTime,
-        nullable=False)
+    timestamp = Column(DateTime, nullable=False)
 
     forum_id = Column(
         Integer,
@@ -143,17 +115,11 @@ class Topic(Base):
 class Post(Base):
     __tablename__ = "posts"
 
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
-    text = Column(
-        Unicode,
-        nullable=False)
+    text = Column(Unicode, nullable=False)
 
-    timestamp = Column(
-        DateTime,
-        nullable=False)
+    timestamp = Column(DateTime, nullable=False)
 
     topic_id = Column(
         Integer,
