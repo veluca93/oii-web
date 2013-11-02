@@ -3,17 +3,24 @@
     <li><a ui-sref="forums">Forum</a></li>
     <li class="active">{{forumTitle}}</li>
   </ol>
-  <button class="topic-top btn btn-md btn-success" ng-click="newTopic()">
-    <i class="fa fa-file-text"></i>
-    Scrivi un nuovo argomento
-  </button>
-  <button id="showNoAns" class="topic-top btn btn-md btn-info" ng-show="unansweredTopics" ng-click="onlyUnans()">
-    <span class="badge pull-right">{{unansweredTopics}}</span>
-    Argomenti senza risposte
-  </button>
-  <button id="showAll" class="topic-top btn btn-md btn-warning" ng-click="showAll()">
-    Tutti gli argomenti
-  </button>
+  <div class="row">
+    <div class="col-sm-8">
+      <button class="topic-top btn btn-md btn-success" ng-click="newTopic()">
+        <i class="fa fa-file-text"></i>
+        Scrivi un nuovo argomento
+      </button>
+      <button id="showNoAns" class="topic-top btn btn-md btn-info" ng-show="unansweredTopics" ng-click="onlyUnans()">
+        <span class="badge pull-right">{{unansweredTopics}}</span>
+        Argomenti senza risposte
+      </button>
+      <button id="showAll" class="topic-top btn btn-md btn-warning" ng-click="showAll()">
+        Tutti gli argomenti
+      </button>
+    </div>
+    <div class="col-sm-4">
+      asd
+    </div>
+  </div>
   <div class="forum-group panel panel-info">
     <div class="panel-heading">
       <dl>
@@ -29,14 +36,14 @@
           <i class="fa fa-{{topic.status | getIcon}}"></i>
           <a ui-sref="topic({ topicId: topic.id })"><b>{{topic.title}}</b></a>
           </br>
-          di <a>wil93</a> &middot; {{topic.timestamp | dateFmt}} <!-- FIXME -->
+          di <a>wil93</a> &middot; {{1000 * topic.timestamp | dateFmt}} <!-- FIXME -->
         </dd>
-        <dd class="count">2</dd> <!-- FIXME -->
-        <dd class="count">9</dd> <!-- FIXME -->
+        <dd class="count">{{topic.posts}}</dd>
+        <dd class="count">{{topic.views}}</dd>
         <dd class="lastpost"> <!-- FIXME -->
           di <a>wil93</a>
           <a ui-sref="overview" title="Vai al messaggio">
-            <i class="fa fa-angle-double-right"></i>
+            <i class="fa fa-share-square-o"></i>
           </a>
           </br>
           {{0 | dateFmt}}

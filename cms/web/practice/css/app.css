@@ -194,7 +194,7 @@ a:focus {
 
 .forum-group dd {
   display: inline-block;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .forum-group .panel-body {
@@ -205,8 +205,24 @@ a:focus {
   padding: 5px 15px 5px 15px;
 }
 
+.forum-group .panel-body dl:nth-child(even) {
+  background-color: #FFFFFF;
+}
+
+.forum-group .panel-body dl:nth-child(odd) {
+  background-color: #F9F9F9;
+}
+
+.forum-group .panel-body dl:hover {
+  background-color: #FFFFDD;
+}
+
 .forum-group .panel-body dl:not(:first-child) {
   border-top: 1px solid #EEE;
+}
+
+.forum-group .panel-body dl:last-child {
+  border-radius: 0px 0px 3px 3px;
 }
 
 .forum-group .content {

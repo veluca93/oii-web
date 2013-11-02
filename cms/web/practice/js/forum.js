@@ -78,8 +78,12 @@ angular.module('pws.forum', [])
           'forum':    $stateParams.forumId
         })
         .success(function(data, status, headers, config) {
-          notificationHub.createAlert('info', 'Topic creato', 1);
-          $scope.getTopics();
+          if (data.success == 1) {
+            notificationHub.createAlert('info', 'Topic creato', 1);
+            $scope.getTopics();
+          } else {
+            notificationHub.createAlert('danger', data.error, 2);
+          }
           //~ $location.path(); // TODO: redirect al topic creato?
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);

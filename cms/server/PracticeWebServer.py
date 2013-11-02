@@ -816,6 +816,8 @@ class APIHandler(object):
                 topic['status'] = t.status
                 topic['title'] = t.title
                 topic['timestamp'] = make_timestamp(t.timestamp)
+                topic['posts'] = 3 # TODO
+                topic['views'] = 7 # TODO
                 resp['topics'].append(topic)
         elif data['action'] == 'new':
             if local.user is None:

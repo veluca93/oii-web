@@ -132,10 +132,10 @@ angular.module('pws', [
     return function(input) {
       var d = new Date(+input);
       if (d.toDateString() == new Date(Date.now()).toDateString())
-        return "Oggi, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
+        return "oggi, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
       d.setDate(d.getDate() - 1);
       if (d.toDateString() == new Date(Date.now()).toDateString())
-        return "Ieri, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
+        return "ieri, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
       d.setDate(d.getDate() + 1);
       return ('0' + d.getDate()).substr(-2) + "/" + ('0' + (d.getMonth()+1)).substr(-2)
              + "/" + d.getFullYear() + ", " + ('0' + d.getHours()).substr(-2) + ":"
