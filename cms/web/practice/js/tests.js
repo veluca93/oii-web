@@ -31,6 +31,18 @@ angular.module('pws.tests', [])
       })
       .success(function(data, status, headers, config) {
         $scope.tests = data["tests"];
+        for (var i=0; i<$scope.tests.length; i++) {
+          if (2*$scope.tests[i]["score"] == undefined)
+            continue;
+          if (2*$scope.tests[i]["score"]<$scope.tests[i]["max_score"])
+            $scope.tests[i]["status"] = "wrong";
+          else if (4*$scope.tests[i]["score"]<$scope.tests[i]["max_score"]*3)
+            $scope.tests[i]["status"] = "partial";
+          else if ($scope.tests[i]["score"]<$scope.tests[i]["max_score"])
+            $scope.tests[i]["status"] = "empty";
+          else
+            $scope.tests[i]["status"] = "correct";
+        }
       }).error(function(data, status, headers, config) {
         notificationHub.createAlert('danger', 'Errore di connessione', 2);
       });

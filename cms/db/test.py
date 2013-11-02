@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.types import Integer, Unicode, String
 from sqlalchemy.orm import relationship, backref
 
-from . import Base
+from . import Base, User
 
 
 class Test(Base):
@@ -30,23 +30,17 @@ class Test(Base):
     __tablename__ = 'tests'
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Short name of the test, and longer description. Both human readable.
-    name = Column(
-        Unicode,
-        nullable=False,
-        unique=True)
-    description = Column(
-        Unicode,
-        nullable=False)
+    name = Column(Unicode, nullable=False, unique=True, index=True)
+    description = Column(Unicode, nullable=False)
 
     # Access level required
-    access_level = Column(
-        Integer,
-        nullable=False)
+    access_level = Column(Integer, nullable=False)
+
+    # Maximum possible score
+    max_score = Column(Integer, default=0)
 
     def __init__(self):
         pass
@@ -58,9 +52,7 @@ class TestQuestion(Base):
     __tablename__ = 'testquestions'
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Reference to the Test
     test_id = Column(
@@ -78,25 +70,15 @@ class TestQuestion(Base):
             passive_deletes=True))
 
     # Question's text and answers
-    text = Column(
-        Unicode,
-        nullable=False)
-    answers = Column(
-        Unicode,
-        nullable=False)
+    text = Column(Unicode, nullable=False)
+    answers = Column(Unicode, nullable=False)
 
     # Question type: choice, number or string
-    type = Column(
-        Unicode,
-        nullable=False)
+    type = Column(Unicode, nullable=False)
 
     # Question score (for correct and wrong answers)
-    score = Column(
-        Integer,
-        nullable=False)
-    wrong_score = Column(
-        Integer,
-        nullable=False)
+    score = Column(Integer, nullable=False)
+    wrong_score = Column(Integer, nullable=False)
 
     def __init__(self):
         pass
@@ -108,9 +90,7 @@ class QuestionFile(Base):
     __tablename__ = 'questionfiles'
 
     # Auto increment primary key.
-    id = Column(
-        Integer,
-        primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # Question (id and object) owning the file.
     question_id = Column(
@@ -126,9 +106,40 @@ class QuestionFile(Base):
                         passive_deletes=True))
 
     # Filename and digest of the file.
-    filename = Column(
-        Unicode,
-        nullable=False)
-    digest = Column(
-        String,
-        nullable=False)
+    filename = Column(Unicode, nullable=False)
+    digest = Column(String, nullable=False)
+
+
+class TestScore(Base):
+    __tablename__ = "testscores"
+    __table_args__ = (PrimaryKeyConstraint('test_id', 'user_id'),)
+
+    test_id = Column(
+        Integer,
+        ForeignKey(Test.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    test = relationship(
+        Test,
+        backref=backref(
+            'test_scores',
+            order_by=[test_id],
+            cascade="all, delete-orphan",
+            passive_deletes=True))
+
+    user_id = Column(
+        Integer,
+        ForeignKey(User.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    user = relationship(
+        User,
+        backref=backref(
+            'test_scores',
+            order_by=[test_id],
+            cascade="all, delete-orphan",
+            passive_deletes=True))
+
+    score = Column(Integer, default=0)

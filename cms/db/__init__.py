@@ -98,7 +98,7 @@ from .submission import Submission, File, Token, SubmissionResult, \
 from .usertest import UserTest, UserTestFile, UserTestManager, \
     UserTestResult, UserTestExecutable
 from .fsobject import FSObject
-from .test import Test, TestQuestion, QuestionFile
+from .test import Test, TestQuestion, QuestionFile, TestScore
 from .forum import PrivateMessage, Forum, Topic, Post
 
 
@@ -116,7 +116,7 @@ sa_entities = [
     UserTest, UserTestFile, UserTestManager, UserTestResult,
     UserTestExecutable,
     # test
-    Test, TestQuestion, QuestionFile]
+    Test, TestQuestion, QuestionFile, TestScore]
 
 
 from .init import init_db

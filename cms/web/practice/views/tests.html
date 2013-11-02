@@ -2,6 +2,9 @@
   <div class="list-group">
     <a ng-repeat="test in tests" href="#!/test/{{test.name}}" class="list-group-item">
       {{test.description}}
+      <span class="{{test.status}} pull-right badge" ng-show="test.score != undefined">
+        {{test.score}} / {{test.max_score}}
+      </span>
     </a>
   </div>
 </div>

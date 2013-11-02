@@ -38,7 +38,7 @@ from cms.io.GeventLibrary import Service
 from cms.io import ServiceCoord
 from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, \
-    Tag, Forum, Topic, Post
+    Tag, Forum, Topic, Post, TestScore
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -499,10 +499,18 @@ class APIHandler(object):
                 .order_by(Test.id).all()
             resp['tests'] = []
             for t in tests:
-                resp['tests'].append({
+                test = {
                     'name': t.name,
-                    'description': t.description
-                })
+                    'description': t.description,
+                    'max_score': t.max_score
+                }
+                if local.user is not None:
+                    testscore = local.session.query(TestScore)\
+                        .filter(TestScore.test_id == t.id)\
+                        .filter(TestScore.user_id == local.user.id).first()
+                    if testscore is not None:
+                        test['score'] = testscore.score
+                resp['tests'].append(test)
         elif data['action'] == 'get':
             test = local.session.query(Test)\
                 .filter(Test.name == data['test_name'])\
@@ -562,6 +570,20 @@ class APIHandler(object):
                                 resp[i] = [q.wrong_score, 'wrong']
                     if resp.get(i, None) is None:
                         resp[i] = [q.score, 'correct']
+            if local.user is not None:
+                score = sum([q[0] for q in resp.itervalues()])
+                testscore = local.session.query(TestScore)\
+                    .filter(TestScore.test_id == test.id)\
+                    .filter(TestScore.user_id == local.user.id).first()
+                if testscore is None:
+                    testscore = TestScore(score=score)
+                    testscore.user = local.user
+                    testscore.test = test
+                    local.session.add(testscore)
+                else:
+                    if score > testscore.score:
+                        testscore.score = score
+                local.session.commit()
         else:
             raise BadRequest()
         return resp
