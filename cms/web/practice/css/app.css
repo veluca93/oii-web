@@ -201,20 +201,20 @@ a:focus {
   padding: 0px;
 }
 
-.forum-group .panel-body dl {
+.forum-group .panel-body:not(.topic) dl {
   padding: 5px 15px 5px 15px;
 }
 
 .forum-group .panel-body dl:nth-child(even) {
-  background-color: #FFFFFF;
+  background-color: #FFF;
 }
 
 .forum-group .panel-body dl:nth-child(odd) {
   background-color: #F9F9F9;
 }
 
-.forum-group .panel-body dl:hover {
-  background-color: #FFFFDD;
+.forum-group.focus-light .panel-body dl:hover {
+  background-color: #FFD;
 }
 
 .forum-group .panel-body dl:not(:first-child) {
@@ -233,11 +233,11 @@ a:focus {
   width: 8%;
 }
 
-.topic-top {
+.forum-top {
   margin-bottom: 10px;
 }
 
-.topic-top .badge {
+.forum-top .badge {
   margin-left: 5px;
   margin-top: 2px;
 }
@@ -246,6 +246,50 @@ a:focus {
   display: none;
 }
 
+/* Topic view */
+
+.small-avatar {
+  width: 85px;
+  height: 85px;
+}
+
+.forum-group .panel-body.topic dd {
+  vertical-align: top;
+  display: table-cell;
+}
+
+.forum-group .sidebar {
+  width: 150px;
+  text-align: center;
+  background: #FFD;
+  border-left: 1px solid #EEE;
+}
+
+.forum-group .message {
+  padding: 5px 0px 0px 10px;
+  width: 552px;
+  word-break: break-word;
+}
+
+@media (min-width: 768px){
+  .forum-group .message {
+    width: 568px;
+  }
+}
+
+@media (min-width: 992px){
+  .forum-group .message {
+    width: 788px;
+  }
+}
+
+@media (min-width: 1170px){
+  .forum-group .message {
+    width: 988px;
+  }
+}
+
+/*
 .topic table > tbody > tr > td {
     border-top: none;
 }
@@ -261,6 +305,7 @@ a:focus {
 .topic table td:first-child {
     border-right: 1px solid rgb(221, 221, 221);
 }
+*/
 
 /* PDF.JS */
 

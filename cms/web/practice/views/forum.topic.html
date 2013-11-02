@@ -4,23 +4,23 @@
     <li><a ui-sref="forum">{{forumTitle}}</a></li>
     <li class="active">{{title}}</li>
   </ol>
-  <ul class="list-group topic">
-    <li ng-repeat="post in posts" class="list-group-item">
-      <table class="table borderless">
-        <tr>
-          <td class="text-center col-sm-2">
-            <img src="http://gravatar.com/avatar/{{post.author_mailhash}}?d=identicon&s=75" />
-            <br/>
-            {{post.author_username}}
-          </td>
-          <td>
-            <small class="pull-right">{{post.timestamp | dateFmt}}</small>
-            {{post.text}}
-          </td>
-        </tr>
-      </table>
-    </li>
-  </ul>
+  <div class="forum-group panel panel-info">
+    <div class="panel-heading">
+      <b>{{title}}</b>
+    </div>
+    <div class="topic panel-body">
+      <dl ng-repeat="post in posts" class="row">
+        <dd class="message" ng-bind-html-unsafe="post.text"></dd>
+        <dd class="sidebar">
+          <small>{{post.timestamp | dateFmt}}</small>
+          <br />
+          <img class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{post.author_mailhash}}?d=identicon&s=75" />
+          <br />
+          {{post.author_username}}
+        </dd>
+      </dl>
+    </div>
+  </div>
   <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#new_post">Rispondi</button>
   <div class="modal fade" id="new_post" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">

@@ -21,7 +21,8 @@
 
 angular.module('pws.signup', [])
   .controller('SignupCtrl', function ($scope, $http, $location,
-        notificationHub) {
+        notificationHub, navbarManager) {
+    navbarManager.setActiveTab(5);
     $(".avatar")
       .load(function() {
         $(".avatar-loader").hide();
