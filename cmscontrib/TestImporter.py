@@ -1,5 +1,21 @@
-#!/usr/bin/python2
-# -*- coding: utf8 -*-
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+# Programming contest management system
+# Copyright © 2013 Luca Versari <veluca93@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
 import sys
@@ -23,10 +39,12 @@ charmap = {
     "←": "&larr;"
 }
 
+
 def escape(s):
     for a, b in charmap.iteritems():
         s = s.replace(a, b)
     return s
+
 
 def main():
     if len(sys.argv) != 2:
@@ -37,10 +55,12 @@ def main():
     test = Test()
     test.name = os.path.basename(sys.argv[1]).replace(".txt", "")
     test.description = lines[0].strip()
+    test.maxscore = 0
     dirname = os.path.dirname(sys.argv[1])
     question = TestQuestion()
     question.text = "<p>\n"
     file_cacher = FileCacher()
+    answers = []
 
     status = "score"
     for l in lines[1:]:
@@ -68,6 +88,7 @@ def main():
         if status == "score":
             try:
                 score, wrong_score = map(int, l.split(","))
+                test.maxscore += score
             except ValueError:
                 continue
             question.score = score
@@ -96,7 +117,7 @@ def main():
                 question.text += l
 
         if status == "choice":
-            answers.append([l[1:].strip(), l[0]=='*'])
+            answers.append([l[1:].strip(), l[0] == '*'])
 
         if status == "answer":
             pos = l.index(":")

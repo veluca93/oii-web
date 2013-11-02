@@ -105,7 +105,7 @@ from .usertest import UserTest, UserTestFile, UserTestManager, \
     UserTestResult, UserTestExecutable
 from .printjob import PrintJob
 from .fsobject import FSObject
-from .test import Test, TestQuestion, QuestionFile
+from .test import Test, TestQuestion, QuestionFile, TestScore
 from .forum import PrivateMessage, Forum, Topic, Post
 
 from .init import init_db
