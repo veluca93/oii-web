@@ -37,6 +37,7 @@ angular.module('pws.forum', [])
   .controller('ForumCtrl', function ($scope, $http, $stateParams,
         userManager, navbarManager, notificationHub) {
     navbarManager.setActiveTab(0);
+    $scope.isLogged = userManager.isLogged;
     $scope.onlyUnans = function() {
       $scope.getTopics(true);
       $('#showNoAns').hide();
@@ -94,6 +95,7 @@ angular.module('pws.forum', [])
   .controller('TopicCtrl', function ($scope, $http, $stateParams,
         userManager, navbarManager, notificationHub) {
     navbarManager.setActiveTab(2);
+    $scope.isLogged = userManager.isLogged;
     $scope.getPosts = function() {
       $http.post('post', {
           'action':   'list',

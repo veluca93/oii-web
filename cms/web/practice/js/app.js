@@ -130,7 +130,7 @@ angular.module('pws', [
   })
   .filter('dateFmt', function() {
     return function(input) {
-      var d = new Date(+input);
+      var d = new Date(1000 * (+input));
       if (d.toDateString() == new Date(Date.now()).toDateString())
         return "oggi, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
       d.setDate(d.getDate() - 1);

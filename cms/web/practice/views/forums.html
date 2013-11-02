@@ -20,13 +20,16 @@
         </dd>
         <dd class="count">{{forum.topics}}</dd>
         <dd class="count">{{forum.posts}}</dd>
-        <dd class="lastpost"> <!-- FIXME -->
+        <dd class="lastpost" ng-show="forum.posts"> <!-- FIXME -->
           <a ui-sref="overview"><b>Calcolare la somma A+B</b></a>
           </br>
-          {{0 | dateFmt}} &middot; di <a>wil93</a>
+          {{1000000000 | dateFmt}} &middot; di <a>wil93</a>
           <a ui-sref="overview" title="Vai al messaggio">
             <i class="fa fa-share-square-o"></i>
           </a>
+        </dd>
+        <dd class="lastpost" ng-hide="forum.posts">
+          Non ci sono messaggi
         </dd>
       </dl>
     </div>
