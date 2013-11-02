@@ -138,4 +138,11 @@ angular.module('pws.forum', [])
         return 'lock';
       return 'angle-right';
     };
+  })
+  .filter('monthYearFmt', function() {
+    return function(input) {
+      var d = new Date(1000 * (+input));
+      return ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago',
+              'Set', 'Ott', 'Nov', 'Dic'][d.getMonth()] + ' ' + d.getFullYear();
+    };
   });
