@@ -97,6 +97,10 @@ class Topic(Base):
 
     timestamp = Column(DateTime, nullable=False)
 
+    npost = Column(Integer, nullable=False, default=0)
+
+    nview = Column(Integer, nullable=False, default=0)
+
     forum_id = Column(
         Integer,
         ForeignKey(Forum.id,
