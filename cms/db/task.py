@@ -588,6 +588,8 @@ class Tag(Base):
         nullable=False,
         unique=True)
 
+    hidden = Column(Boolean)
+
     description = Column(
         String,
         nullable=False)
