@@ -4,22 +4,32 @@
     <li><a ui-sref="forum">{{forumTitle}}</a></li>
     <li class="active">{{title}}</li>
   </ol>
-  <div class="forum-group panel panel-info">
-    <div class="panel-heading">
-      <b>{{title}}</b>
-    </div>
-    <div class="topic panel-body">
-      <dl ng-repeat="post in posts" class="row">
-        <dd class="message" ng-bind-html-unsafe="post.text"></dd>
-        <dd class="sidebar">
-          <small>{{post.timestamp | dateFmt}}</small>
-          <br />
-          <img class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{post.author_mailhash}}?d=identicon&s=75" />
-          <br />
-          {{post.author_username}}
-        </dd>
-      </dl>
-    </div>
+  <div class="forum-group post panel panel-info">
+    <dl class="panel-heading" ng-repeat-start="post in posts">
+      <dd class="head sidebar">
+        <a ui-sref="overview"><b>{{post.author.username}}</b></a>  <!-- TODO: cambiare ui-sref -->
+      </dd>
+      <dd class="head mainbar">
+        <span class="pull-right">#{{$index+1}}</span>
+        {{post.timestamp | dateFmt}}
+      </dd>
+    </dl>
+    <dl class="panel-body" ng-repeat-end>
+      <dd class="sidebar bordered">
+        <a class="small-avatar" title="Vai alla pagina utente" ui-sref="overview"> <!-- TODO: cambiare ui-sref -->
+          <img class="img-thumbnail" src="http://gravatar.com/avatar/{{post.author_mailhash}}?d=identicon&s=75" />
+        </a>
+        <br />
+        <abbr title="Punti reputazione">rep</abbr>: {{post.author.rep}}
+        <br />
+        <small>messaggi: {{post.author.postcount}}</small>
+        <br />
+        <small>iscrizione: {{post.author.joindate | monthYearFmt}}</small>
+      </dd>
+      <dd class="mainbar">
+        <div class="message">{{post.text}}</div>
+      </dd>
+    </dl>
   </div>
   <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#new_post">Rispondi</button>
   <div class="modal fade" id="new_post" tabindex="-1" role="dialog" aria-hidden="true">

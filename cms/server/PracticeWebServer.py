@@ -875,8 +875,13 @@ class APIHandler(object):
                 post['id'] = p.id
                 post['text'] = p.text
                 post['timestamp'] = make_timestamp(p.timestamp)
-                post['author_username'] = p.author.username
-                post['author_mailhash'] = self.hash(p.author.email, 'md5')
+                post['author'] = {
+                    'username':  p.author.username,
+                    'mailhash':  self.hash(p.author.email, 'md5'),
+                    'rep':       7,          # TODO: reputation of user
+                    'postcount': 42,         # TODO: total posts of user
+                    'joindate':  1000000000  # TODO: timestamp of user signup
+                }
                 resp['posts'].append(post)
         elif data['action'] == 'new':
             if local.user is None:
