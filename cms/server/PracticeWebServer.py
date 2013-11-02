@@ -393,7 +393,7 @@ class APIHandler(object):
             for (name, obj) in t.attachments.iteritems():
                 att.append((name, obj.digest))
             resp['attachments'] = att
-            resp['tags'] = [tag.name for tag in t.tags]
+            resp['tags'] = [tag.name for tag in t.tags if tag.hidden is False]
         else:
             raise BadRequest()
         return resp
@@ -401,7 +401,9 @@ class APIHandler(object):
     def tag_handler(self, data):
         resp = dict()
         if data['action'] == 'list':
-            tags = local.session.query(Tag).order_by(Tag.id).all()
+            tags = local.session.query(Tag)\
+                .order_by(Tag.id)\
+                .filter(Tag.hidden is False).all()
             resp['tags'] = [t.name for t in tags]
             return resp
 
@@ -413,10 +415,9 @@ class APIHandler(object):
                 if len(data['description']) < 5:
                     resp['error'] = 'DESCRIPTION_SHORT'
                 else:
-                    tag = Tag(
-                        name=data['tag'],
-                        description=data['description']
-                    )
+                    tag = Tag(name=data['tag'],
+                              description=data['description'],
+                              hidden=False)
                     local.session.add(tag)
                     local.session.commit()
                     resp['success'] = 1
@@ -432,6 +433,8 @@ class APIHandler(object):
                     .filter(Tag.name == data['tag']).first()
                 if tag is None:
                     resp['error'] = 'TAG_DOESNT_EXIST'
+                elif tag.hidden is True and local.access_level > 0:
+                    raise Unauthorized()
                 else:
                     local.session.delete(tag)
                     local.session.commit()
@@ -449,6 +452,8 @@ class APIHandler(object):
                     .filter(Task.contest_id == local.contest.id).first()
                 if tag is None:
                     resp['error'] = 'TAG_DOESNT_EXIST'
+                elif tag.hidden is True and local.access_level > 0:
+                    raise Unauthorized()
                 elif task is None:
                     resp['error'] = 'TASK_DOESNT_EXIST'
                 elif tag in task.tags:
@@ -470,6 +475,8 @@ class APIHandler(object):
                     .filter(Task.contest_id == local.contest.id).first()
                 if tag is None:
                     resp['error'] = 'TAG_DOESNT_EXIST'
+                elif tag.hidden is True and local.access_level > 0:
+                    raise Unauthorized()
                 elif task is None:
                     resp['error'] = 'TASK_DOESNT_EXIST'
                 elif tag not in task.tags:
@@ -777,10 +784,10 @@ class APIHandler(object):
                 .filter(Topic.forum_id == forum.id).count()
             resp['numUnanswered'] = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
-                .filter(Topic.answered == False).count()
+                .filter(Topic.answered is False).count()
             resp['topics'] = []
             for t in topics:
-                if noAnswer and t.answered == True:
+                if noAnswer and t.answered is True:
                     continue
                 topic = dict()
                 topic['id'] = t.id
