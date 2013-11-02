@@ -816,8 +816,8 @@ class APIHandler(object):
                 topic['status'] = t.status
                 topic['title'] = t.title
                 topic['timestamp'] = make_timestamp(t.timestamp)
-                topic['posts'] = 3 # TODO
-                topic['views'] = 7 # TODO
+                topic['posts'] = t.npost
+                topic['views'] = t.nview
                 resp['topics'].append(topic)
         elif data['action'] == 'new':
             if local.user is None:
@@ -836,6 +836,7 @@ class APIHandler(object):
                           timestamp=make_datetime(),
                           answered=False)
             topic.forum = forum
+            topic.npost = 1
             post = Post(text=data['text'],
                         timestamp=make_datetime())
             post.author = local.user
@@ -859,6 +860,8 @@ class APIHandler(object):
                 .filter(Topic.id == data['topic']).first()
             if topic is None or topic.forum.access_level < local.access_level:
                 raise NotFound()
+            topic.nview += 1
+            local.session.commit()
             posts = local.session.query(Post)\
                 .filter(Post.topic_id == topic.id)\
                 .order_by(Post.timestamp)\
@@ -896,6 +899,8 @@ class APIHandler(object):
             local.session.add(post)
             topic.forum.npost = local.session.query(Post)\
                 .filter(Post.forum_id == topic.forum.id).count()
+            topic.npost = local.session.query(Post)\
+                .filter(Post.topic_id == topic.id).count()
             local.session.commit()
             resp['success'] = 1
         else:
