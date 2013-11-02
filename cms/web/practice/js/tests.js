@@ -23,7 +23,7 @@
 angular.module('pws.tests', [])
   .controller('TestsCtrl', function($scope, $http, notificationHub,
         navbarManager, userManager) {
-    navbarManager.setActiveTab(3);
+    navbarManager.setActiveTab(0);
     $http.post('test', {
         "username": userManager.getUsername(),
         "token": userManager.getToken(),
@@ -48,7 +48,8 @@ angular.module('pws.tests', [])
       });
   })
   .controller('TestpageCtrl', function($scope, $stateParams, $http,
-        notificationHub, userManager) {
+        notificationHub, navbarManager, userManager) {
+    navbarManager.setActiveTab(0);
     $scope.score = function() {
       var data = [];
       for (var i in $scope.test["questions"]) {
