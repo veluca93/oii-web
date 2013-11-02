@@ -4,16 +4,16 @@
     <li class="active">{{forumTitle}}</li>
   </ol>
   <div class="row">
-    <div class="col-sm-8">
-      <button class="topic-top btn btn-md btn-success" ng-click="newTopic()">
+    <div class="topic-top col-sm-8">
+      <button class="btn btn-md btn-success" ng-click="newTopic()" ng-show="isLogged()">
         <i class="fa fa-file-text"></i>
         Scrivi un nuovo argomento
       </button>
-      <button id="showNoAns" class="topic-top btn btn-md btn-info" ng-show="unansweredTopics" ng-click="onlyUnans()">
+      <button id="showNoAns" class="btn btn-md btn-info" ng-click="onlyUnans()" ng-show="unansweredTopics && isLogged()">
         <span class="badge pull-right">{{unansweredTopics}}</span>
         Argomenti senza risposte
       </button>
-      <button id="showAll" class="topic-top btn btn-md btn-warning" ng-click="showAll()">
+      <button id="showAll" class="btn btn-md btn-warning" ng-click="showAll()" ng-show="isLogged()">
         Tutti gli argomenti
       </button>
     </div>
@@ -27,7 +27,7 @@
         <dd class="content"><b>Argomenti</b></dd>
         <dd class="count">Risposte</dd>
         <dd class="count">Visite</dd>
-        <dd class="lastpost">Ultimo messaggio</d>
+        <dd class="lastpost">Ultima risposta</d>
       </dl>
     </div>
     <div class="panel-body">
@@ -36,17 +36,20 @@
           <i class="fa fa-{{topic.status | getIcon}}"></i>
           <a ui-sref="topic({ topicId: topic.id })"><b>{{topic.title}}</b></a>
           </br>
-          di <a>wil93</a> &middot; {{1000 * topic.timestamp | dateFmt}} <!-- FIXME -->
+          di <a>wil93</a> &middot; {{topic.timestamp | dateFmt}} <!-- FIXME -->
         </dd>
-        <dd class="count">{{topic.posts}}</dd>
+        <dd class="count">{{topic.posts-1}}</dd>
         <dd class="count">{{topic.views}}</dd>
-        <dd class="lastpost"> <!-- FIXME -->
+        <dd class="lastpost" ng-show="topic.posts-1"> <!-- FIXME -->
           di <a>wil93</a>
           <a ui-sref="overview" title="Vai al messaggio">
             <i class="fa fa-share-square-o"></i>
           </a>
           </br>
-          {{0 | dateFmt}}
+          {{1000000000 | dateFmt}}
+        </dd>
+        <dd class="lastpost" ng-hide="topic.posts-1">
+          Non ci sono risposte
         </dd>
       </dl>
     </div>

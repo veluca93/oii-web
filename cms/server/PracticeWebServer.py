@@ -804,7 +804,7 @@ class APIHandler(object):
                 .filter(Topic.forum_id == forum.id).count()
             resp['numUnanswered'] = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
-                .filter(Topic.answered is False).count()
+                .filter(Topic.answered == False).count()
             resp['topics'] = []
             for t in topics:
                 if noAnswer and t.answered is True:
