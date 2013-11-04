@@ -37,7 +37,7 @@
           <i class="fa fa-{{topic.status | getIcon}}"></i>
           <a ui-sref="topic({ topicId: topic.id })"><b>{{topic.title}}</b></a>
           </br>
-          di <a>wil93</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
+          di <a>{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
         </dd>
         <dd class="count col-sm-1 hidden-xs">{{topic.posts-1}}</dd>
         <dd class="count col-md-1 hidden-sm hidden-xs">{{topic.views}}</dd>

@@ -767,6 +767,11 @@ class APIHandler(object):
                 forum['title'] = f.title
                 forum['topics'] = f.ntopic
                 forum['posts'] = f.npost
+                forum['lastpost'] = {  # TODO: lastpost = last post of most recently active topic in this forum
+                    'username':    'antani',    # TODO: lastpost author's username
+                    'timestamp':   1000000000,  # TODO: lastpost timestamp
+                    'topic_title': 'how to sum A+B?'  # TODO: title of lastpost's topic
+                }
                 resp['forums'].append(forum)
         elif data['action'] == 'new':
             if local.access_level > 1:
@@ -818,6 +823,7 @@ class APIHandler(object):
                 topic['timestamp'] = make_timestamp(t.timestamp)  # FIXME: this is what topic['lastpost']['timestamp'] should be
                 topic['posts'] = t.npost
                 topic['views'] = t.nview
+                topic['author_username'] = 'antani'  # TODO: username of topic creator
                 topic['lastpost'] = {
                     'username':  'antani',  # TODO: lastpost author's username
                     'timestamp': make_timestamp(t.timestamp)

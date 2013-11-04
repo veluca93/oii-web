@@ -22,9 +22,9 @@
         <dd class="count col-sm-1 hidden-xs">{{forum.topics}}</dd>
         <dd class="count col-md-1 hidden-sm hidden-xs">{{forum.posts}}</dd>
         <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-show="forum.posts"> <!-- FIXME -->
-          <a ui-sref="overview"><b>Calcolare la somma A+B</b></a>
+          <a ui-sref="overview"><b>{{forum.lastpost.topic_title}}</b></a>
           </br>
-          {{1000000000 | dateFmt}} &middot; di <a>wil93</a> <!-- TODO: meno dati marginali (data/ora) da mobile -->
+          {{forum.lastpost.timestamp | dateFmt}} &middot; di <a>{{forum.lastpost.username}}</a> <!-- TODO: meno dati marginali (data/ora) da mobile -->
           <a ui-sref="overview" title="Vai al messaggio">
             <i class="fa fa-share-square-o"></i>
           </a>
