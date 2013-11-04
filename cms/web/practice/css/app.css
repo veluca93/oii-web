@@ -15,6 +15,10 @@ a:focus {
   outline: none;
 }
 
+a.dont-underline:hover {
+  text-decoration: none;
+}
+
 .hyphenate {
   text-align: justify;
   -webkit-hyphens: auto;
@@ -202,7 +206,12 @@ a:focus {
 }
 
 .forum-group .panel-body:not(.topic) dl {
-  padding: 5px 15px 5px 15px;
+  padding: 5px 0px 5px 0px;
+}
+
+.forum-group .panel-heading:not(.topic) {
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .forum-group .panel-body dl:nth-child(even) {
@@ -221,14 +230,6 @@ a:focus {
   border-radius: 0px 0px 3px 3px;
 }
 
-.forum-group .content {
-  width: 50%;
-}
-
-.forum-group .count {
-  width: 8%;
-}
-
 .forum-top {
   margin-bottom: 10px;
 }
@@ -244,11 +245,7 @@ a:focus {
 
 /* Topic view */
 
-.small-avatar:hover {
-  text-decoration: none;
-}
-
-.small-avatar > img {
+.small-avatar {
   width: 85px;
   height: 85px;
 }

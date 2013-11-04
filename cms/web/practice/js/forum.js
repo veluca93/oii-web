@@ -94,7 +94,7 @@ angular.module('pws.forum', [])
   })
   .controller('TopicCtrl', function ($scope, $http, $stateParams,
         userManager, navbarManager, notificationHub) {
-    navbarManager.setActiveTab(2);
+    navbarManager.setActiveTab(0);
     $scope.isLogged = userManager.isLogged;
     $scope.getPosts = function() {
       $http.post('post', {

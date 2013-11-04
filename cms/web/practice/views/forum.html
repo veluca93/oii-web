@@ -23,32 +23,33 @@
   </div>
   <div class="forum-group focus-light panel panel-info">
     <div class="panel-heading">
-      <dl>
-        <dd class="content"><b>Argomenti</b></dd>
-        <dd class="count">Risposte</dd>
-        <dd class="count">Visite</dd>
-        <dd class="lastpost">Ultima risposta</d>
+      <dl class="row">
+        <dd class="content col-xs-6"><b>Argomenti</b></dd>
+        <dd class="count col-md-1 hidden-xs hidden-sm">Risposte</dd>
+        <dd class="count col-sm-1 visible-sm">Risp.</dd>
+        <dd class="count col-md-1 hidden-sm hidden-xs">Visite</dd>
+        <dd class="lastpost col-xs-6 col-sm-5 col-md-4">Ultima risposta</dd>
       </dl>
     </div>
     <div class="panel-body">
-      <dl ng-repeat="topic in topics">
-        <dd class="content">
+      <dl class="row" ng-repeat="topic in topics">
+        <dd class="content col-xs-6">
           <i class="fa fa-{{topic.status | getIcon}}"></i>
           <a ui-sref="topic({ topicId: topic.id })"><b>{{topic.title}}</b></a>
           </br>
-          di <a>wil93</a> &middot; {{topic.timestamp | dateFmt}} <!-- FIXME -->
+          di <a>wil93</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
         </dd>
-        <dd class="count">{{topic.posts-1}}</dd>
-        <dd class="count">{{topic.views}}</dd>
-        <dd class="lastpost" ng-show="topic.posts-1"> <!-- FIXME -->
-          di <a>wil93</a>
-          <a ui-sref="overview" title="Vai al messaggio">
+        <dd class="count col-sm-1 hidden-xs">{{topic.posts-1}}</dd>
+        <dd class="count col-md-1 hidden-sm hidden-xs">{{topic.views}}</dd>
+        <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-show="topic.posts-1">
+          di <a>{{topic.lastpost.username}}</a>
+          <a class="dont-underline" ui-sref="overview" title="Vai al messaggio">
             <i class="fa fa-share-square-o"></i>
           </a>
           </br>
-          {{1000000000 | dateFmt}}
+          {{topic.lastpost.timestamp | dateFmt}}
         </dd>
-        <dd class="lastpost" ng-hide="topic.posts-1">
+        <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-hide="topic.posts-1">
           Non ci sono risposte
         </dd>
       </dl>

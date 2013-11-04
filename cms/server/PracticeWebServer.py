@@ -815,9 +815,13 @@ class APIHandler(object):
                 topic['id'] = t.id
                 topic['status'] = t.status
                 topic['title'] = t.title
-                topic['timestamp'] = make_timestamp(t.timestamp)
+                topic['timestamp'] = make_timestamp(t.timestamp)  # FIXME: this is what topic['lastpost']['timestamp'] should be
                 topic['posts'] = t.npost
                 topic['views'] = t.nview
+                topic['lastpost'] = {
+                    'username':  'antani',  # TODO: lastpost author's username
+                    'timestamp': make_timestamp(t.timestamp)
+                }
                 resp['topics'].append(topic)
         elif data['action'] == 'new':
             if local.user is None:
