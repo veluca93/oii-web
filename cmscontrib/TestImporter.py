@@ -135,6 +135,7 @@ def main():
         test.questions.append(question)
 
     with SessionGen() as session:
+        test.access_level = 7
         session.add(test)
         session.commit()
 
