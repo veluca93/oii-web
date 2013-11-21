@@ -21,8 +21,11 @@
 /* Task page */
 
 angular.module('pws.task', [])
-  .controller('StatementCtrl', function(taskbarManager) {
+  .controller('StatementCtrl', function($scope, taskbarManager) {
     taskbarManager.setActiveTab(1);
+    $scope.getPDFURL = function(hash) {
+      return '../../assets/pdfjs/viewer.html?file=/files/' + hash + '/testo.pdf';
+    };
   })
   .controller('AttachmentsCtrl', function(taskbarManager) {
     taskbarManager.setActiveTab(2);

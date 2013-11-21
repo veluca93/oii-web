@@ -48,7 +48,7 @@ angular.module('pws.tests', [])
       });
   })
   .controller('TestpageCtrl', function($scope, $stateParams, $http,
-        notificationHub, navbarManager, userManager) {
+        $sce, notificationHub, navbarManager, userManager) {
     navbarManager.setActiveTab(0);
     $scope.score = function() {
       var data = [];
@@ -106,12 +106,16 @@ angular.module('pws.tests', [])
       .success(function(data, status, headers, config) {
         $scope.test = data;
         for (var i in data["questions"]) {
+          data["questions"][i]["text"] = $sce.trustAsHtml(data["questions"][i]["text"]);
           if (data["questions"][i]["max_score"] == 1)
             data["questions"][i]["scorestring"] = "1 punto";
           else
             data["questions"][i]["scorestring"] = data["questions"][i]["max_score"] + " punti";
           data["questions"][i].name = "question" + i;
-          if (data["questions"][i]["type"] != "choice") {
+          if (data["questions"][i]["type"] == "choice") {
+            for (var a in data["questions"][i]["choices"])
+              data["questions"][i]["choices"][a] = $sce.trustAsHtml(data["questions"][i]["choices"][a]);
+          } else {
             var tmp = [];
             for (var a in data["questions"][i]["answers"]) {
               var ans = data["questions"][i]["answers"][a];

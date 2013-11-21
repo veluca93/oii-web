@@ -9,11 +9,11 @@
             {{q.score}}/{{q.max_score}}
           </span>
         </legend>
-        <div ng-bind-html-unsafe="q.text"></div>
+        <div ng-bind-html="q.text"></div>
         <div class="radio" ng-repeat="c in q.choices">
           <label>
             <input type="radio" name="{{q.name}}" value="{{$index}}" ng-model="q.ans" />
-            <div ng-bind-html-unsafe="c"></div>
+            <div ng-bind-html="c"></div>
           </label>
         </div>
         <ul class="list-group">
