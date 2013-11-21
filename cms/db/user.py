@@ -112,6 +112,10 @@ class User(Base):
                         cascade="all, delete-orphan",
                         passive_deletes=True))
 
+    registration_time = Column(
+        DateTime,
+        nullable=False)
+
     # A JSON-encoded dictionary of lists of strings: statements["a"]
     # contains the language codes of the statements that will be
     # highlighted to this user for task "a".

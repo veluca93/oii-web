@@ -304,7 +304,8 @@ class APIHandler(object):
                 username=username,
                 password=token,
                 email=email,
-                access_level=6
+                access_level=6,
+                registration_time=make_datetime()
             )
             user.contest = local.contest
             try:
@@ -765,11 +766,14 @@ class APIHandler(object):
                 forum['title'] = f.title
                 forum['topics'] = f.ntopic
                 forum['posts'] = f.npost
-                forum['lastpost'] = {  # TODO: lastpost = last post of most recently active topic in this forum
-                    'username':    'antani',    # TODO: lastpost author's username
-                    'timestamp':   1000000000,  # TODO: lastpost timestamp
-                    'topic_title': 'how to sum A+B?'  # TODO: title of lastpost's topic
-                }
+                if len(f.topics) > 0:
+                    forum['lastpost'] = {
+                        'username':     f.topics[0].last_writer.username,
+                        'timestamp':    make_timestamp(f.topics[0].timestamp),
+                        'topic_title':  f.topics[0].title,
+                        'topic_id':     f.topics[0].id,
+                        'num':          f.topics[0].npost
+                    }
                 resp['forums'].append(forum)
         elif data['action'] == 'new':
             if local.access_level > 1:
@@ -809,7 +813,7 @@ class APIHandler(object):
                 .filter(Topic.forum_id == forum.id).count()
             resp['numUnanswered'] = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
-                .filter(Topic.answered == False).count()
+                .filter(Topic.answered is False).count()
             resp['topics'] = []
             for t in topics:
                 if noAnswer and t.answered is True:
@@ -818,12 +822,12 @@ class APIHandler(object):
                 topic['id'] = t.id
                 topic['status'] = t.status
                 topic['title'] = t.title
-                topic['timestamp'] = make_timestamp(t.timestamp)  # FIXME: this is what topic['lastpost']['timestamp'] should be
+                topic['timestamp'] = make_timestamp(t.creation_timestamp)
                 topic['posts'] = t.npost
                 topic['views'] = t.nview
-                topic['author_username'] = 'antani'  # TODO: username of topic creator
+                topic['author_username'] = t.author.username
                 topic['lastpost'] = {
-                    'username':  'antani',  # TODO: lastpost author's username
+                    'username':  t.last_writer.username,
                     'timestamp': make_timestamp(t.timestamp)
                 }
                 resp['topics'].append(topic)
@@ -842,8 +846,11 @@ class APIHandler(object):
             topic = Topic(status='open',
                           title=data['title'],
                           timestamp=make_datetime(),
+                          creation_timestamp=make_datetime(),
                           answered=False)
             topic.forum = forum
+            topic.last_writer = local.user
+            topic.author = local.user
             topic.npost = 1
             post = Post(text=data['text'],
                         timestamp=make_datetime())
@@ -888,9 +895,9 @@ class APIHandler(object):
                 post['author'] = {
                     'username':  p.author.username,
                     'mailhash':  self.hash(p.author.email, 'md5'),
-                    'rep':       7,          # TODO: reputation of user
-                    'postcount': 42,         # TODO: total posts of user
-                    'joindate':  1000000000  # TODO: timestamp of user signup
+                    'rep':       47,          # TODO: reputation of user
+                    'postcount': len(p.author.posts),
+                    'joindate':  make_timestamp(p.author.registration_time)
                 }
                 resp['posts'].append(post)
         elif data['action'] == 'new':
@@ -909,6 +916,7 @@ class APIHandler(object):
             post.forum = topic.forum
             topic.timestamp = post.timestamp
             topic.answered = True
+            topic.last_writer = local.user
             local.session.add(post)
             topic.forum.npost = local.session.query(Post)\
                 .filter(Post.forum_id == topic.forum.id).count()

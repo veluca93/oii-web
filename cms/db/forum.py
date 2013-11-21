@@ -97,9 +97,28 @@ class Topic(Base):
 
     timestamp = Column(DateTime, nullable=False)
 
+    creation_timestamp = Column(DateTime, nullable=False)
+
     npost = Column(Integer, nullable=False, default=0)
 
     nview = Column(Integer, nullable=False, default=0)
+
+    last_writer_id = Column(
+        Integer,
+        ForeignKey(User.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+
+    last_writer = relationship(User, foreign_keys=[last_writer_id])
+
+    author_id = Column(
+        Integer,
+        ForeignKey(User.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    author = relationship(User, foreign_keys=[author_id])
 
     forum_id = Column(
         Integer,
