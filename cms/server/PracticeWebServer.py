@@ -36,7 +36,8 @@ from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import Service
 from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, \
-    Tag, Forum, Topic, Post, TestScore, Institute, Region, Province, City
+    Tag, Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
+    TaskScore
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -218,6 +219,25 @@ class APIHandler(object):
         sha.update(string)
         return sha.hexdigest()
 
+    def get_institute_info(self, institute):
+        info = dict()
+        info['id'] = institute.id
+        info['name'] = institute.name
+        info['city'] = institute.city.name
+        info['province'] = institute.city.province.name
+        info['region'] = institute.city.province.region.name
+        return info
+
+    def get_user_info(self, user):
+        info = dict()
+        info['username'] = user.username
+        info['access_level'] = user.access_level
+        info['join_date'] = make_timestamp(user.registration_time)
+        info['mail_hash'] = self.hash(user.email, 'md5')
+        info['score'] = user.score
+        info['institute'] = self.get_institute_info(user.institute)
+        return info
+
     # Handlers that do not require JSON data
     def file_handler(self, environ, filename):
         path = os.path.join(
@@ -281,10 +301,9 @@ class APIHandler(object):
         if data['action'] == 'get':
             institute = local.session.query(Institute)\
                 .filter(Institute.id == data['id']).first()
-            resp['name'] = institute.name
-            resp['city'] = institute.city.name
-            resp['province'] = institute.city.province.name
-            resp['region'] = institute.city.province.region.name
+            if institute is None:
+                raise NotFound()
+            resp = self.get_institute_info(institute)
         elif data['action'] == 'listregions':
             regions = local.session.query(Region).all()
             resp['regions'] = [r.name for r in regions]
@@ -370,11 +389,16 @@ class APIHandler(object):
                 .filter(User.username == data['username']).first()
             if user is None:
                 raise NotFound()
-            resp['username'] = user.username
-            resp['access_level'] = user.access_level
-            resp['joindate'] = make_timestamp(user.registration_time)
-            resp['mailhash'] = self.hash(user.email, 'md5')
-            resp['institute'] = user.institute_id
+            resp = self.get_user_info(user)
+        elif data['action'] == 'list':
+            query = local.session.query(User)\
+                .filter(User.fake is False)\
+                .order_by(desc(User.score))\
+                .slice(data['first'], data['last'])
+            if 'institute' in data:
+                query = query.filter(User.institute_id == data['institute'])
+            users = query.all()
+            resp['users'] = map(self.get_user_info, users)
         else:
             raise BadRequest()
         return resp
@@ -382,26 +406,19 @@ class APIHandler(object):
     def task_handler(self, data):
         resp = dict()
         if data['action'] == 'list':
+            tasksquery = local.session.query(Task)\
+                .filter(Task.contest_id == local.contest.id)\
+                .filter(Task.access_level >= local.access_level)\
+                .order_by(desc(Task.id))\
+                .slice(data['first'], data['last'])
+            numquery = local.session.query(Task)\
+                .filter(Task.access_level >= local.access_level)\
+                .filter(Task.contest_id == local.contest.id)
             if 'tag' in data:
-                tasks = local.session.query(Task)\
-                    .filter(Task.contest_id == local.contest.id)\
-                    .filter(Task.tags.any(name=data['tag']))\
-                    .filter(Task.access_level >= local.access_level)\
-                    .order_by(desc(Task.id))\
-                    .slice(data['first'], data['last']).all()
-                resp['num'] = local.session.query(Task)\
-                    .filter(Task.tags.any(name=data['tag']))\
-                    .filter(Task.access_level >= local.access_level)\
-                    .filter(Task.contest_id == local.contest.id).count()
-            else:
-                tasks = local.session.query(Task)\
-                    .filter(Task.contest_id == local.contest.id)\
-                    .filter(Task.access_level >= local.access_level)\
-                    .order_by(desc(Task.id))\
-                    .slice(data['first'], data['last']).all()
-                resp['num'] = local.session.query(Task)\
-                    .filter(Task.access_level >= local.access_level)\
-                    .filter(Task.contest_id == local.contest.id).count()
+                tasksquery = tasksquery.filter(Task.tags.any(name=data['tag']))
+                numquery = numquery.filter(Task.tags.any(name=data['tag']))
+            tasks = tasksquery.all()
+            resp['num'] = numquery.count()
             resp['tasks'] = []
             for t in tasks:
                 task = dict()
@@ -413,8 +430,7 @@ class APIHandler(object):
             t = local.session.query(Task)\
                 .filter(Task.name == data['name'])\
                 .filter(Task.contest_id == local.contest.id)\
-                .filter(Task.access_level >= local.access_level)\
-                .first()
+                .filter(Task.access_level >= local.access_level).first()
             if t is None:
                 raise NotFound()
             resp['id'] = t.id
@@ -431,6 +447,13 @@ class APIHandler(object):
                 att.append((name, obj.digest))
             resp['attachments'] = att
             resp['tags'] = [tag.name for tag in t.tags if tag.hidden is False]
+        elif data['action'] == 'stats':
+            t = local.session.query(Task)\
+                .filter(Task.name == data['name'])\
+                .filter(Task.contest_id == local.contest.id)\
+                .filter(Task.access_level >= local.access_level).first()
+            if t is None:
+                raise NotFound()
         else:
             raise BadRequest()
         return resp
@@ -771,6 +794,23 @@ class APIHandler(object):
                 submission_id=submission.id
             )
 
+            # Add a row to taskscores, if needed
+            try:
+                ts = TaskScore()
+                ts.task = task
+                ts.user = local.user
+                local.session.add(ts)
+                local.session.commit()
+            except IntegrityError:
+                local.session.rollback()
+
+            # Update the submission count
+            task.nsubs = local.session.query(Submission)\
+                .filter(Submission.task_id == task.id).count()
+            task.nusers = local.session.query(TaskScore)\
+                .filter(TaskScore.task_id == task.id).count()
+            local.session.commit()
+
             # Answer with submission data
             resp['id'] = submission.id
             resp['task_id'] = submission.task_id
@@ -931,13 +971,7 @@ class APIHandler(object):
                 post['id'] = p.id
                 post['text'] = p.text
                 post['timestamp'] = make_timestamp(p.timestamp)
-                post['author'] = {
-                    'username':  p.author.username,
-                    'mailhash':  self.hash(p.author.email, 'md5'),
-                    'rep':       47,          # TODO: reputation of user
-                    'postcount': len(p.author.posts),
-                    'joindate':  make_timestamp(p.author.registration_time)
-                }
+                post['author'] = self.get_user_info(p.author)
                 resp['posts'].append(post)
         elif data['action'] == 'new':
             if local.user is None:

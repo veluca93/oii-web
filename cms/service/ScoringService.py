@@ -33,7 +33,7 @@ import logging
 
 from cms import ServiceCoord, config
 from cms.io import Executor, QueueItem, TriggeredService, rpc_method
-from cms.db import SessionGen, Submission, Dataset
+from cms.db import SessionGen, Submission, Dataset, TaskScore, SubmissionResult
 from cms.grading.scoretypes import get_score_type
 from cms.service import get_submission_results
 
@@ -118,7 +118,34 @@ class ScoringExecutor(Executor):
                 submission_result.ranking_score_details = \
                 score_type.compute_score(submission_result)
 
+            # Round submission score to 2 decimal places
+            submission_result.score = round(submission_result.score, 2)
+
             # Store it.
+            session.commit()
+
+            # Update statistics
+            score = submission_result.score
+            taskscore = session.query(TaskScore)\
+                .filter(TaskScore.user_id == submission.user_id)\
+                .filter(TaskScore.task_id == submission.task_id).first()
+            mtime = max([0] + [e.execution_time
+                               for e in submission_result.evaluations])
+            if score > taskscore.score:
+                taskscore.score = score
+                taskscore.time = mtime
+            elif score == taskscore.score and mtime > taskscore.time:
+                taskscore.time = mtime
+            submission.task.nsubscorrect = session.query(Submission)\
+                .filter(Submission.task_id == submission.task_id)\
+                .filter(Submission.results.any(
+                    SubmissionResult.score == 100)).count()
+            submission.task.nuserscorrect = session.query(TaskScore)\
+                .filter(TaskScore.task_id == submission.task_id)\
+                .filter(TaskScore.score == 100).count()
+            submission.user.score = sum([
+                t.score for t in session.query(TaskScore)
+                .filter(TaskScore.user_id == submission.user_id).all()])
             session.commit()
 
             # If dataset is the active one, update RWS.
