@@ -2,10 +2,9 @@
   <div class="row container">
     <pagination class="col-lg-6" total-items="$window.totalTasks" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="startIndex" on-select-page="updPage(page)" items-per-page="tasksPerPage">
     </pagination>
-    <form class="form-horizontal" role="form" ng-submit="getTasks()">
+    <form class="form-horizontal searchbytag pull-right" role="form" ng-submit="getTasks()">
       <div class="col-lg-6 form-group">
-        <label class="control-label" for="tag">Ricerca per tag:</label>
-        <input class="form-control cerca-tag" maxlength="50" autocomplete="off" type="text" id="tag" name="tag" ng-model="search.tag"/>
+        <input class="cerca-tag" maxlength="50" autocomplete="off" type="text" id="tag" name="tag" ng-model="search.tag" placeholder="Ricerca per tag"/>
         <button type="submit" class="btn btn-sm btn-info">cerca</button>
       </div>
     </form>
