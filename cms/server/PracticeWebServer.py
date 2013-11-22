@@ -303,6 +303,7 @@ class APIHandler(object):
         return resp
 
     def user_handler(self, data):
+        resp = dict()
         if data['action'] == 'new':
             try:
                 username = data['username']
@@ -355,14 +356,12 @@ class APIHandler(object):
             sha.update(config.secret_key)
             token = sha.hexdigest()
 
-            resp = dict()
             user = self.get_user(username, token)
             if user is None:
                 resp['success'] = 0
             else:
                 resp['success'] = 1
                 resp['token'] = token
-            return resp
         elif data['action'] == 'get_access_level':
             resp['access_level'] = local.access_level
         elif data['action'] == 'get':
