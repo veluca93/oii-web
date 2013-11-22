@@ -36,7 +36,7 @@ from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import Service
 from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, \
-    Tag, Forum, Topic, Post, TestScore
+    Tag, Forum, Topic, Post, TestScore, Institute, Region, Province, City
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -276,6 +276,32 @@ class APIHandler(object):
         logger.warning('Request type not understood')
         raise BadRequest()
 
+    def location_handler(self, data):
+        resp = dict()
+        if data['action'] == 'get':
+            institute = local.session.query(Institute)\
+                .filter(Institute.id == data['id']).first()
+            resp['name'] = institute.name
+            resp['city'] = institute.city.name
+            resp['province'] = institute.city.province.name
+            resp['region'] = institute.city.province.region.name
+        elif data['action'] == 'listregions':
+            regions = local.session.query(Region).all()
+            resp['regions'] = [r.name for r in regions]
+        elif data['action'] == 'listprovinces':
+            provinces = local.session.query(Province)\
+                .filter(Province.region_id == data['id']).all()
+            resp['provinces'] = [r.name for r in provinces]
+        elif data['action'] == 'listcities':
+            cities = local.session.query(City)\
+                .filter(City.province_id == data['id']).all()
+            resp['cities'] = [r.name for r in cities]
+        elif data['action'] == 'listinstitutes':
+            institutes = local.session.query(Institute)\
+                .filter(Institute.city_id == data['id']).all()
+            resp['institutes'] = [r.name for r in institutes]
+        return resp
+
     def user_handler(self, data):
         if data['action'] == 'new':
             try:
@@ -284,6 +310,7 @@ class APIHandler(object):
                 email = data['email']
                 firstname = data['firstname']
                 lastname = data['lastname']
+                institute = int(data['institute'])
             except KeyError:
                 logger.warning('Missing parameters')
                 raise BadRequest()
@@ -307,6 +334,7 @@ class APIHandler(object):
                 access_level=6,
                 registration_time=make_datetime()
             )
+            user.institute_id = institute
             user.contest = local.contest
             try:
                 local.session.add(user)
@@ -337,6 +365,17 @@ class APIHandler(object):
             return resp
         elif data['action'] == 'get_access_level':
             resp['access_level'] = local.access_level
+        elif data['action'] == 'get':
+            user = local.session.query(User)\
+                .filter(User.contest_id == local.contest.id)\
+                .filter(User.username == data['username'])
+            if user is None:
+                raise NotFound()
+            resp['username'] = user.username
+            resp['access_level'] = user.access_level
+            resp['joindate'] = make_timestamp(user.registration_time)
+            resp['mailhash'] = self.hash(user.email, 'md5')
+            resp['institute'] = user.institute_id
         else:
             raise BadRequest()
         return resp
@@ -678,8 +717,7 @@ class APIHandler(object):
                make_datetime() - lastsub.timestamp < timedelta(seconds=20):
                 return {'success': 0, 'error': 'SHORT_INTERVAL'}
 
-            # TODO: implement checks (size), archives and
-            # (?) partial submissions
+            # TODO: implement archives and (?) partial submissions
             try:
                 task = local.contest.get_task(data['task_name'])
             except KeyError:
@@ -694,6 +732,8 @@ class APIHandler(object):
                 f = data['files'].get(sfe.filename)
                 if f is None:
                     return {'success': 0, 'error': 'FILES_MISSING'}
+                if len(f['data']) > config.max_submission_length:
+                    return {'success': 0, 'error': 'FILES_TOO_BIG'}
                 f['name'] = sfe.filename
                 files.append(f)
                 if sfe.filename.endswith('.%l'):
