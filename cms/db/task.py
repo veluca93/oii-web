@@ -35,7 +35,7 @@ from sqlalchemy.types import Boolean, Integer, Float, String, Unicode, Interval
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from . import Base, Contest
+from . import Base, Contest, User
 from .smartmappedcollection import smart_mapped_collection
 
 
@@ -78,6 +78,27 @@ class Task(Base):
     num = Column(
         Integer,
         nullable=False)
+
+    # Stats
+    nsubs = Column(
+        Integer,
+        nullable=False,
+        default=0)
+
+    nsubscorrect = Column(
+        Integer,
+        nullable=False,
+        default=0)
+
+    nusers = Column(
+        Integer,
+        nullable=False,
+        default=0)
+
+    nuserscorrect = Column(
+        Integer,
+        nullable=False,
+        default=0)
 
     # Contest (id and object) owning the task.
     contest_id = Column(
@@ -504,3 +525,47 @@ class Tag(Base):
     description = Column(
         String,
         nullable=False)
+
+
+class TaskScore(Base):
+    __tablename__ = 'taskscores'
+    __table_args__ = (
+        UniqueConstraint('user_id', 'task_id'),
+    )
+    id = Column(
+        Integer,
+        primary_key=True)
+
+    user_id = Column(
+        Integer,
+        ForeignKey(User.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    user = relationship(
+        User,
+        backref=backref('taskscores',
+                        cascade="all, delete-orphan",
+                        passive_deletes=True))
+
+    task_id = Column(
+        Integer,
+        ForeignKey(Task.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    task = relationship(
+        Task,
+        backref=backref('taskscores',
+                        cascade="all, delete-orphan",
+                        passive_deletes=True))
+
+    score = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        index=True)
+    time = Column(
+        Float,
+        nullable=False,
+        default=0)

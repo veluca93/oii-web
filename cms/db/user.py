@@ -64,6 +64,12 @@ class User(Base):
         Integer,
         nullable=False)
 
+    # Score
+    score = Column(
+        Integer,
+        nullable=False,
+        default=0)
+
     # Real name (human readable) of the user.
     first_name = Column(
         Unicode,

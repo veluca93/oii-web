@@ -54,7 +54,7 @@ __all__ = [
     "User", "Message", "Question",
     # task
     "Task", "Statement", "Attachment", "SubmissionFormatElement", "Dataset",
-    "Manager", "Testcase",
+    "Manager", "Testcase", "TaskScore",
     # submission
     "Submission", "File", "Token", "SubmissionResult", "Executable",
     "Evaluation",
@@ -95,7 +95,7 @@ from .contest import Contest, Announcement
 from .location import Region, Province, City, Institute
 from .user import User, Message, Question
 from .task import Task, Statement, Attachment, SubmissionFormatElement, \
-    Dataset, Manager, Testcase, Tag
+    Dataset, Manager, Testcase, Tag, TaskScore
 from .submission import Submission, File, Token, SubmissionResult, \
     Executable, Evaluation
 from .usertest import UserTest, UserTestFile, UserTestManager, \
@@ -114,7 +114,7 @@ sa_entities = [
     Region, Province, City, Institute,
     # task
     Task, Statement, Attachment, SubmissionFormatElement, Dataset, Manager,
-    Testcase, Tag,
+    Testcase, Tag, TaskScore,
     # submission
     Submission, File, Token, SubmissionResult, Executable, Evaluation,
     # usertest
