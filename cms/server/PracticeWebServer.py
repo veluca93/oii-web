@@ -370,7 +370,7 @@ class APIHandler(object):
         elif data['action'] == 'get':
             user = local.session.query(User)\
                 .filter(User.contest_id == local.contest.id)\
-                .filter(User.username == data['username'])
+                .filter(User.username == data['username']).first()
             if user is None:
                 raise NotFound()
             resp['username'] = user.username
