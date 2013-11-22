@@ -37,7 +37,7 @@ class Test(Base):
     description = Column(Unicode, nullable=False)
 
     # Access level required
-    access_level = Column(Integer, nullable=False)
+    access_level = Column(Integer, nullable=False, default=7)
 
     # Maximum possible score
     max_score = Column(Integer, default=0)

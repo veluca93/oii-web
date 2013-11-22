@@ -48,6 +48,8 @@ __all__ = [
     "metadata", "Base",
     # contest
     "Contest", "Announcement",
+    # location
+    "Region", "Province", "City", "Institute",
     # user
     "User", "Message", "Question",
     # task
@@ -70,7 +72,7 @@ __all__ = [
     # util
     "get_contest_list", "is_contest_id", "ask_for_contest",
     # test
-    "Test", "TestQuestion",
+    "Test", "TestQuestion", "QuestionFile", "TestScore",
     # forum
     "PrivateMessage", "Post", "Topic", "Forum"
     ]
@@ -90,6 +92,7 @@ from .session import Session, ScopedSession, SessionGen, \
 
 from .base import metadata, Base
 from .contest import Contest, Announcement
+from .location import Region, Province, City, Institute
 from .user import User, Message, Question
 from .task import Task, Statement, Attachment, SubmissionFormatElement, \
     Dataset, Manager, Testcase, Tag
@@ -107,16 +110,21 @@ sa_entities = [
     Contest, Announcement,
     # user
     User, Message, Question,
+    # location
+    Region, Province, City, Institute,
     # task
     Task, Statement, Attachment, SubmissionFormatElement, Dataset, Manager,
     Testcase, Tag,
     # submission
     Submission, File, Token, SubmissionResult, Executable, Evaluation,
     # usertest
-    UserTest, UserTestFile, UserTestManager, UserTestResult,
-    UserTestExecutable,
+    UserTest, UserTestManager, UserTestResult, UserTestExecutable,
+    UserTestFile,
     # test
-    Test, TestQuestion, QuestionFile, TestScore]
+    Test, TestQuestion, QuestionFile, TestScore,
+    # forum
+    PrivateMessage, Post, Topic, Forum
+    ]
 
 
 from .init import init_db

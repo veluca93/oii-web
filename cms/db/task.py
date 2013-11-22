@@ -71,7 +71,8 @@ class Task(Base):
     # Access level required
     access_level = Column(
         Integer,
-        nullable=False)
+        nullable=False,
+        default=7)
 
     # Number of the task for sorting.
     num = Column(
