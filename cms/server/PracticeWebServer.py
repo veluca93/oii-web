@@ -298,20 +298,20 @@ class APIHandler(object):
                 raise NotFound()
             resp = self.get_institute_info(institute)
         elif data['action'] == 'listregions':
-            regions = local.session.query(Region).all()
-            resp['regions'] = [r.name for r in regions]
+            out = local.session.query(Region).all()
+            resp['regions'] = [{'id': r.id, 'name': r.name} for r in out]
         elif data['action'] == 'listprovinces':
-            provinces = local.session.query(Province)\
+            out = local.session.query(Province)\
                 .filter(Province.region_id == data['id']).all()
-            resp['provinces'] = [r.name for r in provinces]
+            resp['provinces'] = [{'id': r.id, 'name': r.name} for r in out]
         elif data['action'] == 'listcities':
-            cities = local.session.query(City)\
+            out = local.session.query(City)\
                 .filter(City.province_id == data['id']).all()
-            resp['cities'] = [r.name for r in cities]
+            resp['cities'] = [{'id': r.id, 'name': r.name} for r in out]
         elif data['action'] == 'listinstitutes':
-            institutes = local.session.query(Institute)\
+            out = local.session.query(Institute)\
                 .filter(Institute.city_id == data['id']).all()
-            resp['institutes'] = [r.name for r in institutes]
+            resp['institutes'] = [{'id': r.id, 'name': r.name} for r in out]
         return resp
 
     def user_handler(self, data):
