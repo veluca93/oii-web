@@ -48,7 +48,7 @@
             </div>
           </div>
           <div class="form-group" ng-class="{'has-error': signupform.email2.$dirty && isBad['email2']}">
-            <label class="col-lg-4 control-label" for="email2">Ripeti indirizzo email</label>
+            <label class="col-lg-4 control-label" for="email2">Ripeti email</label>
             <div class="col-lg-6">
               <input class="form-control" autocomplete="off" type="text" id="email2" name="email2" ng-model="user.email2" ng-change="matchEmail()"/>
               <span class="help-block" ng-show="signupform.email2.$dirty && isBad['email2']">{{errorMsg['email2']}}</span>
@@ -57,13 +57,40 @@
         </fieldset>
         <fieldset>
           <legend>Dati della scuola di provenienza</legend>
-          <div class="form-group" ng-class="{'has-error': isBad['region']}">
+          <div class="form-group" ng-class="{'has-error': signupform.region.$dirty && isBad['region']}">
             <label class="col-lg-4 control-label" for="region">Regione</label>
             <div class="col-lg-6">
-              <select id="region" name="region" ng-model="user.region" ng-model="asd" class="form-control" ng-change="checkRegion()">
+              <select id="region" name="region" ng-model="user.region" class="form-control" ng-change="resetProvince(); checkRegion()">
                 <option ng-repeat="r in regions | orderBy:'name'" value="{{r.id}}">{{r.name}}</option>
               </select>
-              <span class="help-block" ng-show="isBad['region']">{{errorMsg['region']}}</span>
+              <span class="help-block" ng-show="signupform.region.$dirty && isBad['region']">{{errorMsg['region']}}</span>
+            </div>
+          </div>
+          <div class="form-group" ng-class="{'has-error': signupform.province.$dirty && isBad['province']}">
+            <label class="col-lg-4 control-label" for="province">Provincia</label>
+            <div class="col-lg-6">
+              <select id="province" name="province" ng-model="user.province" class="form-control" ng-change="resetCity(); checkProvince()" ng-disabled="isBad['region']">
+                <option ng-repeat="p in provinces | orderBy:'name'" value="{{p.id}}">{{p.name}}</option>
+              </select>
+              <span class="help-block" ng-show="signupform.province.$dirty && isBad['province']">{{errorMsg['province']}}</span>
+            </div>
+          </div>
+          <div class="form-group" ng-class="{'has-error': signupform.city.$dirty && isBad['city']}">
+            <label class="col-lg-4 control-label" for="city">Città</label>
+            <div class="col-lg-6">
+              <select id="city" name="city" ng-model="user.city" class="form-control" ng-change="resetInstitute(); checkCity()" ng-disabled="isBad['province']">
+                <option ng-repeat="c in cities | orderBy:'name'" value="{{c.id}}">{{c.name}}</option>
+              </select>
+              <span class="help-block" ng-show="signupform.city.$dirty && isBad['city']">{{errorMsg['city']}}</span>
+            </div>
+          </div>
+          <div class="form-group" ng-class="{'has-error': signupform.institute.$dirty && isBad['institute']}">
+            <label class="col-lg-4 control-label" for="institute">Scuola</label>
+            <div class="col-lg-6">
+              <select id="institute" name="institute" ng-model="user.institute" class="form-control" ng-change="checkInstitute()" ng-disabled="isBad['city']">
+                <option ng-repeat="i in institutes | orderBy:'name'" value="{{i.id}}">{{i.name}}</option>
+              </select>
+              <span class="help-block" ng-show="signupform.institute.$dirty && isBad['institute']">{{errorMsg['institute']}}</span>
             </div>
           </div>
         </fieldset>
