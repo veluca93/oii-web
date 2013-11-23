@@ -1,0 +1,12 @@
+<div class="container">
+  <div class="row container">
+    <pagination class="col-lg-6" total-items="$window.totalUsers" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="startIndex" on-select-page="updPage(page)" items-per-page="usersPerPage">
+    </pagination>
+  </div>
+  <div class="list-group">
+    <a ng-repeat="user in users" class="list-group-item" ui-sref="user({ userId: user.username })">
+      <i class="fa fa-angle-right"></i> {{user.username}}
+      <tt class="pull-right">{{user.score}}</tt>
+    </a>
+  </div>
+</div>

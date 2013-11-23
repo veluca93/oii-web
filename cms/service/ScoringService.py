@@ -7,6 +7,7 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
+# Copyright © 2013 Luca Versari <veluca93@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -129,12 +130,17 @@ class ScoringExecutor(Executor):
             taskscore = session.query(TaskScore)\
                 .filter(TaskScore.user_id == submission.user_id)\
                 .filter(TaskScore.task_id == submission.task_id).first()
+            if taskscore is None:
+                taskscore = TaskScore()
+                taskscore.task_id = submission.task_id
+                taskscore.user_id = submission.user_id
+                session.add(taskscore)
             mtime = max([0] + [e.execution_time
                                for e in submission_result.evaluations])
             if score > taskscore.score:
                 taskscore.score = score
                 taskscore.time = mtime
-            elif score == taskscore.score and mtime > taskscore.time:
+            elif score == taskscore.score and mtime < taskscore.time:
                 taskscore.time = mtime
             submission.task.nsubscorrect = session.query(Submission)\
                 .filter(Submission.task_id == submission.task_id)\
@@ -146,6 +152,10 @@ class ScoringExecutor(Executor):
             submission.user.score = sum([
                 t.score for t in session.query(TaskScore)
                 .filter(TaskScore.user_id == submission.user_id).all()])
+            submission.task.nsubs = session.query(Submission)\
+                .filter(Submission.task_id == submission.task_id).count()
+            submission.task.nusers = session.query(TaskScore)\
+                .filter(TaskScore.task_id == submission.task_id).count()
             session.commit()
 
             # If dataset is the active one, update RWS.

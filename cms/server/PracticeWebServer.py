@@ -385,13 +385,13 @@ class APIHandler(object):
             resp = self.get_user_info(user)
         elif data['action'] == 'list':
             query = local.session.query(User)\
-                .filter(User.fake is False)\
-                .order_by(desc(User.score))\
-                .slice(data['first'], data['last'])
+                .filter(User.hidden == False)\
+                .order_by(desc(User.score))
             if 'institute' in data:
                 query = query.filter(User.institute_id == data['institute'])
-            users = query.all()
+            users = query.slice(data['first'], data['last']).all()
             resp['users'] = map(self.get_user_info, users)
+            resp['num'] = query.count()
         else:
             raise BadRequest()
         return resp
@@ -399,19 +399,14 @@ class APIHandler(object):
     def task_handler(self, data):
         resp = dict()
         if data['action'] == 'list':
-            tasksquery = local.session.query(Task)\
+            query = local.session.query(Task)\
                 .filter(Task.contest_id == local.contest.id)\
                 .filter(Task.access_level >= local.access_level)\
-                .order_by(desc(Task.id))\
-                .slice(data['first'], data['last'])
-            numquery = local.session.query(Task)\
-                .filter(Task.access_level >= local.access_level)\
-                .filter(Task.contest_id == local.contest.id)
+                .order_by(desc(Task.id))
             if 'tag' in data:
-                tasksquery = tasksquery.filter(Task.tags.any(name=data['tag']))
-                numquery = numquery.filter(Task.tags.any(name=data['tag']))
-            tasks = tasksquery.all()
-            resp['num'] = numquery.count()
+                query = query.filter(Task.tags.any(name=data['tag']))
+            tasks = query.slice(data['first'], data['last']).all()
+            resp['num'] = query.count()
             resp['tasks'] = []
             for t in tasks:
                 task = dict()
@@ -447,6 +442,17 @@ class APIHandler(object):
                 .filter(Task.access_level >= local.access_level).first()
             if t is None:
                 raise NotFound()
+            resp['nsubs'] = t.nsubs
+            resp['nusers'] = t.nusers
+            resp['nsubscorrect'] = t.nsubscorrect
+            resp['nuserscorrect'] = t.nuserscorrect
+            best = local.session.query(TaskScore)\
+                .filter(TaskScore.task == t)\
+                .filter(TaskScore.score == 100)\
+                .order_by(TaskScore.time)\
+                .slice(0, 10).all()
+            resp['best'] = [{'username': b.user.username,
+                             'time': b.time} for b in best]
         else:
             raise BadRequest()
         return resp
@@ -456,7 +462,7 @@ class APIHandler(object):
         if data['action'] == 'list':
             tags = local.session.query(Tag)\
                 .order_by(Tag.id)\
-                .filter(Tag.hidden is False).all()
+                .filter(Tag.hidden == False).all()
             resp['tags'] = [t.name for t in tags]
             return resp
 
@@ -787,23 +793,6 @@ class APIHandler(object):
                 submission_id=submission.id
             )
 
-            # Add a row to taskscores, if needed
-            try:
-                ts = TaskScore()
-                ts.task = task
-                ts.user = local.user
-                local.session.add(ts)
-                local.session.commit()
-            except IntegrityError:
-                local.session.rollback()
-
-            # Update the submission count
-            task.nsubs = local.session.query(Submission)\
-                .filter(Submission.task_id == task.id).count()
-            task.nusers = local.session.query(TaskScore)\
-                .filter(TaskScore.task_id == task.id).count()
-            local.session.commit()
-
             # Answer with submission data
             resp['id'] = submission.id
             resp['task_id'] = submission.task_id
@@ -885,7 +874,7 @@ class APIHandler(object):
                 .filter(Topic.forum_id == forum.id).count()
             resp['numUnanswered'] = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
-                .filter(Topic.answered is False).count()
+                .filter(Topic.answered == False).count()
             resp['topics'] = []
             for t in topics:
                 if noAnswer and t.answered is True:

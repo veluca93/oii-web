@@ -3,6 +3,30 @@
     <h3 class="panel-title">Statistiche</h3>
   </div>
   <div class="panel-body">
-    <!-- TODO -->
+    <table class="table table-bordered">
+      <tr>
+        <th>Numero di persone che l'hanno risolto:</th>
+        <td>{{nuserscorrect}}</td>
+      </tr>
+      <tr>
+        <th>Numero di persone che l'hanno provato:</th>
+        <td>{{nusers}}</td>
+      </tr>
+      <tr>
+        <th>Numero di soluzioni corrette:</th>
+        <td>{{nsubscorrect}}</td>
+      </tr>
+      <tr>
+        <th>Numero di soluzioni inviate:</th>
+        <td>{{nsubs}}</td>
+      </tr>
+    </table>
+    <h3>Utenti con le soluzioni migliori</h3>
+    <div class="list-group">
+      <a ng-repeat="good in best" class="list-group-item" ui-sref="user({ userId: good.username })">
+        <i class="fa fa-angle-right"></i> {{good.username}}
+        <tt class="pull-right">{{good.time}}</tt>
+      </a>
+    </div>
   </div>
 </div>
