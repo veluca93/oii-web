@@ -20,6 +20,31 @@
 /* Signin page */
 
 angular.module('pws.user', [])
+  .directive('userbar', function() {
+    return {
+      restrict: 'E',
+      templateUrl: 'partials/userbar.html',
+      replace: true,
+      transclude: true,
+      controller: 'UserbarCtrl'
+    };
+  })
+  .factory('userbarManager', function() {
+    var activeTab = 0;
+    return {
+      isActiveTab: function(tab) {
+        return tab == activeTab;
+      },
+      setActiveTab: function(tab) {
+        activeTab = tab;
+      }
+    };
+  })
+  .controller('UserbarCtrl', function($scope, $stateParams, $http,
+        $rootScope, userManager, notificationHub, userbarManager) {
+    $scope.isActiveTab = userbarManager.isActiveTab;
+    $scope.isLogged = userManager.isLogged;
+  })
   .factory('userManager', function($http, notificationHub) {
     return {
       isLogged: function() {
@@ -42,13 +67,13 @@ angular.module('pws.user', [])
       }
     };
   })
-  .controller('SignCtrl', function ($scope, $http, userManager,
+  .controller('SignCtrl', function($scope, $http, userManager,
         notificationHub) {
     $scope.user = {'username': '', 'password': ''};
     $scope.isLogged = userManager.isLogged;
     $scope.signin = function() {
       var data = $scope.user;
-      data["action"] = "login";
+      data['action'] = 'login';
       $http.post('user', data)
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
@@ -69,8 +94,45 @@ angular.module('pws.user', [])
           ' amministratore.', 5);
       });
     };
-    $scope.signout = function(){
+    $scope.signout = function() {
       userManager.signout();
       notificationHub.createAlert('success', 'Arrivederci', 1);
-    }
+    };
+  })
+  .controller('UserpageCtrl', function($scope, $http, notificationHub,
+      $stateParams, $location, userbarManager) {
+    userbarManager.setActiveTab(1);
+    $http.post('user', {
+      'action':   'get',
+      'username': $stateParams.userId
+    }).success(function(data, status, headers, config) {
+        $scope.user = data;
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Utente non esistente', 3);
+        $location.path('overview'); // FIXME: torna a home?
+      });
+  })
+  .filter('levelClass', function() {
+    return function(input) {
+      switch (input) {
+      case 0:
+        return "admin";
+      case 1:
+        return "asd";
+      case 2:
+        return "asd";
+      case 3:
+        return "asd";
+      case 4:
+        return "asd";
+      case 5:
+        return "asd";
+      case 6:
+        return "asd";
+      case 7:
+        return "guest";
+      default:
+        return "unknown";
+      }
+    };
   });

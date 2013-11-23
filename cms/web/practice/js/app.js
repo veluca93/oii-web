@@ -20,8 +20,8 @@
 
 // Declare app level module which depends on filters, and services
 angular.module('pws', [
-    'ui.router', 'ui.bootstrap', 'pws.navbar', 'pws.taskbar', 'pws.tasks',
-    'pws.task', 'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
+    'ui.router', 'ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.task',
+    'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
     'pws.tests', 'pws.overview', 'pws.forum'
   ])
   .config(function($locationProvider, $stateProvider, $urlRouterProvider) {
@@ -29,6 +29,7 @@ angular.module('pws', [
     $urlRouterProvider
       .when('/tasks/', '/tasks/1')
       .when('/task/{taskName}', '/task/{taskName}/statement')
+      .when('/user/{userId}', '/user/{userId}/profile')
       .otherwise('/overview');
     $stateProvider
       .state('overview', {
@@ -47,7 +48,7 @@ angular.module('pws', [
         controller: 'ForumCtrl'
       })
       .state('topic', {
-        url: '/forum/{forumId}/topic/{topicId}',
+        url: '/topic/{topicId}',
         templateUrl: 'views/forum.topic.html',
         controller: 'TopicCtrl'
       })
@@ -79,6 +80,15 @@ angular.module('pws', [
         url: '/stats',
         templateUrl: 'views/task.stats.html',
         controller: 'StatsCtrl'
+      })
+      .state('user', {
+        url: '/user/{userId}',
+        templateUrl: 'views/user.html',
+      })
+      .state('user.profile', {
+        url: '/profile',
+        templateUrl: 'views/user.profile.html',
+        controller: 'UserpageCtrl'
       })
       .state('signup', {
         url: '/signup',

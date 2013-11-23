@@ -55,6 +55,18 @@
             </div>
           </div>
         </fieldset>
+        <fieldset>
+          <legend>Dati della scuola di provenienza</legend>
+          <div class="form-group" ng-class="{'has-error': isBad['region']}">
+            <label class="col-lg-4 control-label" for="region">Regione</label>
+            <div class="col-lg-6">
+              <select id="region" name="region" ng-model="user.region" ng-model="asd" class="form-control" ng-change="checkRegion()">
+                <option ng-repeat="r in regions | orderBy:'name'" value="{{r.id}}">{{r.name}}</option>
+              </select>
+              <span class="help-block" ng-show="isBad['region']">{{errorMsg['region']}}</span>
+            </div>
+          </div>
+        </fieldset>
         <div class="form-group">
           <div class="col-lg-offset-4 col-lg-8">
             <button type="submit" class="btn btn-default">Registrati</button>

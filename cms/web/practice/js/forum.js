@@ -24,9 +24,9 @@ angular.module('pws.forum', [])
         notificationHub, navbarManager) {
     navbarManager.setActiveTab(2);
     $http.post('forum', {
-        'action': 'list',
-        'username':   userManager.getUsername(),
-        'token':  userManager.getToken()
+        'action':   'list',
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken()
       })
       .success(function(data, status, headers, config) {
         $scope.forums = data.forums;

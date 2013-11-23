@@ -21,6 +21,44 @@
 /* Task page */
 
 angular.module('pws.task', [])
+  .directive('taskbar', function() {
+    return {
+      restrict: 'E',
+      templateUrl: 'partials/taskbar.html',
+      replace: true,
+      transclude: true,
+      controller: 'TaskbarCtrl'
+    };
+  })
+  .factory('taskbarManager', function() {
+    var activeTab = 0;
+    return {
+      isActiveTab: function(tab) {
+        return tab == activeTab;
+      },
+      setActiveTab: function(tab) {
+        activeTab = tab;
+      }
+    };
+  })
+  .controller('TaskbarCtrl', function($scope, $stateParams, $http,
+        $rootScope, userManager, notificationHub, taskbarManager) {
+    $("#timeLimit, #memoLimit").popover();
+    $scope.isActiveTab = taskbarManager.isActiveTab;
+    $scope.isLogged = userManager.isLogged;
+    $scope.taskName = $stateParams.taskName;
+    $http.post('task', {
+        "name": $stateParams.taskName,
+        "username": userManager.getUsername(),
+        "token": userManager.getToken(),
+        "action": "get"
+      })
+      .success(function(data, status, headers, config) {
+        $rootScope.task = data;
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Errore di connessione', 2);
+    });
+  })
   .controller('StatementCtrl', function($scope, taskbarManager) {
     taskbarManager.setActiveTab(1);
     $scope.getPDFURL = function(hash) {
@@ -34,8 +72,8 @@ angular.module('pws.task', [])
     taskbarManager.setActiveTab(3);
   })
   .controller('SubmissionsCtrl', function($scope, $stateParams, $location,
-        $http, $window, userManager, notificationHub, subsDatabase,
-        taskbarManager) {
+      $http, $window, userManager, notificationHub, subsDatabase,
+      taskbarManager) {
     taskbarManager.setActiveTab(4);
     subsDatabase.load($stateParams.taskName);
     $scope.loadFiles = function() {

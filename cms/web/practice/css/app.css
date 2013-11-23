@@ -57,6 +57,17 @@ a.dont-underline:hover {
   margin-left: 5px;
 }
 
+/* User page */
+
+.userbadge.admin {
+  color: red;
+}
+
+.userbadge.admin .label {
+  background-color: pink;
+  text-transform: uppercase;
+}
+
 /* Submissions */
 
 #submission_detail .modal-body {
@@ -92,6 +103,7 @@ a.dont-underline:hover {
 }
 
 /* Submission page */
+
 .no-submissions {
   text-align: center;
   font-style: italic;
