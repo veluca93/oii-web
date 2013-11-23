@@ -236,6 +236,7 @@ class APIHandler(object):
         info['access_level'] = user.access_level
         info['join_date'] = make_timestamp(user.registration_time)
         info['mail_hash'] = self.hash(user.email, 'md5')
+        info['post_count'] = len(user.posts)
         info['score'] = user.score
         info['institute'] = self.get_institute_info(user.institute)
         return info
