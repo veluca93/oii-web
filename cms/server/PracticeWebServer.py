@@ -95,15 +95,7 @@ class APIHandler(object):
                  endpoint='dbfile'),
             Rule('/files/<digest>/<name>', methods=['GET', 'POST'],
                  endpoint='dbfile'),
-            Rule('/check', methods=['POST'], endpoint='check'),
-            Rule('/user', methods=['POST'], endpoint='user'),
-            Rule('/task', methods=['POST'], endpoint='task'),
-            Rule('/test', methods=['POST'], endpoint='test'),
-            Rule('/tag', methods=['POST'], endpoint='tag'),
-            Rule('/submission', methods=['POST'], endpoint='submission'),
-            Rule('/forum', methods=['POST'], endpoint='forum'),
-            Rule('/topic', methods=['POST'], endpoint='topic'),
-            Rule('/post', methods=['POST'], endpoint='post')
+            Rule('/<target>', methods=['POST'], endpoint='jsondata')
         ], encoding_errors='strict')
         self.file_cacher = parent.file_cacher
         self.contest = parent.contest
@@ -155,7 +147,7 @@ class APIHandler(object):
                 local.access_level = local.user.access_level
 
             try:
-                ans = getattr(self, endpoint + '_handler')(data)
+                ans = getattr(self, args['target'] + '_handler')(data)
             except AttributeError:
                 logger.error('Endpoint %s not implemented yet!' % endpoint)
                 logger.error(traceback.format_exc())
