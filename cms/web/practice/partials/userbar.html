@@ -1,0 +1,51 @@
+<div>
+  <ul class="nav nav-tabs">
+    <li ng-class="{active: isActiveTab(1)}">
+      <a ui-sref=".profile"><i class="fa fa-file-text fa-lg"></i> Profilo</a>
+    </li>
+    <!-- <li ng-class="{active: isActiveTab(2)}" ng-show="task.attachments.length">
+      <a ui-sref=".attachments">
+        <span class="tab-badge-total badge pull-right">{{task.attachments.length}}</span>
+        <i class="fa fa-paperclip fa-lg"></i> Allegati
+      </a>
+    </li>
+    <li ng-class="{active: isActiveTab(3)}">
+      <a ui-sref=".stats"><i class="fa fa-bar-chart-o fa-lg"></i> Statistiche</a>
+    </li>
+    <li ng-class="{active: isActiveTab(4)}" ng-show="isLogged()">
+      <a ui-sref=".submissions"><i class="fa fa-code fa-lg"></i> Sottoposizioni</a>
+    </li>
+    <li id="memoLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di memoria" data-content="La quantità di memoria, in MiB, disponibile per l'esecuzione di un testcase." ng-show="task.memory_limit != undefined">
+      <a><i class="fa fa-stack-overflow fa-lg"></i> {{task.memory_limit}} MiB</a>
+    </li>
+    <li id="timeLimit" class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Limite di tempo" data-content="La quantità di tempo, in secondi, disponibile per l'esecuzione di un testcase." ng-show="task.time_limit != undefined">
+      <a><i class="fa fa-clock-o fa-lg"></i> {{task.time_limit}} sec</a>
+    </li>
+    <li class="pull-right" data-trigger="hover" data-placement="bottom" data-title="Tag" data-content="I tag servono per classificare e raggruppare i problemi in base ad una caratteristica comune, ad esempio: <i>greedy</i>, <i>grafi</i>, e così via." ng-show="task.tags != undefined && task.tags.length">
+      <a data-toggle="modal" data-target="#tags_detail">
+        <span class="tab-badge-total badge pull-right">{{task.tags.length}}</span>
+        <i class="fa fa-tags fa-lg"></i> Tag
+      </a>
+    </li> -->
+  </ul>
+  <!-- <div class="modal fade" id="tags_detail" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Elenco dei tag</h4>
+        </div>
+        <div class="modal-body">
+          <div class="tag-group">
+            <span class="tag-group-item" ng-repeat="tag in task.tags">
+              <a class="label btn-info"><i class="fa fa-tag"></i> {{tag}}</a>
+            </span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
+        </div>
+      </div>
+    </div>
+  </div> -->
+</div>

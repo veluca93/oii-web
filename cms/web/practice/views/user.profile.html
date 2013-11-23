@@ -1,0 +1,14 @@
+<div class="container">
+  <div class="row">
+    <div class="col-lg-6">
+      <h3 class="userbadge {{user.access_level | levelClass}}">
+        {{user.username}}
+        <span class="label label-default">{{user.access_level | levelClass}}</span>
+      </h3>
+      <br />
+      {{user.institute.name}} ({{user.institute.province}})
+      <br />
+      <img class="avatar img-thumbnail" src="http://gravatar.com/avatar/{{user.mail_hash}}?d=identicon&s=200')}}"/>
+    </div>
+  </div>
+</div>
