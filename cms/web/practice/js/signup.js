@@ -43,7 +43,11 @@ angular.module('pws.signup', [])
       'email': true,
       'password': true,
       'password2': true,
-      'email2': true
+      'email2': true,
+      'region': true,
+      'province': true,
+      'city': true,
+      'institute': true
     };
     $scope.user = {
       'username': '',
@@ -53,10 +57,13 @@ angular.module('pws.signup', [])
       'password2': ''
     };
     $scope.errorMsg = {
-      'password': 'Password troppo corta',
+      'password':  'Password troppo corta',
       'password2': 'Non combacia',
-      'email2': 'Non combacia',
-      'region': 'Devi specificare una regione'
+      'email2':    'Non combacia',
+      'region':    'Devi specificare una regione',
+      'province':  'Devi specificare una provincia',
+      'city':      'Devi specificare una città',
+      'institute': 'Devi specificare una scuola'
     };
     $http.post('location', {
       'action': 'listregions'
@@ -67,7 +74,6 @@ angular.module('pws.signup', [])
       $scope.checkUsername();
       $scope.checkEmail();
       $scope.checkPassword();
-      $scope.checkRegion();
       if ($scope.isBad['username']) {
         $scope.signupform.username.$dirty = true;
         $("#username1").focus(); return;
@@ -84,7 +90,17 @@ angular.module('pws.signup', [])
         $scope.signupform.email2.$dirty = true;
         $("#email2").focus(); return;
       } else if ($scope.isBad['region']) {
+        $scope.signupform.region.$dirty = true;
         $("#region").focus(); return;
+      } else if ($scope.isBad['province']) {
+        $scope.signupform.province.$dirty = true;
+        $("#province").focus(); return;
+      } else if ($scope.isBad['city']) {
+        $scope.signupform.city.$dirty = true;
+        $("#city").focus(); return;
+      } else if ($scope.isBad['institute']) {
+        $scope.signupform.institute.$dirty = true;
+        $("#institute").focus(); return;
       }
       var data = $scope.user;
       data["action"] = "new";
@@ -123,8 +139,52 @@ angular.module('pws.signup', [])
       $scope.isBad['password'] = ($scope.user.password.length < 5);
     };
     $scope.checkRegion = function() {
-      $scope.isBad['region'] = ($scope.user.region === undefined);
-    }
+      $scope.isBad['region'] = false;
+      $http.post('location', {
+        'action': 'listprovinces',
+        'id':     $scope.user.region
+      }).success(function(data, status, headers, config) {
+        $scope.provinces = data.provinces;
+      });
+    };
+    $scope.checkProvince = function() {
+      $scope.isBad['province'] = false;
+      $http.post('location', {
+        'action': 'listcities',
+        'id':     $scope.user.province
+      }).success(function(data, status, headers, config) {
+        $scope.cities = data.cities;
+      });
+    };
+    $scope.checkCity = function() {
+      $scope.isBad['city'] = false;
+      $http.post('location', {
+        'action': 'listinstitutes',
+        'id':     $scope.user.city
+      }).success(function(data, status, headers, config) {
+        $scope.institutes = data.institutes;
+      });
+    };
+    $scope.checkInstitute = function() {
+      $scope.isBad['institute'] = false;
+    };
+    $scope.resetProvince = function() {
+      $scope.isBad['province'] = true;
+      $scope.user.province = undefined;
+      $scope.signupform.province.$dirty = false;
+      $scope.resetCity();
+    };
+    $scope.resetCity = function() {
+      $scope.isBad['city'] = true;
+      $scope.user.city = undefined;
+      $scope.signupform.city.$dirty = false;
+      $scope.resetInstitute();
+    };
+    $scope.resetInstitute = function() {
+      $scope.isBad['institute'] = true;
+      $scope.user.institute = undefined;
+      $scope.signupform.institute.$dirty = false;
+    };
     $scope.matchPassword = function() {
       $scope.isBad['password2'] = ($scope.user.password !== $scope.user.password2);
     };
