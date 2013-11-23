@@ -22,7 +22,7 @@
 angular.module('pws', [
     'ui.router', 'ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.task',
     'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
-    'pws.tests', 'pws.overview', 'pws.forum'
+    'pws.tests', 'pws.overview', 'pws.forum', 'pws.ranking'
   ])
   .config(function($locationProvider, $stateProvider, $urlRouterProvider) {
     $locationProvider.html5Mode(false).hashPrefix('!');
@@ -30,6 +30,7 @@ angular.module('pws', [
       .when('/tasks/', '/tasks/1')
       .when('/task/{taskName}', '/task/{taskName}/statement')
       .when('/user/{userId}', '/user/{userId}/profile')
+      .when('/ranking/', '/ranking/1')
       .otherwise('/overview');
     $stateProvider
       .state('overview', {
@@ -80,6 +81,11 @@ angular.module('pws', [
         url: '/stats',
         templateUrl: 'views/task.stats.html',
         controller: 'StatsCtrl'
+      })
+      .state('ranking', {
+        url: '/ranking/{startIndex}',
+        templateUrl: 'views/ranking.html',
+        controller: 'RankingCtrl'
       })
       .state('user', {
         url: '/user/{userId}',
