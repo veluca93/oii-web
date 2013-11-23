@@ -17,14 +17,14 @@
     <dl class="panel-body" ng-repeat-end>
       <dd class="sidebar bordered">
         <a class="dont-underline" title="Vai alla pagina utente" ui-sref="overview"> <!-- TODO: cambiare ui-sref -->
-          <img class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{post.author_mailhash}}?d=identicon&s=75" />
+          <img class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{post.author.mail_hash}}?d=identicon&s=75" />
         </a>
         <br />
-        <abbr title="Punti reputazione">rep</abbr>: {{post.author.rep}}
+        <abbr title="Punteggio dell'utente">score</abbr>: {{post.author.score}}
         <br />
-        <small>messaggi: {{post.author.postcount}}</small>
+        <small>messaggi: {{post.author.post_count}}</small>
         <br />
-        <small>iscrizione: {{post.author.joindate | monthYearFmt}}</small>
+        <small>iscrizione: {{post.author.join_date | monthYearFmt}}</small>
       </dd>
       <dd class="mainbar">
         <div class="message">{{post.text}}</div>

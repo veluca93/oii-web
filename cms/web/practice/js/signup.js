@@ -55,12 +55,19 @@ angular.module('pws.signup', [])
     $scope.errorMsg = {
       'password': 'Password troppo corta',
       'password2': 'Non combacia',
-      'email2': 'Non combacia'
+      'email2': 'Non combacia',
+      'region': 'Devi specificare una regione'
     };
+    $http.post('location', {
+      'action': 'listregions'
+    }).success(function(data, status, headers, config) {
+      $scope.regions = data.regions;
+    });
     $scope.submit = function() {
       $scope.checkUsername();
       $scope.checkEmail();
       $scope.checkPassword();
+      $scope.checkRegion();
       if ($scope.isBad['username']) {
         $scope.signupform.username.$dirty = true;
         $("#username1").focus(); return;
@@ -76,6 +83,8 @@ angular.module('pws.signup', [])
       } else if ($scope.isBad['email2']) {
         $scope.signupform.email2.$dirty = true;
         $("#email2").focus(); return;
+      } else if ($scope.isBad['region']) {
+        $("#region").focus(); return;
       }
       var data = $scope.user;
       data["action"] = "new";
@@ -113,6 +122,9 @@ angular.module('pws.signup', [])
     $scope.checkPassword = function() {
       $scope.isBad['password'] = ($scope.user.password.length < 5);
     };
+    $scope.checkRegion = function() {
+      $scope.isBad['region'] = ($scope.user.region === undefined);
+    }
     $scope.matchPassword = function() {
       $scope.isBad['password2'] = ($scope.user.password !== $scope.user.password2);
     };
