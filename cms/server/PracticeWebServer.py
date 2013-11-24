@@ -946,6 +946,7 @@ class APIHandler(object):
                 .filter(Post.topic_id == topic.id).count()
             resp['num'] = num
             resp['title'] = topic.title
+            resp['forumId'] = topic.forum.id
             resp['forumTitle'] = topic.forum.title
             resp['posts'] = []
             for p in posts:
