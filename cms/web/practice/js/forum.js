@@ -38,15 +38,16 @@ angular.module('pws.forum', [])
         userManager, navbarManager, notificationHub) {
     navbarManager.setActiveTab(0);
     $scope.isLogged = userManager.isLogged;
+    $scope.newText = $scope.newTitle = '';
     $scope.onlyUnans = function() {
       $scope.getTopics(true);
-      $('#showNoAns').hide();
-      $('#showAll').show();
+      $("#showNoAns").hide();
+      $("#showAll").show();
     };
     $scope.showAll = function() {
       $scope.getTopics(false);
-      $('#showAll').hide();
-      $('#showNoAns').show();
+      $("#showAll").hide();
+      $("#showNoAns").show();
     };
     $scope.getTopics = function(onlyUnanswered) {
       onlyUnanswered = (typeof onlyUnanswered !== 'undefined') ? onlyUnanswered : false;
@@ -72,8 +73,8 @@ angular.module('pws.forum', [])
     $scope.newTopic = function() {
       $http.post('topic', {
           'action':   'new',
-          'title':    prompt('Titolo:'),
-          'text':     prompt('Contenuto:'),
+          'title':    $scope.newTitle,
+          'text':     $scope.newText,
           'username': userManager.getUsername(),
           'token':    userManager.getToken(),
           'forum':    $stateParams.forumId
@@ -109,6 +110,7 @@ angular.module('pws.forum', [])
           $scope.posts = data.posts;
           $scope.numPosts = data.num;
           $scope.title = data.title;
+          $scope.forumId = data.forumId;
           $scope.forumTitle = data.forumTitle;
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);

@@ -1,9 +1,12 @@
-<div class="container">
-  <div class="row">
+<div class="topleft-fix panel panel-default">
+  <div class="topleft-fix panel-heading">
+    <h3 class="panel-title">Profilo utente</h3>
+  </div>
+  <div class="panel-body row">
     <div class="col-lg-6">
       <h3 class="userbadge {{user.access_level | levelClass}}">
         {{user.username}}
-        <span class="label label-default">{{user.access_level | levelClass}}</span>
+        <small class="label label-default">{{user.access_level | levelClass}}</small>
       </h3>
       <br />
       {{user.institute.name}} ({{user.institute.province}})

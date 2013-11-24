@@ -28,6 +28,7 @@ angular.module('pws', [
     $locationProvider.html5Mode(false).hashPrefix('!');
     $urlRouterProvider
       .when('/tasks/', '/tasks/1')
+      .when('/forum/{forumId}/', '/forum/{forumId}/1')
       .when('/task/{taskName}', '/task/{taskName}/statement')
       .when('/user/{userId}', '/user/{userId}/profile')
       .when('/ranking/', '/ranking/1')
@@ -44,7 +45,7 @@ angular.module('pws', [
         controller: 'ForumsCtrl'
       })
       .state('forum', {
-        url: '/forum/{forumId}',
+        url: '/forum/{forumId}/{pageNum}',
         templateUrl: 'views/forum.html',
         controller: 'ForumCtrl'
       })

@@ -51,10 +51,34 @@ a.dont-underline:hover {
   right: 0px;
 }
 
+/* Task list */
+
+.search-by-tag {
+  margin-bottom: 10px;
+}
+
+/* Task page */
+
+iframe.viewer {
+  margin-top: 1px;
+}
+
 /* Taskbar */
+
+ul.nav-tabs {
+  border-bottom: none;
+}
+
+ul.nav-tabs > li > a {
+  border-bottom-color: #DDD !important;
+}
 
 .tab-badge-total {
   margin-left: 5px;
+}
+
+.topleft-fix {
+  border-top-left-radius: 0px;
 }
 
 /* User page */
@@ -356,15 +380,4 @@ a.dont-underline:hover {
   .viewer {
     height: 1000px;
   }
-}
-
-/* Search by tag */
-.searchbytag div.form-group {
-  width: 100%;
-  margin: 0;
-}
-
-.searchbytag {
-  margin: 0;
-  margin-top: 20px;
 }
