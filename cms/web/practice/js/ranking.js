@@ -18,32 +18,30 @@
  */
 'use strict';
 
-/* Tasks page */
+/* Ranking page */
 
-angular.module('pws.ranking', [])
-  .controller('RankingCtrl', function($scope, $stateParams, $location,
+angular.module('pws.ranking', ['pws.pagination'])
+  .controller('RankingCtrl', function($scope, $stateParams, $state,
         $http, $window, notificationHub, navbarManager, userManager) {
-    if ($stateParams.startIndex === undefined)
-      return;
     navbarManager.setActiveTab(4);
-    $scope.startIndex = parseInt($stateParams.startIndex);
+    $scope.currentPage = parseInt($stateParams.pageNum);
     $scope.usersPerPage = 20;
-    $scope.$window = $window;
-    $scope.updPage = function(newIndex) {
-      $location.path("ranking/" + newIndex);
+    $scope.updPage = function(newPage) {
+      $state.go('ranking', {'pageNum': newPage});
     };
     $scope.getUsers = function() {
       var data = {
-        "first": $scope.usersPerPage * ($scope.startIndex-1),
-        "last": $scope.usersPerPage * $scope.startIndex,
-        "username": userManager.getUsername(),
-        "token": userManager.getToken(),
-        "action": "list"
+        'first':    $scope.usersPerPage * ($scope.currentPage-1),
+        'last':     $scope.usersPerPage * $scope.currentPage,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'action':   'list'
       };
       $http.post('user', data)
         .success(function(data, status, headers, config) {
-          $scope.users = data["users"];
-          $scope.$window.totalUsers = data["num"];
+          $scope.users = data['users'];
+          $scope.totalUsers = data['num'];
+          $scope.totalPages = Math.ceil(data['num'] / $scope.usersPerPage);
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore di connessione', 2);
         });

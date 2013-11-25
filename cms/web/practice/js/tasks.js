@@ -154,8 +154,6 @@ angular.module('pws.tasks', ['pws.pagination'])
   })
   .controller('TasksCtrl', function($scope, $stateParams, $state,
       $http, $location, notificationHub, navbarManager, userManager) {
-    if ($stateParams.pageNum === undefined)
-      return;
     navbarManager.setActiveTab(0);
     $scope.search = {};
     $scope.search.tag = '';
@@ -175,11 +173,11 @@ angular.module('pws.tasks', ['pws.pagination'])
     };
     $scope.getTasks = function() {
       var data = {
-        'first': $scope.tasksPerPage * ($scope.currentPage-1),
-        'last': $scope.tasksPerPage * $scope.currentPage,
+        'first':    $scope.tasksPerPage * ($scope.currentPage-1),
+        'last':     $scope.tasksPerPage * $scope.currentPage,
         'username': userManager.getUsername(),
-        'token': userManager.getToken(),
-        'action': 'list'
+        'token':    userManager.getToken(),
+        'action':   'list'
       };
       if ($scope.search.tag.length > 1) {
         console.log($scope.search.tag);

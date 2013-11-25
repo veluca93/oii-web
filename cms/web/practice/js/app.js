@@ -85,7 +85,7 @@ angular.module('pws', [
         controller: 'StatsCtrl'
       })
       .state('ranking', {
-        url: '/ranking/{startIndex}',
+        url: '/ranking/{pageNum}',
         templateUrl: 'views/ranking.html',
         controller: 'RankingCtrl'
       })
