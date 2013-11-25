@@ -19,7 +19,7 @@
 
 /* Signin page */
 
-angular.module('pws.forum', [])
+angular.module('pws.forum', ['pws.pagination'])
   .controller('ForumsCtrl', function ($scope, $http, userManager,
         notificationHub, navbarManager) {
     navbarManager.setActiveTab(2);
@@ -35,34 +35,56 @@ angular.module('pws.forum', [])
       });
   })
   .controller('ForumCtrl', function ($scope, $http, $stateParams,
-        userManager, navbarManager, notificationHub) {
+      $state, $location, userManager, navbarManager, notificationHub) {
     navbarManager.setActiveTab(0);
     $scope.isLogged = userManager.isLogged;
     $scope.newText = $scope.newTitle = '';
-    $scope.onlyUnans = function() {
-      $scope.getTopics(true);
-      $("#showNoAns").hide();
-      $("#showAll").show();
-    };
-    $scope.showAll = function() {
-      $scope.getTopics(false);
-      $("#showAll").hide();
-      $("#showNoAns").show();
+    // FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
+    //~ $scope.onlyUnans = function() {
+      //~ $location.search('na', 1);
+    //~ };
+    //~ $scope.showAll = function() {
+      //~ $location.search('na', null);
+    //~ };
+    $scope.topicsPerPage = 15;
+    $scope.currentPage = +$stateParams.pageNum;
+    $scope.updPage = function(newPage) {
+      if (newPage == '-' && $scope.currentPage > 1)
+        $state.go('forum', {'pageNum': $scope.currentPage - 1});
+      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
+        $state.go('forum', {'pageNum': $scope.currentPage + 1});
+      else if (newPage == '--')
+        $state.go('forum', {'pageNum': 1});
+      else if (newPage == '++')
+        $state.go('forum', {'pageNum': $scope.totalPages});
+      else if (newPage != '-' && newPage != '+')
+        $state.go('forum', {'pageNum': newPage});
     };
     $scope.getTopics = function(onlyUnanswered) {
       onlyUnanswered = (typeof onlyUnanswered !== 'undefined') ? onlyUnanswered : false;
+      //~ onlyUnanswered = ($location.search('na') === 1);
+      //~ if (onlyUnanswered) {
+        //~ $("#showNoAns").hide();
+        //~ $("#showAll").show();
+      //~ } else {
+        //~ $("#showAll").hide();
+        //~ $("#showNoAns").show();
+      //~ }
       $http.post('topic', {
           'action':   'list',
           'username': userManager.getUsername(),
           'token':    userManager.getToken(),
           'forum':    $stateParams.forumId,
-          'first':    0,
-          'last':     10000,
+          'first':    $scope.topicsPerPage * ($scope.currentPage-1),
+          'last':     $scope.topicsPerPage * $scope.currentPage,
           'noAnswer': onlyUnanswered
         })
         .success(function(data, status, headers, config) {
           $scope.topics = data.topics;
           $scope.numTopics = data.num;
+          $scope.totalPages = Math.ceil(data.num / $scope.topicsPerPage);
+          if ($scope.currentPage > $scope.totalPages)
+            $location.path('overview');
           $scope.unansweredTopics = data.numUnanswered;
           $scope.forumTitle = data.title;
           $scope.forumDesc = data.description;
@@ -93,22 +115,39 @@ angular.module('pws.forum', [])
     };
     $scope.getTopics();
   })
-  .controller('TopicCtrl', function ($scope, $http, $stateParams,
-        userManager, navbarManager, notificationHub) {
+  .controller('TopicCtrl', function ($scope, $http, $stateParams, $state,
+      $location, userManager, navbarManager, notificationHub) {
     navbarManager.setActiveTab(0);
     $scope.isLogged = userManager.isLogged;
+    $scope.postsPerPage = 10;
+    $scope.currentPage = +$stateParams.pageNum;
+    $scope.updPage = function(newPage) {
+      if (newPage == '-' && $scope.currentPage > 1)
+        $state.go('topic', {'pageNum': $scope.currentPage - 1});
+      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
+        $state.go('topic', {'pageNum': $scope.currentPage + 1});
+      else if (newPage == '--')
+        $state.go('topic', {'pageNum': 1});
+      else if (newPage == '++')
+        $state.go('topic', {'pageNum': $scope.totalPages});
+      else if (newPage != '-' && newPage != '+')
+        $state.go('topic', {'pageNum': newPage});
+    };
     $scope.getPosts = function() {
       $http.post('post', {
           'action':   'list',
           'username': userManager.getUsername(),
           'token':    userManager.getToken(),
           'topic':    $stateParams.topicId,
-          'first':    0,
-          'last':     10000
+          'first':    $scope.postsPerPage * ($scope.currentPage-1),
+          'last':     $scope.postsPerPage * $scope.currentPage,
         })
         .success(function(data, status, headers, config) {
           $scope.posts = data.posts;
           $scope.numPosts = data.num;
+          $scope.totalPages = Math.ceil(data.num / $scope.postsPerPage);
+          if ($scope.currentPage > $scope.totalPages)
+            $location.path('overview');
           $scope.title = data.title;
           $scope.forumId = data.forumId;
           $scope.forumTitle = data.forumTitle;
@@ -125,9 +164,13 @@ angular.module('pws.forum', [])
           'topic':    $stateParams.topicId
         })
         .success(function(data, status, headers, config) {
-          notificationHub.createAlert('info', 'Risposta inviata', 1);
-          $scope.getPosts();
-          //~ $location.path(); // TODO: redirect al post creato?
+          if (data.success == 1) {
+            notificationHub.createAlert('info', 'Risposta inviata', 1);
+            $scope.getPosts();
+            // TODO: redirect al post creato?
+          } else {
+            notificationHub.createAlert('danger', data.error, 2);
+          }
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });

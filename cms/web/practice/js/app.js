@@ -20,7 +20,7 @@
 
 // Declare app level module which depends on filters, and services
 angular.module('pws', [
-    'ui.router', 'ui.bootstrap', 'pws.navbar', 'pws.tasks', 'pws.task',
+    'ui.router', 'pws.navbar', 'pws.tasks', 'pws.task',
     'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
     'pws.tests', 'pws.overview', 'pws.forum', 'pws.ranking'
   ])
@@ -29,6 +29,7 @@ angular.module('pws', [
     $urlRouterProvider
       .when('/tasks/', '/tasks/1')
       .when('/forum/{forumId}/', '/forum/{forumId}/1')
+      .when('/topic/{topicId}/', '/topic/{topicId}/1')
       .when('/task/{taskName}', '/task/{taskName}/statement')
       .when('/user/{userId}', '/user/{userId}/profile')
       .when('/ranking/', '/ranking/1')
@@ -50,12 +51,12 @@ angular.module('pws', [
         controller: 'ForumCtrl'
       })
       .state('topic', {
-        url: '/topic/{topicId}',
+        url: '/topic/{topicId}/{pageNum}',
         templateUrl: 'views/forum.topic.html',
         controller: 'TopicCtrl'
       })
       .state('tasks', {
-        url: '/tasks/{startIndex}',
+        url: '/tasks/{pageNum}',
         templateUrl: 'views/tasks.html',
         controller: 'TasksCtrl'
       })

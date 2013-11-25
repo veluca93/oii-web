@@ -20,78 +20,78 @@
 
 /* Tasks page */
 
-angular.module('pws.tasks', [])
+angular.module('pws.tasks', ['pws.pagination'])
   .service('subsDatabase', function($http, $rootScope, $timeout,
-        notificationHub, userManager) {
+      notificationHub, userManager) {
     $rootScope.submissions = {};
     var updInterval = {};
     var updAttempts = {};
     var timeout;
     this.load = function(name) {
       $http.post('submission', {
-          "username": userManager.getUsername(),
-          "token": userManager.getToken(),
-          "action": "list",
-          "task_name": name
+          'username': userManager.getUsername(),
+          'token': userManager.getToken(),
+          'action': 'list',
+          'task_name': name
         })
         .success(function(data, status, headers, config) {
           $rootScope.submissions[name] = [];
-          for (var i=data["submissions"].length; i>0; i--)
-            addSub(name, data["submissions"][i-1]);
+          for (var i=data['submissions'].length; i>0; i--)
+            addSub(name, data['submissions'][i-1]);
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore di connessione', 2);
       });
       $timeout.cancel(timeout);
       updSubs();
-    }
+    };
     function intervalFromAttempts(i) {
-        if (i<10 || i==undefined)
-          return 1;
-        if (i<30)
-          return 2;
-        if (i<50)
-          return 3;
-        if (i<100)
-          return 5;
-        if (i<300)
-          return 10;
-        if (i<500)
-          return 60;
-        return i/4;
+      if (i<10 || i==undefined)
+        return 1;
+      if (i<30)
+        return 2;
+      if (i<50)
+        return 3;
+      if (i<100)
+        return 5;
+      if (i<300)
+        return 10;
+      if (i<500)
+        return 60;
+      return i/4;
     }
     function extendSub(sub) {
-      sub.cl = "sub-notdone";
+      sub.cl = 'sub-notdone';
       var date = new Date(sub.timestamp * 1000);
       sub.time = date.toLocaleString();
       if (sub.compilation_outcome == null) {
-        sub.status = "Compilazione in corso...";
+        sub.status = 'Compilazione in corso...';
         updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
       }
-      else if (sub.compilation_outcome == "fail") {
-        sub.cl = "sub-zero";
-        sub.status = "Compilazione fallita";
+      else if (sub.compilation_outcome == 'fail') {
+        sub.cl = 'sub-zero';
+        sub.status = 'Compilazione fallita';
       }
       else if (sub.evaluation_outcome == null) {
-        sub.status = "Valutazione in corso...";
+        sub.status = 'Valutazione in corso...';
         updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
       }
-      else if (sub.evaluation_outcome == "fail") { // ???
-        sub.cl = "sub-zero";
-        sub.status = "Valutazione fallita";
+      else if (sub.evaluation_outcome == 'fail') { // ???
+        sub.cl = 'sub-zero';
+        sub.status = 'Valutazione fallita';
       }
       else if (sub.score == null) {
-        sub.status = "Assegnazione del punteggio";
+        sub.status = 'Assegnazione del punteggio';
         updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
       }
       else {
         var score = sub.score;
         if (100-score < 0.01)
-          sub.cl = "sub-full";
+          sub.cl = 'sub-full';
         else if (score < 0.01)
-          sub.cl = "sub-zero";
+          sub.cl = 'sub-zero';
         else
-          sub.cl = "sub-partial";
-        sub.status = score + "/100";
+          sub.cl = 'sub-partial';
+        sub.status = score + '/100';
       }
       return sub;
     }
@@ -131,10 +131,10 @@ angular.module('pws.tasks', [])
             updAttempts[i]++;
             delete updInterval[i];
             $http.post('submission', {
-              "username": userManager.getUsername(),
-              "token": userManager.getToken(),
-              "action": "details",
-              "id": i
+              'username': userManager.getUsername(),
+              'token': userManager.getToken(),
+              'action': 'details',
+              'id': i
             })
             .success(function(data, status, headers, config) {
               replaceSub(data["id"], data);
@@ -152,26 +152,34 @@ angular.module('pws.tasks', [])
     this.subDetails = subDetails;
     return this;
   })
-  .controller('TasksCtrl', function($scope, $stateParams, $location,
-        $http, $window, notificationHub, navbarManager, userManager) {
-    if ($stateParams.startIndex === undefined)
+  .controller('TasksCtrl', function($scope, $stateParams, $state,
+      $http, $location, notificationHub, navbarManager, userManager) {
+    if ($stateParams.pageNum === undefined)
       return;
     navbarManager.setActiveTab(0);
-    $scope.startIndex = parseInt($stateParams.startIndex);
-    $scope.tasksPerPage = 15;
-    $scope.$window = $window;
-    $scope.search = {}
+    $scope.search = {};
     $scope.search.tag = '';
-    $scope.updPage = function(newIndex) {
-      $location.path("tasks/" + newIndex);
+    $scope.tasksPerPage = 15;
+    $scope.currentPage = +$stateParams.pageNum;
+    $scope.updPage = function(newPage) {
+      if (newPage == '-' && $scope.currentPage > 1)
+        $state.go('tasks', {'pageNum': $scope.currentPage - 1});
+      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
+        $state.go('tasks', {'pageNum': $scope.currentPage + 1});
+      else if (newPage == '--')
+        $state.go('tasks', {'pageNum': 1});
+      else if (newPage == '++')
+        $state.go('tasks', {'pageNum': $scope.totalPages});
+      else if (newPage != '-' && newPage != '+')
+        $state.go('tasks', {'pageNum': newPage});
     };
     $scope.getTasks = function() {
       var data = {
-        "first": $scope.tasksPerPage * ($scope.startIndex-1),
-        "last": $scope.tasksPerPage * $scope.startIndex,
-        "username": userManager.getUsername(),
-        "token": userManager.getToken(),
-        "action": "list"
+        'first': $scope.tasksPerPage * ($scope.currentPage-1),
+        'last': $scope.tasksPerPage * $scope.currentPage,
+        'username': userManager.getUsername(),
+        'token': userManager.getToken(),
+        'action': 'list'
       };
       if ($scope.search.tag.length > 1) {
         console.log($scope.search.tag);
@@ -179,8 +187,10 @@ angular.module('pws.tasks', [])
       }
       $http.post('task', data)
         .success(function(data, status, headers, config) {
-          $scope.tasks = data["tasks"];
-          $scope.$window.totalTasks = data["num"];
+          $scope.tasks = data['tasks'];
+          $scope.totalPages = Math.ceil(data['num'] / $scope.tasksPerPage);
+          if ($scope.currentPage > $scope.totalPages)
+            $location.path('overview');
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore di connessione', 2);
         });

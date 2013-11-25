@@ -4,6 +4,8 @@
     <li><a ui-sref="forum({forumId: forumId})">{{forumTitle}}</a></li>
     <li class="active">{{title}}</li>
   </ol>
+  <pagination style="margin:0px" total-pages="totalPages" current-page="currentPage" on-select-page="updPage(page)">
+  </pagination>
   <div class="forum-group post panel panel-info">
     <dl class="panel-heading" ng-repeat-start="post in posts">
       <dd class="head sidebar">

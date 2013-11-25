@@ -4,13 +4,14 @@
     <li class="active">{{forumTitle}}</li>
   </ol>
   <div class="row container">
-    <pagination style="margin:0px" total-items="totalTopics" previous-text="&laquo;" next-text="&raquo;" max-size="7" page="pageNum" on-select-page="updPage(page)" items-per-page="tasksPerPage">
+    <pagination style="margin:0px" total-pages="totalPages" current-page="currentPage" on-select-page="updPage(page)">
     </pagination>
     <div class="forum-top pull-right">
       <button class="btn btn-md btn-success" data-toggle="modal" data-target="#new_topic" ng-show="isLogged()">
         <i class="fa fa-file-text"></i>
         Scrivi un nuovo argomento
       </button>
+<!-- FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
       <button id="showNoAns" class="btn btn-md btn-info" ng-click="onlyUnans()" ng-show="unansweredTopics && isLogged()">
         <span class="badge pull-right">{{unansweredTopics}}</span>
         Argomenti senza risposte
@@ -18,6 +19,7 @@
       <button id="showAll" class="btn btn-md btn-warning" ng-click="showAll()" ng-show="isLogged()">
         Tutti gli argomenti
       </button>
+-->
     </div>
   </div>
   <div class="forum-group focus-light panel panel-info">
