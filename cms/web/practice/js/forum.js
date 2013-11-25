@@ -23,6 +23,10 @@ angular.module('pws.forum', ['pws.pagination'])
   .controller('ForumsCtrl', function ($scope, $http, userManager,
         notificationHub, navbarManager) {
     navbarManager.setActiveTab(2);
+    $scope.lastPage = function(posts) {
+      // FIXME: se si modifica 'postsPerPage' si deve modificare anche qui
+      return Math.ceil(posts / 10);
+    };
     $http.post('forum', {
         'action':   'list',
         'username': userManager.getUsername(),
@@ -39,6 +43,10 @@ angular.module('pws.forum', ['pws.pagination'])
     navbarManager.setActiveTab(0);
     $scope.isLogged = userManager.isLogged;
     $scope.newText = $scope.newTitle = '';
+    $scope.lastPage = function(posts) {
+      // FIXME: se si modifica 'postsPerPage' si deve modificare anche qui
+      return Math.ceil(posts / 10);
+    };
     // FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
     //~ $scope.onlyUnans = function() {
       //~ $location.search('na', 1);
