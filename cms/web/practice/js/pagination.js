@@ -47,7 +47,7 @@ angular.module('pws.pagination', [])
           if (scope.totalPages > 5 && scope.currentPage > 3)
             scope.pages.push(makePage('«', '--'));
           // The "<" button
-          scope.pages.push(makePage('<', '-', false, (scope.currentPage == 1)));
+          scope.pages.push(makePage('‹', '-', false, (scope.currentPage == 1)));
           // Less than 5 pages
           if (scope.totalPages < 5)
             for (var i=1; i<=scope.totalPages; i++)
@@ -67,7 +67,7 @@ angular.module('pws.pagination', [])
             for (var i=-2; i<=2; i++)
               scope.pages.push(makePage(i + scope.currentPage, i + scope.currentPage, (i == 0)));
           // The ">" button
-          scope.pages.push(makePage('>', '+', false, (scope.currentPage == scope.totalPages)));
+          scope.pages.push(makePage('›', '+', false, (scope.currentPage == scope.totalPages)));
           // Check for the "»" button
           if (scope.totalPages > 5 && scope.currentPage < scope.totalPages - 2)
             scope.pages.push(makePage('»', '++'));

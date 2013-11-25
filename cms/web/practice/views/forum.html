@@ -9,7 +9,7 @@
     <div class="forum-top pull-right">
       <button class="btn btn-md btn-success" data-toggle="modal" data-target="#new_topic" ng-show="isLogged()">
         <i class="fa fa-file-text"></i>
-        Scrivi un nuovo argomento
+        Crea un nuovo argomento
       </button>
 <!-- FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
       <button id="showNoAns" class="btn btn-md btn-info" ng-click="onlyUnans()" ng-show="unansweredTopics && isLogged()">
@@ -36,7 +36,7 @@
       <dl class="row" ng-repeat="topic in topics">
         <dd class="content col-xs-6">
           <i class="fa fa-{{topic.status | getIcon}}"></i>
-          <a ui-sref="topic({ topicId: topic.id })"><b>{{topic.title}}</b></a>
+          <a ui-sref="topic({ topicId: topic.id, pageNum: 1 })"><b>{{topic.title}}</b></a>
           </br>
           di <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
         </dd>
