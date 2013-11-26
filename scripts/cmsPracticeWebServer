@@ -33,8 +33,7 @@ def main():
 
     """
     default_argument_parser("Practice web server for CMS.",
-                            PracticeWebServer,
-                            ask_contest=ask_for_contest).run()
+                            PracticeWebServer).run()
 
 if __name__ == "__main__":
     main()
