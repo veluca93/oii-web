@@ -232,17 +232,13 @@ ul.nav-tabs > li > a {
   margin: 0px;
 }
 
-.forum-group dd {
-  display: inline-block;
-  vertical-align: middle;
-}
-
 .forum-group .panel-body {
   padding: 0px;
 }
 
 .forum-group .panel-body:not(.topic) dl {
   padding: 5px 0px 5px 0px;
+  border-bottom: 1px solid #EEE;
 }
 
 .forum-group .panel-heading:not(.topic) {
