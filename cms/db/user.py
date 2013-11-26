@@ -28,7 +28,7 @@ from __future__ import absolute_import
 
 from datetime import timedelta
 
-from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Boolean, Integer, String, Unicode, DateTime, \
     Interval
 from sqlalchemy.orm import relationship, backref
@@ -49,15 +49,11 @@ class User(Base):
     # TODO: we really need to split this as a user (as in: not paired
     # with a contest) and a participation.
     __tablename__ = 'users'
-    __table_args__ = (
-        UniqueConstraint('contest_id', 'username'),
-    )
 
     # Auto increment primary key.
     id = Column(
         Integer,
-        primary_key=True,
-        default=6)
+        primary_key=True)
 
     # Access level
     access_level = Column(
@@ -81,7 +77,8 @@ class User(Base):
     # Username and password to log in the CWS.
     username = Column(
         Unicode,
-        nullable=False)
+        nullable=False,
+        unique=True)
     password = Column(
         Unicode,
         nullable=False,
@@ -108,7 +105,7 @@ class User(Base):
         Integer,
         ForeignKey(Contest.id,
                    onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True)
     contest = relationship(
         Contest,

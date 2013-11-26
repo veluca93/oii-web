@@ -37,9 +37,8 @@ from cms.log import initialize_logging
 from cms.io.GeventLibrary import Service
 from cms.io import ServiceCoord
 from cms.db.filecacher import FileCacher
-from cms.db import SessionGen, User, Contest, Submission, File, Task, Test, \
-    Tag, Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
-    TaskScore
+from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
+    Forum, Topic, Post, TestScore, Institute, Region, Province, City, TaskScore
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -98,7 +97,6 @@ class APIHandler(object):
             Rule('/<target>', methods=['POST'], endpoint='jsondata')
         ], encoding_errors='strict')
         self.file_cacher = parent.file_cacher
-        self.contest = parent.contest
         self.evaluation_service = parent.evaluation_service
         self.EMAIL_REG = re.compile(r'[^@]+@[^@]+\.[^@]+')
         self.USERNAME_REG = re.compile(r'^[A-Za-z0-9_\.]+$')
@@ -132,9 +130,13 @@ class APIHandler(object):
             except (ValueError, TypeError):
                 logger.warning('JSON parse error')
                 data = dict()
+            if 'first' in data and 'last' in data:
+                data['first'] = int(data['first'])
+                data['last'] = int(data['last'])
+                if data['first'] < 0 or data['first'] > data['last']:
+                    return BadRequest()
 
         with SessionGen() as local.session:
-            local.contest = Contest.get_from_id(self.contest, local.session)
             try:
                 username = str(data['username'])
                 token = str(data['token'])
@@ -167,7 +169,6 @@ class APIHandler(object):
     # Useful methods
     def get_user(self, username, token):
         return local.session.query(User)\
-            .filter(User.contest == local.contest)\
             .filter(User.username == username)\
             .filter(User.password == token).first()
 
@@ -181,7 +182,6 @@ class APIHandler(object):
             resp['error'] = 'USERNAME_INVALID'
         else:
             user = local.session.query(User)\
-                .filter(User.contest == local.contest)\
                 .filter(User.username == username).first()
             if user is None:
                 resp['success'] = 1
@@ -197,7 +197,6 @@ class APIHandler(object):
             resp['error'] = 'EMAIL_INVALID'
         else:
             user = local.session.query(User)\
-                .filter(User.contest == local.contest)\
                 .filter(User.email == email).first()
             if user is None:
                 resp['success'] = 1
@@ -350,7 +349,6 @@ class APIHandler(object):
                 registration_time=make_datetime()
             )
             user.institute_id = institute
-            user.contest = local.contest
             try:
                 local.session.add(user)
                 local.session.commit()
@@ -380,7 +378,6 @@ class APIHandler(object):
             resp['access_level'] = local.access_level
         elif data['action'] == 'get':
             user = local.session.query(User)\
-                .filter(User.contest_id == local.contest.id)\
                 .filter(User.username == data['username']).first()
             if user is None:
                 raise NotFound()
@@ -402,7 +399,6 @@ class APIHandler(object):
         resp = dict()
         if data['action'] == 'list':
             query = local.session.query(Task)\
-                .filter(Task.contest_id == local.contest.id)\
                 .filter(Task.access_level >= local.access_level)\
                 .order_by(desc(Task.id))
             if 'tag' in data:
@@ -419,7 +415,6 @@ class APIHandler(object):
         elif data['action'] == 'get':
             t = local.session.query(Task)\
                 .filter(Task.name == data['name'])\
-                .filter(Task.contest_id == local.contest.id)\
                 .filter(Task.access_level >= local.access_level).first()
             if t is None:
                 raise NotFound()
@@ -440,7 +435,6 @@ class APIHandler(object):
         elif data['action'] == 'stats':
             t = local.session.query(Task)\
                 .filter(Task.name == data['name'])\
-                .filter(Task.contest_id == local.contest.id)\
                 .filter(Task.access_level >= local.access_level).first()
             if t is None:
                 raise NotFound()
@@ -509,8 +503,7 @@ class APIHandler(object):
                 tag = local.session.query(Tag)\
                     .filter(Tag.name == data['tag']).first()
                 task = local.session.query(Task)\
-                    .filter(Task.name == data['task'])\
-                    .filter(Task.contest_id == local.contest.id).first()
+                    .filter(Task.name == data['task']).first()
                 if tag is None:
                     resp['error'] = 'TAG_DOESNT_EXIST'
                 elif tag.hidden is True and local.access_level > 0:
@@ -532,8 +525,7 @@ class APIHandler(object):
                 tag = local.session.query(Tag)\
                     .filter(Tag.name == data['tag']).first()
                 task = local.session.query(Task)\
-                    .filter(Task.name == data['task'])\
-                    .filter(Task.contest_id == local.contest.id).first()
+                    .filter(Task.name == data['task']).first()
                 if tag is None:
                     resp['error'] = 'TAG_DOESNT_EXIST'
                 elif tag.hidden is True and local.access_level > 0:
@@ -653,7 +645,6 @@ class APIHandler(object):
         resp = dict()
         if data['action'] == 'list':
             task = local.session.query(Task)\
-                .filter(Task.contest_id == local.contest.id)\
                 .filter(Task.name == data['task_name']).first()
             if task is None:
                 raise NotFound()
@@ -742,7 +733,9 @@ class APIHandler(object):
 
             # TODO: implement archives and (?) partial submissions
             try:
-                task = local.contest.get_task(data['task_name'])
+                task = local.session.query(Task)\
+                    .filter(Task.name == data['task_name'])\
+                    .filter(Task.access_level >= local.access_level).first()
             except KeyError:
                 raise NotFound()
             resp = dict()
@@ -991,7 +984,7 @@ class PracticeWebServer(Service):
     '''Service that runs the web server for practice.
 
     '''
-    def __init__(self, shard, contest):
+    def __init__(self, shard):
         initialize_logging('PracticeWebServer', shard)
 
         Service.__init__(self, shard=shard)
@@ -999,7 +992,6 @@ class PracticeWebServer(Service):
         self.address = config.contest_listen_address[shard]
         self.port = config.contest_listen_port[shard]
         self.file_cacher = FileCacher(self)
-        self.contest = contest
         self.evaluation_service = self.connect_to(
             ServiceCoord('EvaluationService', 0))
 
