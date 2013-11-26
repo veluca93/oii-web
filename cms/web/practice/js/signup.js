@@ -103,7 +103,7 @@ angular.module('pws.signup', [])
         $("#institute").focus(); return;
       }
       var data = $scope.user;
-      data["action"] = "new";
+      data['action'] = 'new';
       $http.post('user', data)
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
@@ -112,7 +112,9 @@ angular.module('pws.signup', [])
               'del tuo nuovo account usando il modulo in alto a destra. Una volta entrato ' +
               'nel sistema avrai la possibilità di sottoporre le soluzioni ai task presenti ' +
               'in questa pagina. Buon allenamento.', 10);
-            $location.path("tasks");
+            $location.path('tasks');
+          } else {
+            notificationHub.createAlert('danger', data.error, 3);
           }
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno ' +

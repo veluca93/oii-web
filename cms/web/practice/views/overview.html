@@ -1,24 +1,80 @@
-<div class="container">
-  <div class="jumbotron">
-    <h2>Portale ufficiale di allenamento per le Olimpiadi Italiane di Informatica</h2>
-    <p>Per prima cosa devi entrare con le credenziali del tuo account: se non ne sei in possesso clicca su "Registrati" in alto.</p>
-    <p><a href="#" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+<div>
+  <div class="jumbotron" style="margin-top:-20px">
+    <div class="container">
+      <h2>Portale di allenamento delle Olimpiadi Italiane di Informatica</h2>
+      <p>
+        Benvenuto nella piattaforma ufficiale di allenamento per le OII!
+        Qui avrai accesso a numerosi problemi ai quali potrai inviare delle
+        soluzioni scritte in C, C++ o Pascal.
+      </p>
+    </div>
   </div>
-  <div class="row">
-    <div class="col-lg-4">
-      <h2>Heading</h2>
-      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-      <p><a class="btn btn-default" href="#">View details &raquo;</a></p>
+  <div class="container">
+    <div class="row hidden-xs">
+      <div class="col-sm-4">
+        <h2>Impara a programmare</h2>
+      </div>
+      <div class="col-sm-4">
+        <h2>Scala la classifica</h2>
+      </div>
+      <div class="col-sm-4">
+        <h2>Partecipa alla community</h2>
+      </div>
     </div>
-    <div class="col-lg-4">
-      <h2>Heading</h2>
-      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-      <p><a class="btn btn-default" href="#">View details &raquo;</a></p>
+    <div class="row">
+      <div class="col-sm-4">
+        <h2 class="visible-xs">Impara a programmare</h2>
+        <p>
+          La vasta scelta di problemi presenti nel sito ti permette di partire
+          da quelli più facili fino ad arrivare a quelli più difficili: in
+          questo modo migliorerai sempre più le tue abilità di programmazione
+          e la tua capacità di analizzare ed affrontare problemi computazionali!
+        </p>
+        <p class="visible-xs"><a class="btn btn-default" ui-sref="tasks({pageNum: 1})">Archivio dei problemi &raquo;</a></p>
+      </div>
+      <div class="col-sm-4">
+        <h2 class="visible-xs">Scala la classifica</h2>
+        <p>
+          Man mano che risolverai i problemi presenti sulla piattaforma
+          guadagnerai dei punti che si sommeranno al tuo punteggio totale.
+          Competi con tutti gli altri studenti e studentesse d'Italia per
+          il traguardo del primo posto della classifica!
+        </p>
+        <p class="visible-xs"><a class="btn btn-default" ui-sref="ranking({pageNum: 1})">Guarda la classifica &raquo;</a></p>
+      </div>
+      <div class="col-sm-4">
+        <h2 class="visible-xs">Partecipa alla community</h2>
+        <p>
+          Presentati agli altri aspiranti olimpici nel forum della piattaforma,
+          discuti dei problemi, risolvi tutti i tuoi dubbi su: costrutti di
+          base del tuo linguaggio di programmazione, algoritmi e strutture
+          dati di libreria, tecniche algoritmiche, e tanto altro!
+        </p>
+        <p class="visible-xs"><a class="btn btn-default" ui-sref="forums">Visita il forum &raquo;</a></p>
+      </div>
     </div>
-    <div class="col-lg-4">
-      <h2>Heading</h2>
-      <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-      <p><a class="btn btn-default" href="#">View details &raquo;</a></p>
+    <div class="row hidden-xs">
+      <div class="col-sm-4">
+        <p><a class="btn btn-default" ui-sref="tasks({pageNum: 1})">Archivio dei problemi &raquo;</a></p>
+      </div>
+      <div class="col-sm-4">
+        <p><a class="btn btn-default" ui-sref="ranking({pageNum: 1})">Guarda la classifica &raquo;</a></p>
+      </div>
+      <div class="col-sm-4">
+        <p><a class="btn btn-default" ui-sref="forums">Visita il forum &raquo;</a></p>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <a href="http://www.aicanet.it/">
+        <img class="col-xs-4" src="../../assets/ico/aica.jpg"/>
+      </a>
+      <a href="http://www.olimpiadi-informatica.it/">
+        <img class="col-xs-4" src="../../assets/ico/oii.png" style="background-color: #1E90FF; background-clip: content-box;"/>
+      </a>
+      <a href="http://www.istruzione.it/">
+        <img class="col-xs-4" src="../../assets/ico/miur.jpg"/>
+      </a>
     </div>
   </div>
 </div>
