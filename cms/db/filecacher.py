@@ -457,8 +457,10 @@ class FileCacher:
         cache_file_path = os.path.join(self.file_dir, digest)
 
         logger.debug("Getting file %s." % digest)
-
-        return self.backend.get_file(digest)
+        if isinstance(self.backend, NullBackend):
+            return io.open(cache_file_path, 'rb')
+        else:
+            return self.backend.get_file(digest)
 
     def get_file_content(self, digest):
         """Retrieve a file from the storage.
@@ -532,7 +534,8 @@ class FileCacher:
                 copyfileobj(src, fobj, self.CHUNK_SIZE)
         finally:
             fobj.close()
-            os.unlink(cache_file_path)
+            if not isinstance(self.backend, NullBackend):
+                os.unlink(cache_file_path)
 
     def put_file_from_fobj(self, src, desc=""):
         """Store a file in the storage.
