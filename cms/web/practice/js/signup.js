@@ -21,7 +21,7 @@
 
 angular.module('pws.signup', [])
   .controller('SignupCtrl', function ($scope, $http, $location,
-        notificationHub, navbarManager) {
+      notificationHub, navbarManager) {
     navbarManager.setActiveTab(5);
     $(".avatar")
       .load(function() {
@@ -57,13 +57,13 @@ angular.module('pws.signup', [])
       'password2': ''
     };
     $scope.errorMsg = {
-      'password':  'Password troppo corta',
-      'password2': 'Non combacia',
-      'email2':    'Non combacia',
-      'region':    'Devi specificare una regione',
-      'province':  'Devi specificare una provincia',
-      'city':      'Devi specificare una città',
-      'institute': 'Devi specificare una scuola'
+      'password':  'signup.errors.password',
+      'password2': 'signup.errors.password2',
+      'email2':    'signup.errors.email.match',
+      'region':    'signup.errors.region',
+      'province':  'signup.errors.province',
+      'city':      'signup.errors.city',
+      'institute': 'signup.errors.institute'
     };
     $http.post('location', {
       'action': 'listregions'

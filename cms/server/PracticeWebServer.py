@@ -176,10 +176,10 @@ class APIHandler(object):
         resp = dict()
         if len(username) < 4:
             resp['success'] = 0
-            resp['error'] = 'USERNAME_SHORT'
+            resp['error'] = 'signup.errors.username.short'
         elif not self.USERNAME_REG.match(username):
             resp['success'] = 0
-            resp['error'] = 'USERNAME_INVALID'
+            resp['error'] = 'signup.errors.username.invalid'
         else:
             user = local.session.query(User)\
                 .filter(User.username == username).first()
@@ -187,14 +187,14 @@ class APIHandler(object):
                 resp['success'] = 1
             else:
                 resp['success'] = 0
-                resp['error'] = 'USERNAME_EXISTS'
+                resp['error'] = 'signup.errors.username.used'
         return resp
 
     def check_email(self, email):
         resp = dict()
         if not self.EMAIL_REG.match(email):
             resp['success'] = 0
-            resp['error'] = 'EMAIL_INVALID'
+            resp['error'] = 'signup.errors.email.invalid'
         else:
             user = local.session.query(User)\
                 .filter(User.email == email).first()
@@ -202,7 +202,7 @@ class APIHandler(object):
                 resp['success'] = 1
             else:
                 resp['success'] = 0
-                resp['error'] = 'EMAIL_EXISTS'
+                resp['error'] = 'signup.errors.email.used'
         return resp
 
     def hash(self, string, algo='sha256'):
