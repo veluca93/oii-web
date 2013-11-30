@@ -19,6 +19,120 @@
 angular.module('pws.l10n', [])
   .filter('l10n', function() {
     var _ = {
+      overview: {
+        jumbotron: {
+          title: {
+            en: '',
+            it: 'Portale di allenamento delle Olimpiadi Italiane di \
+                 Informatica',
+          },
+          text: {
+            en: '',
+            it: 'Benvenuto nella piattaforma ufficiale di allenamento \
+                 per le OII! Qui avrai accesso a numerosi problemi ai \
+                 quali potrai inviare delle soluzioni scritte in C,   \
+                 C++ o Pascal.',
+          },
+        },
+        col1: {
+          title: {
+            en: '',
+            it: 'Impara a programmare',
+          },
+          text: {
+            en: '',
+            it: 'La vasta scelta di problemi presenti nel sito ti \
+                 permette di partire da quelli più facili fino ad \
+                 arrivare a quelli più difficili: in questo modo  \
+                 migliorerai sempre più le tue abilità di programmazione \
+                 e la tua capacità di analizzare ed affrontare problemi \
+                 computazionali!',
+          },
+          button: {
+            en: '',
+            it: 'Archivio dei problemi',
+          },
+        },
+        col2: {
+          title: {
+            en: '',
+            it: 'Scala la classifica',
+          },
+          text: {
+            en: '',
+            it: 'Man mano che risolverai i problemi presenti sulla \
+                 piattaforma guadagnerai dei punti che si sommeranno al \
+                 tuo punteggio totale. Competi con tutti gli altri \
+                 studenti e studentesse d\'Italia per il traguardo del \
+                 primo posto della classifica!',
+          },
+          button: {
+            en: '',
+            it: 'Visita il forum',
+          },
+        },
+        col3: {
+          title: {
+            en: '',
+            it: 'Partecipa alla community',
+          },
+          text: {
+            en: '',
+            it: 'Presentati agli altri aspiranti olimpici nel forum \
+                 della piattaforma, discuti dei problemi, risolvi tutti \
+                 i tuoi dubbi su: costrutti di base del tuo linguaggio \
+                 di programmazione, algoritmi e strutture dati di \
+                 libreria, tecniche algoritmiche, e tanto altro!',
+          },
+          button: {
+            en: '',
+            it: 'Archivio dei problemi',
+          },
+        },
+      },
+      navbar: {
+        home: {
+          en: 'Homepage',
+          it: 'Pagina iniziale',
+        },
+        archive: {
+          title: {
+            en: '',
+            it: 'Archivio problemi e test',
+          },
+          allproblems: {
+            en: '',
+            it: 'Tutti i problemi',
+          },
+          scolastiche: {
+            en: '',
+            it: 'Selezioni scolastiche',
+          },
+        },
+        ranking: {
+          en: 'Ranking',
+          it: 'Classifica',
+        },
+        forum: {
+          en: 'Forum',
+        },
+        signup: {
+          en: 'Sign up',
+          it: 'Registrati',
+        },
+        signin: {
+          en: 'Sign in',
+          it: 'Entra',
+        },
+        signout: {
+          en: 'Sign out',
+          it: 'Esci',
+        },
+        myprofile: {
+          en: '',
+          it: 'Il mio profilo utente',
+        },
+      },
       signup: {
         ui: {
           loginData: {

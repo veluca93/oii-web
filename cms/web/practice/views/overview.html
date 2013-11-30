@@ -1,67 +1,48 @@
 <div>
   <div class="jumbotron" style="margin-top:-20px">
     <div class="container">
-      <h2>Portale di allenamento delle Olimpiadi Italiane di Informatica</h2>
-      <p>
-        Benvenuto nella piattaforma ufficiale di allenamento per le OII!
-        Qui avrai accesso a numerosi problemi ai quali potrai inviare delle
-        soluzioni scritte in C, C++ o Pascal.
-      </p>
+      <h2>{{'overview.jumbotron.title' | l10n}}</h2>
+      <p>{{'overview.jumbotron.text' | l10n}}</p>
     </div>
   </div>
   <div class="container">
     <div class="row hidden-xs">
       <div class="col-sm-4">
-        <h2>Impara a programmare</h2>
+        <h2>{{'overview.col1.title' | l10n}}</h2>
       </div>
       <div class="col-sm-4">
-        <h2>Scala la classifica</h2>
+        <h2>{{'overview.col2.title' | l10n}}</h2>
       </div>
       <div class="col-sm-4">
-        <h2>Partecipa alla community</h2>
+        <h2>{{'overview.col3.title' | l10n}}</h2>
       </div>
     </div>
     <div class="row">
       <div class="col-sm-4">
-        <h2 class="visible-xs">Impara a programmare</h2>
-        <p>
-          La vasta scelta di problemi presenti nel sito ti permette di partire
-          da quelli più facili fino ad arrivare a quelli più difficili: in
-          questo modo migliorerai sempre più le tue abilità di programmazione
-          e la tua capacità di analizzare ed affrontare problemi computazionali!
-        </p>
-        <p class="visible-xs"><a class="btn btn-default" ui-sref="tasks({pageNum: 1})">Archivio dei problemi &raquo;</a></p>
+        <h2 class="visible-xs">{{'overview.col1.title' | l10n}}</h2>
+        <p>{{'overview.col1.text' | l10n}}</p>
+        <p class="visible-xs"><a class="btn btn-default" ui-sref="tasks({pageNum: 1})">{{'overview.col1.button' | l10n}} &raquo;</a></p>
       </div>
       <div class="col-sm-4">
-        <h2 class="visible-xs">Scala la classifica</h2>
-        <p>
-          Man mano che risolverai i problemi presenti sulla piattaforma
-          guadagnerai dei punti che si sommeranno al tuo punteggio totale.
-          Competi con tutti gli altri studenti e studentesse d'Italia per
-          il traguardo del primo posto della classifica!
-        </p>
-        <p class="visible-xs"><a class="btn btn-default" ui-sref="ranking({pageNum: 1})">Guarda la classifica &raquo;</a></p>
+        <h2 class="visible-xs">{{'overview.col2.title' | l10n}}</h2>
+        <p>{{'overview.col2.text' | l10n}}</p>
+        <p class="visible-xs"><a class="btn btn-default" ui-sref="ranking({pageNum: 1})">{{'overview.col2.button' | l10n}} &raquo;</a></p>
       </div>
       <div class="col-sm-4">
-        <h2 class="visible-xs">Partecipa alla community</h2>
-        <p>
-          Presentati agli altri aspiranti olimpici nel forum della piattaforma,
-          discuti dei problemi, risolvi tutti i tuoi dubbi su: costrutti di
-          base del tuo linguaggio di programmazione, algoritmi e strutture
-          dati di libreria, tecniche algoritmiche, e tanto altro!
-        </p>
-        <p class="visible-xs"><a class="btn btn-default" ui-sref="forums">Visita il forum &raquo;</a></p>
+        <h2 class="visible-xs">{{'overview.col3.title' | l10n}}</h2>
+        <p>{{'overview.col3.text' | l10n}}</p>
+        <p class="visible-xs"><a class="btn btn-default" ui-sref="forums">{{'overview.col3.button' | l10n}} &raquo;</a></p>
       </div>
     </div>
     <div class="row hidden-xs">
       <div class="col-sm-4">
-        <p><a class="btn btn-default" ui-sref="tasks({pageNum: 1})">Archivio dei problemi &raquo;</a></p>
+        <p><a class="btn btn-default" ui-sref="tasks({pageNum: 1})">{{'overview.col1.button' | l10n}} &raquo;</a></p>
       </div>
       <div class="col-sm-4">
-        <p><a class="btn btn-default" ui-sref="ranking({pageNum: 1})">Guarda la classifica &raquo;</a></p>
+        <p><a class="btn btn-default" ui-sref="ranking({pageNum: 1})">{{'overview.col2.button' | l10n}} &raquo;</a></p>
       </div>
       <div class="col-sm-4">
-        <p><a class="btn btn-default" ui-sref="forums">Visita il forum &raquo;</a></p>
+        <p><a class="btn btn-default" ui-sref="forums">{{'overview.col3.button' | l10n}} &raquo;</a></p>
       </div>
     </div>
     <hr>
