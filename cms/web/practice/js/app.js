@@ -20,7 +20,7 @@
 
 // Declare app level module which depends on filters, and services
 angular.module('pws', [
-    'ui.router', 'pws.navbar', 'pws.tasks', 'pws.task',
+    'ui.router', 'pws.l10n', 'pws.navbar', 'pws.tasks', 'pws.task',
     'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
     'pws.tests', 'pws.overview', 'pws.forum', 'pws.ranking'
   ])
