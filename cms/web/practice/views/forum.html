@@ -1,6 +1,6 @@
 <div class="container">
   <ol class="breadcrumb">
-    <li><a ui-sref="forums">Forum</a></li>
+    <li><a ui-sref="forums">{{'forum.breadcrumb.forum' | l10n}}</a></li>
     <li class="active">{{forumTitle}}</li>
   </ol>
   <div class="row container">
@@ -9,7 +9,7 @@
     <div class="forum-top pull-right">
       <button class="btn btn-md btn-success" data-toggle="modal" data-target="#new_topic" ng-show="isLogged()">
         <i class="fa fa-file-text"></i>
-        Crea un nuovo argomento
+        {{'forum.view.createTopic' | l10n}}
       </button>
 <!-- FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
       <button id="showNoAns" class="btn btn-md btn-info" ng-click="onlyUnans()" ng-show="unansweredTopics && isLogged()">
@@ -25,11 +25,11 @@
   <div class="forum-group focus-light panel panel-info">
     <div class="panel-heading">
       <dl class="row">
-        <dd class="content col-xs-6"><b>Argomenti</b></dd>
-        <dd class="count col-md-1 hidden-xs hidden-sm">Risposte</dd>
-        <dd class="count col-sm-1 visible-sm">Risp.</dd>
-        <dd class="count col-md-1 hidden-sm hidden-xs">Visite</dd>
-        <dd class="lastpost col-xs-6 col-sm-5 col-md-4">Ultima risposta</dd>
+        <dd class="content col-xs-6"><b>{{'forum.list.topics.full' | l10n}}</b></dd>
+        <dd class="count col-md-1 hidden-xs hidden-sm">{{'forum.view.answers.full' | l10n}}</dd>
+        <dd class="count col-sm-1 visible-sm">{{'forum.view.answers.abbr' | l10n}}</dd>
+        <dd class="count col-md-1 hidden-sm hidden-xs">{{'forum.view.clicks' | l10n}}</dd>
+        <dd class="lastpost col-xs-6 col-sm-5 col-md-4">{{'forum.view.lastAnswer' | l10n}}</dd>
       </dl>
     </div>
     <div class="panel-body">
@@ -38,20 +38,20 @@
           <i class="fa fa-{{topic.status | getIcon}}"></i>
           <a ui-sref="topic({ topicId: topic.id, pageNum: 1 })"><b>{{topic.title}}</b></a>
           </br>
-          di <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
+          {{'forum.list.by' | l10n}} <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
         </dd>
         <dd class="count col-sm-1 hidden-xs">{{topic.posts-1}}</dd>
         <dd class="count col-md-1 hidden-sm hidden-xs">{{topic.views}}</dd>
         <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-show="topic.posts-1">
-          di <a ui-sref="user({userId: topic.lastpost.username})">{{topic.lastpost.username}}</a>
-          <a class="dont-underline" ui-sref="topic({topicId: topic.id, pageNum: lastPage(topic.posts)})" title="Vai al messaggio">
+          {{'forum.list.by' | l10n}} <a ui-sref="user({userId: topic.lastpost.username})">{{topic.lastpost.username}}</a>
+          <a class="dont-underline" ui-sref="topic({topicId: topic.id, pageNum: lastPage(topic.posts)})" title="{{'forum.view.goToPost' | l10n}}">
             <i class="fa fa-share-square-o"></i>
           </a>
           </br>
           {{topic.lastpost.timestamp | dateFmt}}
         </dd>
         <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-hide="topic.posts-1">
-          Non ci sono risposte
+          {{'forum.view.noAnswers' | l10n}}
         </dd>
       </dl>
     </div>
@@ -61,15 +61,15 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title">Nuovo argomento</h4>
+          <h4 class="modal-title">{{'forum.newTopic.title' | l10n}}</h4>
         </div>
         <div class="modal-body">
-            <input ng-model="newTitle" type="text" class="form-control" placeholder="Scrivi un titolo...">
-            <textarea ng-model="newText" class="form-control" rows="3" placeholder="Scrivi il testo dell'argomento..."></textarea>
+            <input ng-model="newTitle" type="text" class="form-control" placeholder="{{'forum.newTopic.enterTitle' | l10n}}">
+            <textarea ng-model="newText" class="form-control" rows="3" placeholder="{{'forum.newTopic.enterContent' | l10n}}"></textarea>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
-          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newTopic()">Invia</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newTopic()">{{'forum.newTopic.submit' | l10n}}</button>
         </div>
       </div>
     </div>
