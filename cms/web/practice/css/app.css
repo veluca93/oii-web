@@ -128,6 +128,10 @@ ul.nav-tabs > li > a {
 
 /* Submission page */
 
+table.submissions {
+  table-layout: fixed;
+}
+
 .no-submissions {
   text-align: center;
   font-style: italic;
