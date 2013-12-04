@@ -4,9 +4,9 @@
     </pagination>
     <form class="search-by-tag form-inline pull-right" role="form" ng-submit="getTasks()">
       <div class="form-group">
-        <input class="form-control" maxlength="50" autocomplete="off" type="text" id="tag" name="tag" ng-model="search.tag" placeholder="Ricerca per tag"/>
+        <input class="form-control" maxlength="50" autocomplete="off" type="text" id="tag" name="tag" ng-model="search.tag" placeholder="{{'tasks.searchbytag' | l10n}}"/>
       </div>
-      <button type="submit" class="btn btn-info">cerca</button>
+      <button type="submit" class="btn btn-info">{{'tasks.tagsearch' | l10n}}</button>
     </form>
   </div>
   <div class="list-group">

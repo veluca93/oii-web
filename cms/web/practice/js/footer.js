@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('pws.footer', [])
-  .directive('footer', [function() {
+  .directive('foot', [function() {
     return {
       restrict: 'E',
       templateUrl: 'partials/footer.html',
