@@ -72,6 +72,9 @@ angular.module('pws.user', [])
     $scope.user = {'username': '', 'password': ''};
     $scope.isLogged = userManager.isLogged;
     $scope.signin = function() {
+      // temporary fix to get username & password
+      $scope.user.username = $("#username").val();
+      $scope.user.password = $("#password").val();
       var data = $scope.user;
       data['action'] = 'login';
       $http.post('user', data)
@@ -79,14 +82,11 @@ angular.module('pws.user', [])
         if (data.success == 1) {
           userManager.signin(data.token, $scope.user.username);
           notificationHub.createAlert('success', 'Bentornato, ' +
-              userManager.getUsername(), 3);
+              userManager.getUsername(), 2);
         }
         else if (data.success == 0) {
           notificationHub.createAlert('danger', 'Sign in error', 3);
         }
-        else return;
-        $scope.user.username = '';
-        $scope.user.password = '';
       }).error(function(data, status, headers, config) {
         notificationHub.createAlert('danger', 'Errore interno in fase' +
           ' di login: assicurati che la tua connessione a internet sia'+
