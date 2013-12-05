@@ -132,13 +132,13 @@ table.submissions {
   table-layout: fixed;
 }
 
+table.submissions th {
+  background-color: #FFD !important;
+}
+
 .no-submissions {
   text-align: center;
   font-style: italic;
-}
-
-.submission {
-  cursor: pointer;
 }
 
 .submissions tbody+tbody {
