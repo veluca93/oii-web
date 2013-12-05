@@ -21,19 +21,19 @@
     <h3 class="panel-title">Sottoposizioni precedenti</h3>
   </div>
   <table class="submissions table table-bordered table-striped">
-    <tr>
-      <th class="col-sm-1">ID</th>
-      <th class="col-sm-4">Data e ora</th>
-      <th class="col-sm-5">Stato</th>
-      <th class="col-sm-2">File</th>
+    <tr ng-hide="submissions.length==0">
+      <th class="col-xs-1">ID</th>
+      <th class="col-xs-4">Data e ora</th>
+      <th class="col-xs-5">Stato</th>
+      <th class="col-xs-2">File</th>
     </tr>
     <tr ng-show="submissions.length==0">
-      <td colspan="4" class="no-submissions">nessuna sottoposizione</td>
+      <td class="col-xs-12 no-submissions">nessuna sottoposizione</td>
     </tr>
     <tr class="submission" ng-repeat="sub in submissions[taskName]">
-      <td><a data-toggle="modal" data-target="#submission_detail" ng-click="showDetails(sub.id)">{{sub.id}}</a></td>
-      <td ng-click="showDetails(sub.id)">{{sub.time}}</td>
-      <td class="{{sub.cl}}" ng-click="showDetails(sub.id)">{{sub.status}}</td>
+      <td><a data-toggle="modal" data-target="#submission_detail">{{sub.id}}</a></td>
+      <td>{{sub.time}}</td>
+      <td class="{{sub.cl}}">{{sub.status}}</td>
       <td class="files">
         <div class="btn-group">
           <a class="dropdown-toggle" data-toggle="dropdown">
