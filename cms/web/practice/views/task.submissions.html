@@ -31,7 +31,7 @@
       <td class="col-xs-12 no-submissions">nessuna sottoposizione</td>
     </tr>
     <tr class="submission" ng-repeat="sub in submissions[taskName]">
-      <td><a data-toggle="modal" data-target="#submission_detail">{{sub.id}}</a></td>
+      <td><a data-toggle="modal" data-target="#submission_detail" ng-click="showDetails(sub.id)">{{sub.id}}</a></td>
       <td>{{sub.time}}</td>
       <td class="{{sub.cl}}">{{sub.status}}</td>
       <td class="files">
