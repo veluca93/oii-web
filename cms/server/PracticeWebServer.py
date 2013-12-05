@@ -973,6 +973,34 @@ class APIHandler(object):
                 .filter(Post.topic_id == topic.id).count()
             local.session.commit()
             resp['success'] = 1
+        elif data['action'] == 'delete':
+            if local.user is None:
+                raise Unauthorized()
+            post = local.session.query(Post)\
+                .filter(Post.id == data['id']).first()
+            if post is None:
+                raise NotFound()
+            if post.author != local.user and local.user.access_level > 2:
+                raise Unauthorized()
+            if post.topic.posts[0] == post:
+                local.session.delete(topic)
+            else:
+                local.session.delete(post)
+            local.session.commit()
+        elif data['action'] == 'edit':
+            if local.user is None:
+                raise Unauthorized()
+            post = local.session.query(Post)\
+                .filter(Post.id == data['id']).first()
+            if post is None:
+                raise NotFound()
+            if post.author != local.user and local.user.access_level > 2:
+                raise Unauthorized()
+            if data['text'] is None or len(data['text']) < 4:
+                return {"success": 0, "error": "TEXT_SHORT"}
+            post.text = data['text']
+            local.session.commit()
+            resp['success'] = 1
         else:
             raise BadRequest()
         return resp
