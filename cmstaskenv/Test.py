@@ -22,8 +22,10 @@
 import sys
 import os
 
+from subprocess import call
+from tempfile import TemporaryFile
 from cmscontrib.YamlLoader import YamlLoader
-from cms.db import Executable
+from cms.db import Executable, File
 from cms.db.filecacher import FileCacher
 from cms.grading import format_status_text
 from cms.grading.Job import EvaluationJob
@@ -80,19 +82,47 @@ def test_testcases(base_dir, soluzione, assume=None):
 
     # Prepare the EvaluationJob
     dataset = task.active_dataset
-    digest = file_cacher.put_file_from_path(
-        os.path.join(base_dir, soluzione),
-        "Solution %s for task %s" % (soluzione, task.name))
-    executables = {task.name: Executable(filename=task.name, digest=digest)}
-    jobs = [(t, EvaluationJob(
-        task_type=dataset.task_type,
-        task_type_parameters=json.loads(dataset.task_type_parameters),
-        managers=dict(dataset.managers),
-        executables=executables,
-        input=dataset.testcases[t].input, output=dataset.testcases[t].output,
-        time_limit=dataset.time_limit,
-        memory_limit=dataset.memory_limit)) for t in dataset.testcases]
-    tasktype = get_task_type(dataset=dataset)
+    if dataset.task_type != "OutputOnly":
+        digest = file_cacher.put_file_from_path(
+            os.path.join(base_dir, soluzione),
+            "Solution %s for task %s" % (soluzione, task.name))
+        executables = {task.name: Executable(filename=task.name,
+                                             digest=digest)}
+        jobs = [(t, EvaluationJob(
+            task_type=dataset.task_type,
+            task_type_parameters=json.loads(dataset.task_type_parameters),
+            managers=dict(dataset.managers),
+            executables=executables,
+            input=dataset.testcases[t].input,
+            output=dataset.testcases[t].output,
+            time_limit=dataset.time_limit,
+            memory_limit=dataset.memory_limit)) for t in dataset.testcases]
+        tasktype = get_task_type(dataset=dataset)
+    else:
+        print "Generating outputs...",
+        files = {}
+        for t in sorted(dataset.testcases.keys()):
+            with file_cacher.get_file(dataset.testcases[t].input) as fin:
+                with TemporaryFile() as fout:
+                    print "%s" % t,
+                    call(soluzione, stdin=fin, stdout=fout, cwd=base_dir)
+                    fout.seek(0)
+                    digest = file_cacher.put_file_from_fobj(fout)
+                    outname = "output_%s.txt" % t
+                    files[outname] = File(filename=outname, digest=digest)
+        jobs = [(t, EvaluationJob(
+            task_type=dataset.task_type,
+            task_type_parameters=json.loads(dataset.task_type_parameters),
+            managers=dict(dataset.managers),
+            files=files,
+            input=dataset.testcases[t].input,
+            output=dataset.testcases[t].output,
+            time_limit=dataset.time_limit,
+            memory_limit=dataset.memory_limit)) for t in dataset.testcases]
+        for k, job in jobs:
+            job._key = k
+        tasktype = get_task_type(dataset=dataset)
+        print
 
     ask_again = True
     last_status = "ok"
@@ -117,11 +147,15 @@ def test_testcases(base_dir, soluzione, assume=None):
         # Evaluate testcase
         last_status = status
         tasktype.evaluate(job, file_cacher)
-        status = job.plus["exit_status"]
-        info.append("Time: %5.3f   Wall: %5.3f   Memory: %s" %
-                   (job.plus["execution_time"],
-                    job.plus["execution_wall_clock_time"],
-                    mem_human(job.plus["execution_memory"])))
+        if dataset.task_type != "OutputOnly":
+            status = job.plus["exit_status"]
+            info.append("Time: %5.3f   Wall: %5.3f   Memory: %s" %
+                       (job.plus["execution_time"],
+                        job.plus["execution_wall_clock_time"],
+                        mem_human(job.plus["execution_memory"])))
+        else:
+            status = "ok"
+            info.append("N/A")
         points.append(float(job.outcome))
         comments.append(format_status_text(job.text))
         tcnames.append(jobinfo[0])
