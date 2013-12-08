@@ -993,12 +993,19 @@ class APIHandler(object):
                 raise NotFound()
             if post.author != local.user and local.user.access_level > 2:
                 raise Unauthorized()
+            forum = post.topic.forum
             if post.topic.posts[0] == post:
                 local.session.delete(post.topic)
                 resp['success'] = 2
             else:
                 local.session.delete(post)
+                post.topic.npost = local.session.query(Post)\
+                    .filter(Post.topic_id == post.topic.id).count()
                 resp['success'] = 1
+            forum.npost = local.session.query(Post)\
+                .filter(Post.forum_id == forum.id).count()
+            forum.ntopic = local.session.query(Topic)\
+                .filter(Topic.forum_id == forum.id).count()
             local.session.commit()
         elif data['action'] == 'edit':
             if local.user is None:
