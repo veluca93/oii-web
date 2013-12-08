@@ -91,7 +91,7 @@ angular.module('pws.forum', ['pws.pagination'])
           $scope.topics = data.topics;
           $scope.numTopics = data.num;
           $scope.totalPages = Math.ceil(data.num / $scope.topicsPerPage);
-          if ($scope.currentPage > $scope.totalPages)
+          if ($scope.totalPages && $scope.currentPage > $scope.totalPages)
             $location.path('overview');
           $scope.unansweredTopics = data.numUnanswered;
           $scope.forumTitle = data.title;
@@ -157,7 +157,7 @@ angular.module('pws.forum', ['pws.pagination'])
           $scope.posts = data.posts;
           $scope.numPosts = data.num;
           $scope.totalPages = Math.ceil(data.num / $scope.postsPerPage);
-          if ($scope.currentPage > $scope.totalPages)
+          if ($scope.totalPages && $scope.currentPage > $scope.totalPages)
             $location.path('overview');
           $scope.title = data.title;
           $scope.forumId = data.forumId;

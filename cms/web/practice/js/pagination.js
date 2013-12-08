@@ -40,7 +40,7 @@ angular.module('pws.pagination', [])
           };
         };
         var updatePages = function() {
-          if (scope.totalPages === undefined)
+          if (scope.totalPages === undefined || scope.totalPages === 0)
             scope.totalPages = 1;
           scope.pages = [];
           // Check for the "«" button
