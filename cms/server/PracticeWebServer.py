@@ -391,6 +391,16 @@ class APIHandler(object):
             users = query.slice(data['first'], data['last']).all()
             resp['users'] = map(self.get_user_info, users)
             resp['num'] = query.count()
+        elif data['action'] == 'update':
+            if local.user is None:
+                raise Unauthorized()
+            old_token = self.hash(data["old_password"] + config.secret_key)
+            if local.user.password != old_token:
+                raise Unauthorized()
+            new_token = self.hash(data["password"] + config.secret_key)
+            local.user.password = new_token
+            local.session.commit()
+            resp['success'] = 1
         else:
             raise BadRequest()
         return resp
