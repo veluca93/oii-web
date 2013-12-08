@@ -125,7 +125,7 @@ class ScoringExecutor(Executor):
             # Store it.
             session.commit()
 
-            # Update statistics
+            # Update statistics and access level
             score = submission_result.score
             taskscore = session.query(TaskScore)\
                 .filter(TaskScore.user_id == submission.user_id)\
@@ -152,6 +152,9 @@ class ScoringExecutor(Executor):
             submission.user.score = sum([
                 t.score for t in session.query(TaskScore)
                 .filter(TaskScore.user_id == submission.user_id).all()])
+            if submission.user.score >= 300 and \
+               submission.user.access_level == 6:
+                submission.user.access_level = 5
             submission.task.nsubs = session.query(Submission)\
                 .filter(Submission.task_id == submission.task_id).count()
             submission.task.nusers = session.query(TaskScore)\
