@@ -25,7 +25,8 @@ angular.module('pws', [
     'pws.tests', 'pws.overview', 'pws.forum', 'pws.ranking'
   ])
   .config(function($locationProvider, $stateProvider, $urlRouterProvider) {
-    $locationProvider.html5Mode(false).hashPrefix('!');
+    $locationProvider.html5Mode(false);//.hashPrefix('!');
+    // FIXME: ui-router ignora hashPrefix per i campi href, quindi *per adesso* lo togliamo
     $urlRouterProvider
       .when('/tasks/', '/tasks/1')
       .when('/forum/{forumId}/', '/forum/{forumId}/1')

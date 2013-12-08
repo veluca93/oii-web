@@ -372,6 +372,7 @@ class APIHandler(object):
             else:
                 resp['success'] = 1
                 resp['token'] = token
+                resp['access_level'] = user.access_level
         elif data['action'] == 'get_access_level':
             resp['access_level'] = local.access_level
         elif data['action'] == 'get':
@@ -993,9 +994,11 @@ class APIHandler(object):
             if post.author != local.user and local.user.access_level > 2:
                 raise Unauthorized()
             if post.topic.posts[0] == post:
-                local.session.delete(topic)
+                local.session.delete(post.topic)
+                resp['success'] = 2
             else:
                 local.session.delete(post)
+                resp['success'] = 1
             local.session.commit()
         elif data['action'] == 'edit':
             if local.user is None:
