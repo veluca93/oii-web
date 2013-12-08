@@ -124,17 +124,17 @@ angular.module('pws.user', [])
       case 0:
         return "admin";
       case 1:
-        return "asd";
+        return "monica";
       case 2:
-        return "asd";
+        return "tutor";
       case 3:
-        return "asd";
+        return "professore";
       case 4:
-        return "asd";
+        return "studente+";
       case 5:
-        return "asd";
+        return "studente";
       case 6:
-        return "asd";
+        return "nuovo registrato";
       case 7:
         return "guest";
       default:
