@@ -155,6 +155,10 @@ angular.module('pws.forum', ['pws.pagination'])
         })
         .success(function(data, status, headers, config) {
           $scope.posts = data.posts;
+          var p;
+          for (p in $scope.posts) {
+            $scope.posts[p].lines = $scope.posts[p].text.split("\n");
+          }
           $scope.numPosts = data.num;
           $scope.totalPages = Math.ceil(data.num / $scope.postsPerPage);
           if ($scope.totalPages && $scope.currentPage > $scope.totalPages)
