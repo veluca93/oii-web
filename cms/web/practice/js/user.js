@@ -57,13 +57,18 @@ angular.module('pws.user', [])
       getToken: function() {
         return localStorage.getItem('token');
       },
-      signin: function(token, username) {
+      getAccessLevel: function() {
+        return localStorage.getItem('access_level');
+      },
+      signin: function(token, username, access_level) {
         localStorage.setItem('token', token);
         localStorage.setItem('username', username);
+        localStorage.setItem('access_level', access_level);
       },
       signout: function() {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
+        localStorage.removeItem('access_level');
       }
     };
   })
@@ -75,24 +80,25 @@ angular.module('pws.user', [])
       // temporary fix to get username & password
       $scope.user.username = $("#username").val();
       $scope.user.password = $("#password").val();
-      var data = $scope.user;
-      data['action'] = 'login';
-      $http.post('user', data)
-      .success(function(data, status, headers, config) {
-        if (data.success == 1) {
-          userManager.signin(data.token, $scope.user.username);
-          notificationHub.createAlert('success', 'Bentornato, ' +
+      $http.post('user', {
+          'action':   'login',
+          'username': $scope.user.username,
+          'password': $scope.user.password,
+        })
+        .success(function(data, status, headers, config) {
+          if (data.success == 1) {
+            userManager.signin(data.token, $scope.user.username, data.access_level);
+            notificationHub.createAlert('success', 'Bentornato, ' +
               userManager.getUsername(), 2);
-        }
-        else if (data.success == 0) {
-          notificationHub.createAlert('danger', 'Sign in error', 3);
-        }
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno in fase' +
-          ' di login: assicurati che la tua connessione a internet sia'+
-          ' funzionante e, se l\'errore dovesse ripetersi, contatta un'+
-          ' amministratore.', 5);
-      });
+          } else if (data.success == 0) {
+            notificationHub.createAlert('danger', 'Sign in error', 3);
+          }
+        }).error(function(data, status, headers, config) {
+          notificationHub.createAlert('danger', 'Errore interno in fase' +
+            ' di login: assicurati che la tua connessione a internet sia'+
+            ' funzionante e, se l\'errore dovesse ripetersi, contatta un'+
+            ' amministratore.', 5);
+        });
     };
     $scope.signout = function() {
       userManager.signout();

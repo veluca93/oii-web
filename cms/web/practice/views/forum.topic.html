@@ -9,44 +9,79 @@
   <div class="forum-group post panel panel-info">
     <dl class="panel-heading" ng-repeat-start="post in posts">
       <dd class="head sidebar">
-        <a ui-sref="overview"><b>{{post.author.username}}</b></a>  <!-- TODO: cambiare ui-sref -->
+        <a ui-sref="user({userId: post.author.username})">
+          <b>{{post.author.username}}</b>
+        </a>
       </dd>
       <dd class="head mainbar">
-        <span class="pull-right">#{{$index+1}}</span>
-        {{post.timestamp | dateFmt}}
+        <div class="btn-group pull-right">
+          <button ng-hide="!amLogged() || isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#new_post" ng-click="doQuote(post.text)">
+            {{'forum.view.quote' | l10n}}
+          </button>
+          <button ng-show="isMine(post.author.username) || amMod()" class="btn btn-xs btn-link" data-toggle="modal" data-target="#edit_post" ng-click="doEdit(post.text,post.id)">
+            {{'forum.view.edit' | l10n}}
+          </button>
+          <button ng-show="amMod()" class="btn btn-xs btn-link" ng-click="deletePost(post.id)">
+            {{'forum.view.delete' | l10n}}
+          </button>
+        </div>
+        <button class="btn btn-xs btn-link hidden-xs" title="{{'forum.view.getPermalink' | l10n}}">
+          {{post.timestamp | dateFmt}} <!-- TODOLATER: show permalink to this post -->
+        </button>
       </dd>
     </dl>
     <dl class="panel-body" ng-repeat-end>
       <dd class="sidebar bordered">
-        <a class="dont-underline" title="Vai alla pagina utente" ui-sref="overview"> <!-- TODO: cambiare ui-sref -->
+        <a class="dont-underline" title="Vai alla pagina utente" ui-sref="user({userId: post.author.username})">
           <img class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{post.author.mail_hash}}?d=identicon&s=75" />
         </a>
         <br />
-        <abbr title="Punteggio dell'utente">score</abbr>: {{post.author.score}}
+        <abbr title="{{'forum.view.score' | l10n}}">score</abbr>: {{post.author.score}}
         <br />
-        <small>messaggi: {{post.author.post_count}}</small>
+        <small>{{'forum.view.posts' | l10n}}: {{post.author.post_count}}</small>
         <br />
-        <small>iscrizione: {{post.author.join_date | monthYearFmt}}</small>
+        <small>{{'forum.view.signedUp' | l10n}}: {{post.author.join_date | monthYearFmt}}</small>
       </dd>
       <dd class="mainbar">
         <div class="message">{{post.text}}</div>
       </dd>
     </dl>
   </div>
-  <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#new_post">Rispondi</button>
+  <button ng-show="amLogged()" class="btn btn-sm btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
+    {{'forum.view.createPost' | l10n}}
+  </button>
+  <!-- new post -->
   <div class="modal fade" id="new_post" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title">Nuova risposta</h4>
+          <h4 class="modal-title">{{'forum.newPost.title' | l10n}}</h4>
         </div>
         <div class="modal-body">
-            <textarea ng-model="newText" class="form-control" rows="3" placeholder="Scrivi una risposta..."></textarea>
+          <textarea ng-model="newText" class="form-control" rows="3" placeholder="{{'forum.newPost.enterPost' | l10n}}"></textarea>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
-          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newPost()">Invia</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newPost()">{{'forum.newTopic.submit' | l10n}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- edit post -->
+  <div class="modal fade" id="edit_post" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">{{'forum.editPost.title' | l10n}}</h4>
+        </div>
+        <div class="modal-body">
+          <textarea ng-model="newText" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
+          <button type="button" class="btn btn-warning" data-dismiss="modal" ng-click="editPost()">{{'forum.editPost.submit' | l10n}}</button>
         </div>
       </div>
     </div>

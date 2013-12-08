@@ -124,9 +124,12 @@ angular.module('pws.forum', ['pws.pagination'])
     $scope.getTopics();
   })
   .controller('TopicCtrl', function ($scope, $http, $stateParams, $state,
-      $location, userManager, navbarManager, notificationHub) {
+      $location, userManager, navbarManager, notificationHub, l10n) {
     navbarManager.setActiveTab(0);
-    $scope.isLogged = userManager.isLogged;
+    $scope.amLogged = userManager.isLogged;
+    $scope.isMine = function(usr) {
+      return userManager.isLogged() && usr == userManager.getUsername();
+    };
     $scope.postsPerPage = 10;
     $scope.currentPage = +$stateParams.pageNum;
     $scope.updPage = function(newPage) {
@@ -182,6 +185,65 @@ angular.module('pws.forum', ['pws.pagination'])
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
+    };
+    $scope.doEdit = function(text, id) {
+      $("#edit_post textarea").val($scope.newText = text);
+      $scope.targetPost = id;
+    };
+    $scope.doQuote = function(text) {
+      $("#new_post textarea").val($scope.newText = '[quote]' + text + '[/quote]');
+    };
+    $scope.doNew = function() {
+      $("#new_post textarea").val($scope.newText = '');
+    };
+    $scope.editPost = function() {
+      $http.post('post', {
+          'action':   'edit',
+          'id':       $scope.targetPost,
+          'text':     $scope.newText,
+          'username': userManager.getUsername(),
+          'token':    userManager.getToken(),
+          'topic':    $stateParams.topicId
+        })
+        .success(function(data, status, headers, config) {
+          if (data.success == 1) {
+            notificationHub.createAlert('info', 'Modifica registrata', 1);
+            $scope.getPosts();
+          } else {
+            notificationHub.createAlert('danger', data.error, 2);
+          }
+        }).error(function(data, status, headers, config) {
+          notificationHub.createAlert('danger', 'Errore interno', 2);
+        });
+    };
+    $scope.deletePost = function(id) {
+      if (!confirm(l10n.get('forum.view.confirmDelete')))
+        return;
+      $http.post('post', {
+          'action':   'delete',
+          'id':       id,
+          'text':     $scope.newText,
+          'username': userManager.getUsername(),
+          'token':    userManager.getToken(),
+          'topic':    $stateParams.topicId
+        })
+        .success(function(data, status, headers, config) {
+          if (data.success) {
+            notificationHub.createAlert('info', 'Eliminazione completata', 1);
+            if (data.success == 1)
+              $scope.getPosts();
+            else
+              $state.go('forum', {'forumId': $scope.forumId, 'pageNum': 1});
+          } else {
+            notificationHub.createAlert('danger', data.error, 2);
+          }
+        }).error(function(data, status, headers, config) {
+          notificationHub.createAlert('danger', 'Errore interno', 2);
+        });
+    };
+    $scope.amMod = function() {
+      return userManager.getAccessLevel() !== null &&
+             userManager.getAccessLevel() < 3;
     };
     $scope.getPosts();
   })
