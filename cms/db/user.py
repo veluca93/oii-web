@@ -60,7 +60,8 @@ class User(Base):
     # Access level
     access_level = Column(
         Integer,
-        nullable=False)
+        nullable=False,
+        default=6)
 
     # Score
     score = Column(
