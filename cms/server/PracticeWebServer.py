@@ -214,11 +214,12 @@ class APIHandler(object):
 
     def get_institute_info(self, institute):
         info = dict()
-        info['id'] = institute.id
-        info['name'] = institute.name
-        info['city'] = institute.city.name
-        info['province'] = institute.city.province.name
-        info['region'] = institute.city.province.region.name
+        if institute is not None:
+            info['id'] = institute.id
+            info['name'] = institute.name
+            info['city'] = institute.city.name
+            info['province'] = institute.city.province.name
+            info['region'] = institute.city.province.region.name
         return info
 
     def get_user_info(self, user):
@@ -395,11 +396,15 @@ class APIHandler(object):
         elif data['action'] == 'update':
             if local.user is None:
                 raise Unauthorized()
-            old_token = self.hash(data["old_password"] + config.secret_key)
-            if local.user.password != old_token:
-                raise Unauthorized()
-            new_token = self.hash(data["password"] + config.secret_key)
-            local.user.password = new_token
+            if 'old_password' in data and data['old_password'] != '':
+                old_token = self.hash(data['old_password'] + config.secret_key)
+                if local.user.password != old_token:
+                    raise Unauthorized()
+                new_token = self.hash(data["password"] + config.secret_key)
+                local.user.password = new_token
+                resp['token'] = new_token
+            if 'institute' in data:
+                local.user.institute_id = data['institute']
             local.session.commit()
             resp['success'] = 1
         else:
