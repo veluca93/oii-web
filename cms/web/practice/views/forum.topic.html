@@ -43,7 +43,9 @@
         <small>{{'forum.view.signedUp' | l10n}}: {{post.author.join_date | monthYearFmt}}</small>
       </dd>
       <dd class="mainbar">
-        <div class="message">{{post.text}}</div>
+        <div class="message">
+          <p ng-repeat="line in post.lines">{{line}}</p>
+        </div>
       </dd>
     </dl>
   </div>
