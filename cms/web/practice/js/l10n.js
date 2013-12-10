@@ -234,6 +234,10 @@ angular.module('pws.l10n', [])
             it: 'Questo username non è disponibile',
           },
         },
+        mustPassword: {
+          en: 'You must specify your password',
+          it: 'Devi speficicare la tua password',
+        },
         password: {
           en: 'Password\'s too short',
           it: 'Password troppo corta',
@@ -420,6 +424,55 @@ angular.module('pws.l10n', [])
         submit: {
           en: 'Apply',
           it: 'Applica',
+        },
+      },
+    },
+    user: {
+      bar: {
+        profile: {
+          en: 'Profile',
+          it: 'Profilo',
+        },
+        edit: {
+          en: 'Edit your data',
+          it: 'Modifica i tuoi dati',
+        },
+      },
+      profile: {
+        //
+      },
+      edit: {
+        oldPassword: {
+          en: 'Old password',
+          it: 'Vecchia password',
+        },
+        newPassword: {
+          en: 'New password',
+          it: 'Nuova password',
+        },
+        confirmPassword: {
+          en: 'Confirm new password',
+          it: 'Ripeti nuova password',
+        },
+        newEmail: {
+          en: 'New e-mail',
+          it: 'Nuovo indirizzo email',
+        },
+        changed: {
+          en: 'Changes recorded',
+          it: 'Modifiche registrate',
+        },
+        unchanged: {
+          en: 'No changes recorded',
+          it: 'Nessuna modifica registrata',
+        },
+        wrong: {
+          en: 'Wrong password',
+          it: 'Password errata',
+        },
+        submit: {
+          en: 'Update',
+          it: 'Aggiorna',
         },
       },
     },

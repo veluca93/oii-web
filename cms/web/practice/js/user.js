@@ -44,6 +44,9 @@ angular.module('pws.user', [])
         $rootScope, userManager, notificationHub, userbarManager) {
     $scope.isActiveTab = userbarManager.isActiveTab;
     $scope.isLogged = userManager.isLogged;
+    $scope.isMe = function() {
+      return $stateParams.userId === userManager.getUsername();
+    };
   })
   .factory('userManager', function($http, notificationHub) {
     return {
@@ -118,27 +121,73 @@ angular.module('pws.user', [])
         $location.path('overview'); // FIXME: torna a home?
       });
   })
+  .controller('EdituserCtrl', function($scope, $state, $stateParams,
+      $http, userbarManager, userManager, notificationHub, l10n) {
+    if (userManager.getUsername() !== $stateParams.userId)
+      $state.go('overview');
+    userbarManager.setActiveTab(2);
+    $scope.user = {
+      password:  '',
+      password2: '',
+      password3: '',
+      email:     '',
+    };
+    $scope.submit = function() {
+      var data = {};
+      data['action'] = 'update';
+      data['username'] = userManager.getUsername();
+      data['token'] = userManager.getToken();
+      if ($scope.user.password2.length > 0) {
+        if ($scope.user.password3 !== $scope.user.password2)
+          return notificationHub.createAlert('danger', l10n.get('signup.errors.password2'), 2);
+        if ($scope.user.password.length < 1)
+          return notificationHub.createAlert('danger', l10n.get('signup.errors.mustPassword'), 2);
+        data['old_password'] = $scope.user.password;
+        data['password'] = $scope.user.password2;
+      }
+      data['email'] = $scope.user.email;
+      $http.post('user', data)
+        .success(function(data, status, headers, config) {
+          if (data.success == 1) {
+            if (data.hasOwnProperty('token'))
+              localStorage.setItem('token', data['token']);
+            notificationHub.createAlert('success', l10n.get('user.edit.changed'), 2);
+            $state.go('^.profile');
+          } else if (data.success == 0) {
+            if (data.error === undefined)
+              notificationHub.createAlert('warning', l10n.get('user.edit.unchanged'), 3);
+            else
+              notificationHub.createAlert('danger', l10n.get(data.error), 3);
+          }
+        }).error(function(data, status, headers, config) {
+          notificationHub.createAlert('danger', 'Errore interno.' +
+            ' Assicurati che la tua connessione a internet sia'+
+            ' funzionante e, se l\'errore dovesse ripetersi, contatta un'+
+            ' amministratore.', 5);
+        });
+    };
+  })
   .filter('levelClass', function() {
     return function(input) {
       switch (input) {
       case 0:
-        return "admin";
+        return 'admin';
       case 1:
-        return "monica";
+        return 'monica';
       case 2:
-        return "tutor";
+        return 'tutor';
       case 3:
-        return "professore";
+        return 'teacher';
       case 4:
-        return "studente+";
+        return 'superuser';
       case 5:
-        return "studente";
+        return 'user';
       case 6:
-        return "nuovo registrato";
+        return 'newbie';
       case 7:
-        return "guest";
+        return 'guest';
       default:
-        return "unknown";
+        return 'unknown';
       }
     };
   });
