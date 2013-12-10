@@ -362,10 +362,7 @@ class APIHandler(object):
                 logger.warning('Missing parameter')
                 raise BadRequest()
 
-            sha = hashlib.sha256()
-            sha.update(password)
-            sha.update(config.secret_key)
-            token = sha.hexdigest()
+            token = self.hash(password + config.secret_key)
 
             user = self.get_user(username, token)
             if user is None:
@@ -394,14 +391,13 @@ class APIHandler(object):
         elif data['action'] == 'update':
             if local.user is None:
                 raise Unauthorized()
-            if 'institute' in data:
+            if 'institute' in data and data['institute'] is not None:
                 local.user.institute_id = int(data['institute'])
-            if 'email' in data:
+            if 'email' in data and data['email'] != '':
                 resp = self.check_email(data['email'])
                 if not resp['success']:
                     return resp
                 local.user.email = data['email']
-            local.session.commit()
             if 'old_password' in data and data['old_password'] != '':
                 old_token = self.hash(data['old_password'] + config.secret_key)
                 if local.user.password != old_token:
@@ -409,6 +405,7 @@ class APIHandler(object):
                 new_token = self.hash(data['password'] + config.secret_key)
                 local.user.password = new_token
                 resp['token'] = new_token
+            local.session.commit()
             resp['success'] = 1
         else:
             raise BadRequest()
