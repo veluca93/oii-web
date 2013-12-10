@@ -108,7 +108,7 @@ angular.module('pws.task', [])
           readFile(i+1);
           return;
         }
-        reader.readAsBinaryString(input[i].files[0]);
+        reader.readAsText(input[i].files[0]);
         reader.filename = input[i].files[0].name
         reader.inputname = input[i].name
         reader.onloadend = function(){
@@ -116,7 +116,6 @@ angular.module('pws.task', [])
             'filename': reader.filename,
             'data': reader.result
           };
-          console.log(reader.inputname)
           readFile(i+1);
         };
       }
