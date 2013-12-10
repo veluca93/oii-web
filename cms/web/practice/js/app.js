@@ -94,6 +94,11 @@ angular.module('pws', [
         url: '/user/{userId}',
         templateUrl: 'views/user.html',
       })
+      .state('user.edit', {
+        url: '/edit',
+        templateUrl: 'views/user.edit.html',
+        controller: 'EdituserCtrl'
+      })
       .state('user.profile', {
         url: '/profile',
         templateUrl: 'views/user.profile.html',

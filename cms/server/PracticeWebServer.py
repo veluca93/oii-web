@@ -395,15 +395,21 @@ class APIHandler(object):
             if 'institute' in data and data['institute'] is not None:
                 local.user.institute_id = int(data['institute'])
                 resp['success'] = 1
-            if 'email' in data and data['email'] != '':
+            print local.user.email
+            if 'email' in data and data['email'] != '' and local.user.email != data['email']:
                 resp = self.check_email(data['email'])
+                print resp
                 if not resp['success']:
                     return resp
                 local.user.email = data['email']
+                resp['success'] = 1
             if 'old_password' in data and data['old_password'] != '':
                 old_token = self.hash(data['old_password'] + config.secret_key)
                 if local.user.password != old_token:
-                    resp['error'] = 'WRONG_OLD_PASSWORD'
+                    resp['error'] = 'user.edit.wrong'
+                    return resp
+                if len(data['password']) < 5:
+                    resp['error'] = 'signup.errors.password'
                     return resp
                 new_token = self.hash(data['password'] + config.secret_key)
                 local.user.password = new_token
