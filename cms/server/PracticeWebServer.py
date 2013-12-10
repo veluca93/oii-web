@@ -393,8 +393,10 @@ class APIHandler(object):
         elif data['action'] == 'update':
             if local.user is None:
                 raise Unauthorized()
+            resp['success'] = 0
             if 'institute' in data and data['institute'] is not None:
                 local.user.institute_id = int(data['institute'])
+                resp['success'] = 1
             if 'email' in data and data['email'] != '':
                 resp = self.check_email(data['email'])
                 if not resp['success']:
@@ -403,12 +405,13 @@ class APIHandler(object):
             if 'old_password' in data and data['old_password'] != '':
                 old_token = self.hash(data['old_password'] + config.secret_key)
                 if local.user.password != old_token:
-                    raise Unauthorized()
+                    resp['error'] = 'WRONG_OLD_PASSWORD'
+                    return resp
                 new_token = self.hash(data['password'] + config.secret_key)
                 local.user.password = new_token
                 resp['token'] = new_token
+                resp['success'] = 1
             local.session.commit()
-            resp['success'] = 1
         else:
             raise BadRequest()
         return resp
