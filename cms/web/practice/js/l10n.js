@@ -470,6 +470,10 @@ angular.module('pws.l10n', [])
           en: 'Wrong password',
           it: 'Password errata',
         },
+        leaveEmpty: {
+          en: 'Leave empty if you don\'t want to change your password',
+          it: 'Lascia questo campo vuoto se non vuoi cambiare la password',
+        },
         submit: {
           en: 'Update',
           it: 'Aggiorna',
