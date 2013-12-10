@@ -27,7 +27,16 @@ angular.module('pws.ranking', ['pws.pagination'])
     $scope.currentPage = parseInt($stateParams.pageNum);
     $scope.usersPerPage = 20;
     $scope.updPage = function(newPage) {
-      $state.go('ranking', {'pageNum': newPage});
+      if (newPage == '-' && $scope.currentPage > 1)
+        $state.go('ranking', {'pageNum': $scope.currentPage - 1});
+      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
+        $state.go('ranking', {'pageNum': $scope.currentPage + 1});
+      else if (newPage == '--')
+        $state.go('ranking', {'pageNum': 1});
+      else if (newPage == '++')
+        $state.go('ranking', {'pageNum': $scope.totalPages});
+      else if (newPage != '-' && newPage != '+')
+        $state.go('ranking', {'pageNum': newPage});
     };
     $scope.getUsers = function() {
       var data = {
