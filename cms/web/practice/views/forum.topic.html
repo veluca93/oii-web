@@ -1,7 +1,7 @@
 <div class="container">
   <ol class="breadcrumb">
     <li><a ui-sref="forums">Forum</a></li>
-    <li><a ui-sref="forum({forumId: forumId})">{{forumTitle}}</a></li>
+    <li><a ui-sref="forum({forumId: forumId, pageNum: 1})">{{forumTitle}}</a></li>
     <li class="active">{{title}}</li>
   </ol>
   <pagination style="margin:0px" total-pages="totalPages" current-page="currentPage" on-select-page="updPage(page)">
