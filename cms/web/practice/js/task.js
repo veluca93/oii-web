@@ -59,10 +59,14 @@ angular.module('pws.task', [])
         notificationHub.createAlert('danger', 'Errore di connessione', 2);
     });
   })
-  .controller('StatementCtrl', function($scope, taskbarManager) {
+  .controller('StatementCtrl', function($scope, $window, taskbarManager) {
     taskbarManager.setActiveTab(1);
+    $scope.goodBrowser = !!$window.Worker;
     $scope.getPDFURL = function(hash) {
       return '../../assets/pdfjs/viewer.html?file=/files/' + hash + '/testo.pdf';
+    };
+    $scope.getPDFURLforIE8 = function(hash) {
+      return '/files/' + hash + '/testo.pdf';
     };
   })
   .controller('AttachmentsCtrl', function(taskbarManager) {
@@ -91,33 +95,52 @@ angular.module('pws.task', [])
     $scope.getStats();
   })
   .controller('SubmissionsCtrl', function($scope, $stateParams, $location,
-      $http, $window, userManager, notificationHub, subsDatabase,
+      $http, $timeout, userManager, notificationHub, subsDatabase,
       taskbarManager) {
     taskbarManager.setActiveTab(4);
     subsDatabase.load($stateParams.taskName);
+    $scope.prepareInput = function() {
+      if(!$scope.task) {
+        $timeout($scope.prepareInput, 200);
+        return;
+      }
+      $scope.fileInputs = [];
+      for(var idx in $scope.task.submission_format) {
+        var fname = $scope.task.submission_format[idx];
+        var finput = new mOxie.FileInput(fname);
+        finput.name = fname;
+        finput.container = document.getElementById(fname).parentNode;
+        finput.onchange = function(e) {
+          this.container.children[0].innerHTML = this.files[0].name;
+        };
+        finput.init();
+        $scope.fileInputs.push(finput);
+        window.fileInputs = $scope.fileInputs
+      }
+    }
     $scope.loadFiles = function() {
-      var input = $("#submitform input");
-      $window.files = {};
-      var reader = new FileReader();
+      $scope.files = {};
+      var reader = new mOxie.FileReader();
       function readFile(i) {
-        if (i==input.length) {
-          $scope.submitFiles()
+        if (i==$scope.fileInputs.length) {
+          $scope.submitFiles();
           return;
         }
-        if (input[i].files.length < 1) {
+        if ($scope.fileInputs[i].files.length < 1) {
           readFile(i+1);
           return;
         }
-        reader.readAsText(input[i].files[0]);
-        reader.filename = input[i].files[0].name
-        reader.inputname = input[i].name
+        reader.filename = $scope.fileInputs[i].files[0].name
+        reader.inputname = $scope.fileInputs[i].name
         reader.onloadend = function(){
-          $window.files[reader.inputname] = {
+          $scope.files[reader.inputname] = {
             'filename': reader.filename,
             'data': reader.result
           };
           readFile(i+1);
+          delete reader.result;
         };
+        reader.readAsBinaryString($scope.fileInputs[i].files[0]);
       }
       readFile(0);
     };
@@ -125,17 +148,19 @@ angular.module('pws.task', [])
       var data = {};
       data['username'] = userManager.getUsername();
       data['token'] = userManager.getToken();
-      data['files'] = $window.files;
+      data['files'] = $scope.files;
       data['action'] = 'new';
       data['task_name'] = $scope.taskName;
-      delete $window.files;
+      delete $scope.files;
       $http.post('submission', data)
         .success(function(data, status, headers, config) {
           if (data['success']) {
             subsDatabase.addSub($scope.taskName, data);
-            $("#submitform").each(function() {
-              this.reset();
-            });
+            for(var i in $scope.fileInputs) {
+              $scope.fileInputs[i].container.children[0].innerHTML = '';
+            }
+            delete $scope.fileInputs;
+            $scope.prepareInput();
           }
           else
             notificationHub.createAlert('danger', data['error'], 2);
@@ -147,4 +172,5 @@ angular.module('pws.task', [])
     $scope.showDetails = function(id) {
       subsDatabase.subDetails(id);
     };
+    $scope.prepareInput();
   });

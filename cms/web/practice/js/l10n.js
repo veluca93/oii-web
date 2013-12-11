@@ -363,7 +363,7 @@ angular.module('pws.l10n', [])
           en: 'edit',
           it: 'modifica',
         },
-        delete: {
+        'delete': {
           en: 'delete',
           it: 'elimina',
         },
