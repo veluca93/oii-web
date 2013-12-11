@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it" ng-app="pws">
+<html lang="it" ng-app="pws" xmlns:ng="http://angularjs.org" id="ng-app">
   <head>
     <meta charset="utf-8">
     <title>Allenamenti OII</title>
@@ -18,6 +18,26 @@
 
     <!--[if lt IE 9]>
       <script src="../assets/js/html5shiv.js"></script>
+      <script src="../assets/js/respond.min.js"></script>
+    <![endif]-->
+
+    <!--[if lte IE 8]>
+      <script>
+        document.createElement('ng-include');
+        document.createElement('ng-pluralize');
+        document.createElement('ng-view');
+        document.createElement('ng:include');
+        document.createElement('ng:pluralize');
+        document.createElement('ng:view');
+        // Directives
+        // TODO: modificare le direttive in modo che usino attributi
+        // http://www.befundoo.com/blog/angularjs-directives-in-ie8/
+        document.createElement('pagination');
+        document.createElement('userbar');
+        document.createElement('navbar');
+        document.createElement('taskbar');
+        document.createElement('foot');
+      </script>
     <![endif]-->
 
     <link rel="shortcut icon" href="../assets/ico/favicon.ico">
@@ -30,11 +50,12 @@
     <foot></foot>
 
 <!-- TODO includi da disco solo se necessario
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.3/angular.min.js"></script>
     <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 -->
+    <script src="../assets/js/moxie.js"></script>
     <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../assets/js/jquery.min.js"></script>
     <script src="../assets/js/bootstrap.min.js"></script>
