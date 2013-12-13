@@ -157,10 +157,10 @@ angular.module('pws', [
       var d = new Date(1000 * (+input));
       if (d.toDateString() == new Date(Date.now()).toDateString())
         return "oggi, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
-      d.setDate(d.getDate() - 1);
+      d.setDate(d.getDate() + 1);
       if (d.toDateString() == new Date(Date.now()).toDateString())
         return "ieri, " + ('0' + d.getHours()).substr(-2) + ":" + ('0' + d.getMinutes()).substr(-2);
-      d.setDate(d.getDate() + 1);
+      d.setDate(d.getDate() - 1);
       return ('0' + d.getDate()).substr(-2) + "/" + ('0' + (d.getMonth()+1)).substr(-2)
              + "/" + d.getFullYear() + ", " + ('0' + d.getHours()).substr(-2) + ":"
              + ('0' + d.getMinutes()).substr(-2);
