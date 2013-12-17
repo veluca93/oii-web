@@ -43,6 +43,7 @@ a.dont-underline:hover {
 .notifications {
   position: fixed;
   right: 10px;
+  z-index: 500;
 }
 
 .notifications .alert {
