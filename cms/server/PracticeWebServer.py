@@ -384,7 +384,8 @@ class APIHandler(object):
         elif data['action'] == 'list':
             query = local.session.query(User)\
                 .filter(User.hidden == False)\
-                .order_by(desc(User.score))
+                .order_by(desc(User.score))\
+                .order_by(desc(User.id))
             if 'institute' in data:
                 query = query.filter(User.institute_id == data['institute'])
             users = query.slice(data['first'], data['last']).all()
@@ -397,7 +398,8 @@ class APIHandler(object):
             if 'institute' in data and data['institute'] is not None:
                 local.user.institute_id = int(data['institute'])
                 resp['success'] = 1
-            if 'email' in data and data['email'] != '' and local.user.email != data['email']:
+            if 'email' in data and data['email'] != '' and \
+               local.user.email != data['email']:
                 resp = self.check_email(data['email'])
                 if not resp['success']:
                     return resp
