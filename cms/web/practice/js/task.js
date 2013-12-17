@@ -89,7 +89,6 @@ angular.module('pws.task', [])
         $scope.best = data.best;
       }).error(function(data, status, headers, config) {
         notificationHub.createAlert('danger', 'Errore di connessione', 2);
-        console.log(status);
       });
     }
     $scope.getStats();
@@ -115,7 +114,7 @@ angular.module('pws.task', [])
         };
         finput.init();
         $scope.fileInputs.push(finput);
-        window.fileInputs = $scope.fileInputs
+        window.fileInputs = $scope.fileInputs;
       }
     }
     $scope.loadFiles = function() {
@@ -166,11 +165,10 @@ angular.module('pws.task', [])
             notificationHub.createAlert('danger', data['error'], 2);
       }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore di connessione', 2);
-          console.log(status)
       });
     };
     $scope.showDetails = function(id) {
       subsDatabase.subDetails(id);
     };
-    $scope.prepareInput();
+    $timeout($scope.prepareInput, 200);
   });
