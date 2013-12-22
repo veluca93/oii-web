@@ -7,6 +7,10 @@ body {
   padding-bottom: 20px;
 }
 
+.wider-modal {
+  width: 700px;
+}
+
 a {
   cursor: pointer;
 }
@@ -189,6 +193,7 @@ table.submissions th {
 }
 
 /* Tests */
+
 .input-group-addon:not(:first-child):not(:last-child), .input-group-btn:not(:first-child):not(:last-child), .input-group .form-control:not(:first-child):not(:last-child) {
   border-right: 0px;
 }
@@ -232,6 +237,11 @@ table.submissions th {
 }
 
 /* Forum */
+
+.editor-forum {
+  height: auto;
+  min-height: 60px;
+}
 
 .forum-group dl {
   margin: 0px;
@@ -338,6 +348,11 @@ table.submissions th {
 .forum-group .message {
   padding: 5px 5px 5px 10px;
   word-break: break-word;
+}
+
+.forum-group .message blockquote {
+  border-left-color: #D3D3D3;
+  background-color: #F0F0F0;
 }
 
 @media (min-width: 768px){

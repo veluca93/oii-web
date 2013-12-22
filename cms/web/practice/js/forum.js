@@ -19,7 +19,7 @@
 
 /* Signin page */
 
-angular.module('pws.forum', ['pws.pagination'])
+angular.module('pws.forum', ['pws.pagination', 'textAngular'])
   .controller('ForumsCtrl', function ($scope, $http, userManager,
         notificationHub, navbarManager) {
     navbarManager.setActiveTab(2);
@@ -42,6 +42,7 @@ angular.module('pws.forum', ['pws.pagination'])
       $state, $location, userManager, navbarManager, notificationHub) {
     navbarManager.setActiveTab(0);
     $scope.isLogged = userManager.isLogged;
+    $scope.toolbar = userManager.getForumToolbar();
     $scope.newText = $scope.newTitle = '';
     $scope.lastPage = function(posts) {
       // FIXME: se si modifica 'postsPerPage' si deve modificare anche qui
@@ -127,6 +128,7 @@ angular.module('pws.forum', ['pws.pagination'])
       $location, userManager, navbarManager, notificationHub, l10n) {
     navbarManager.setActiveTab(0);
     $scope.amLogged = userManager.isLogged;
+    $scope.toolbar = userManager.getForumToolbar();
     $scope.isMine = function(usr) {
       return userManager.isLogged() && usr == userManager.getUsername();
     };
@@ -155,10 +157,6 @@ angular.module('pws.forum', ['pws.pagination'])
         })
         .success(function(data, status, headers, config) {
           $scope.posts = data.posts;
-          var p;
-          for (p in $scope.posts) {
-            $scope.posts[p].lines = $scope.posts[p].text.split("\n");
-          }
           $scope.numPosts = data.num;
           $scope.totalPages = Math.ceil(data.num / $scope.postsPerPage);
           if ($scope.totalPages && $scope.currentPage > $scope.totalPages)
@@ -194,8 +192,8 @@ angular.module('pws.forum', ['pws.pagination'])
       $("#edit_post textarea").val($scope.newText = text);
       $scope.targetPost = id;
     };
-    $scope.doQuote = function(text) {
-      $("#new_post textarea").val($scope.newText = '[quote]' + text + '[/quote]');
+    $scope.doQuote = function(text, user) {
+      $("#new_post textarea").val($scope.newText = '<blockquote>' + text + '<p><small>' + user + '</small></p></blockquote><br>');
     };
     $scope.doNew = function() {
       $("#new_post textarea").val($scope.newText = '');
