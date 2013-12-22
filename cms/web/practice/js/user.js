@@ -63,6 +63,27 @@ angular.module('pws.user', [])
       getAccessLevel: function() {
         return localStorage.getItem('access_level');
       },
+      getForumToolbar: function() {
+        var al = localStorage.getItem('access_level');
+        if (al === null) return;
+        var t1 = ['p','pre','quote'];
+        if (al < 4) {
+          t1.unshift('h3');
+          t1.unshift('h2');
+          t1.unshift('h1');
+        }
+        var t2 = ['bold','italics','underline','ul','ol','undo','redo','clear'];
+        var t3 = ['justifyLeft','justifyCenter','justifyRight'];
+        var t4 = ['html','insertImage','insertLink','unlink'];
+        var ret = [];
+        ret.push(t1);
+        ret.push(t2);
+        ret.push(t3);
+        if (al < 4) {
+          ret.push(t4);
+        }
+        return ret;
+      },
       signin: function(token, username, access_level) {
         localStorage.setItem('token', token);
         localStorage.setItem('username', username);

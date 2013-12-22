@@ -397,10 +397,10 @@ angular.module('pws.l10n', [])
           en: 'Enter topic title...',
           it: 'Scrivi un titolo...',
         },
-        enterContent: {
-          en: 'Enter topic content...',
-          it: 'Scrivi il testo dell\'argomento...',
-        },
+        //~ enterContent: {
+          //~ en: 'Enter topic content...',
+          //~ it: 'Scrivi il testo dell\'argomento...',
+        //~ },
         submit: {
           en: 'Submit',
           it: 'Invia',
@@ -411,10 +411,10 @@ angular.module('pws.l10n', [])
           en: 'New post',
           it: 'Nuova risposta',
         },
-        enterPost: {
-          en: 'Write your answer...',
-          it: 'Scrivi una risposta...',
-        },
+        //~ enterPost: {
+          //~ en: 'Write your answer...',
+          //~ it: 'Scrivi una risposta...',
+        //~ },
       },
       editPost: {
         title: {

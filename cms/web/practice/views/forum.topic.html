@@ -15,7 +15,7 @@
       </dd>
       <dd class="head mainbar">
         <div class="btn-group pull-right">
-          <button ng-hide="!amLogged() || isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#new_post" ng-click="doQuote(post.text)">
+          <button ng-hide="!amLogged() || isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#new_post" ng-click="doQuote(post.text,post.author.username)">
             {{'forum.view.quote' | l10n}}
           </button>
           <button ng-show="isMine(post.author.username) || amMod()" class="btn btn-xs btn-link" data-toggle="modal" data-target="#edit_post" ng-click="doEdit(post.text,post.id)">
@@ -43,9 +43,7 @@
         <small>{{'forum.view.signedUp' | l10n}}: {{post.author.join_date | monthYearFmt}}</small>
       </dd>
       <dd class="mainbar">
-        <div class="message">
-          <p ng-repeat="line in post.lines track by $index">{{line}}</p>
-        </div>
+        <div class="message" ng-bind-html="post.text"></div>
       </dd>
     </dl>
   </div>
@@ -54,14 +52,16 @@
   </button>
   <!-- new post -->
   <div class="modal fade" id="new_post" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="wider-modal modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
           <h4 class="modal-title">{{'forum.newPost.title' | l10n}}</h4>
         </div>
         <div class="modal-body">
-          <textarea ng-model="newText" class="form-control" rows="3" placeholder="{{'forum.newPost.enterPost' | l10n}}"></textarea>
+          <div text-angular="text-angular" ta-toolbar="{{toolbar}}" ta-text-editor-class="editor-forum form-control"
+              ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
@@ -72,14 +72,16 @@
   </div>
   <!-- edit post -->
   <div class="modal fade" id="edit_post" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="wider-modal modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
           <h4 class="modal-title">{{'forum.editPost.title' | l10n}}</h4>
         </div>
         <div class="modal-body">
-          <textarea ng-model="newText" class="form-control" rows="3"></textarea>
+          <div text-angular="text-angular" ta-toolbar="{{toolbar}}" ta-text-editor-class="editor-forum form-control"
+              ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
