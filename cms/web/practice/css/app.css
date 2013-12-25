@@ -241,6 +241,8 @@ table.submissions th {
 .editor-forum {
   height: auto;
   min-height: 60px;
+  max-height: 400px;
+  overflow-y: scroll;
 }
 
 .forum-group dl {
