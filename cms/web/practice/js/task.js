@@ -63,7 +63,7 @@ angular.module('pws.task', [])
     taskbarManager.setActiveTab(1);
     $scope.goodBrowser = !!$window.Worker;
     $scope.getPDFURL = function(hash) {
-      return '../../assets/pdfjs/viewer.html?file=/files/' + hash + '/testo.pdf';
+      return 'assets/pdfjs/viewer.html?file=/files/' + hash + '/testo.pdf';
     };
     $scope.getPDFURLforIE8 = function(hash) {
       return '/files/' + hash + '/testo.pdf';
