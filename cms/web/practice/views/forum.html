@@ -1,27 +1,4 @@
-<div class="container">
-  <ol class="breadcrumb">
-    <li><a ui-sref="forums">{{'forum.breadcrumb.forum' | l10n}}</a></li>
-    <li class="active">{{forumTitle}}</li>
-  </ol>
-  <div class="row container">
-    <pagination style="margin:0px" total-pages="totalPages" current-page="currentPage" on-select-page="updPage(page)">
-    </pagination>
-    <div class="forum-top pull-right">
-      <button class="btn btn-md btn-success" data-toggle="modal" data-target="#new_topic" ng-show="isLogged()">
-        <i class="fa fa-file-text"></i>
-        {{'forum.view.createTopic' | l10n}}
-      </button>
-<!-- FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
-      <button id="showNoAns" class="btn btn-md btn-info" ng-click="onlyUnans()" ng-show="unansweredTopics && isLogged()">
-        <span class="badge pull-right">{{unansweredTopics}}</span>
-        Argomenti senza risposte
-      </button>
-      <button id="showAll" class="btn btn-md btn-warning" ng-click="showAll()" ng-show="isLogged()">
-        Tutti gli argomenti
-      </button>
--->
-    </div>
-  </div>
+<div>
   <div class="forum-group focus-light panel panel-info">
     <div class="panel-heading">
       <dl class="row">
@@ -36,7 +13,7 @@
       <dl class="row" ng-repeat="topic in topics">
         <dd class="content col-xs-6">
           <i class="fa fa-{{topic.status | getIcon}}"></i>
-          <a ui-sref="topic({ topicId: topic.id, pageNum: 1 })"><b>{{topic.title}}</b></a>
+          <a ui-sref="topic.page({ topicId: topic.id, pageNum: 1 })"><b>{{topic.title}}</b></a>
           </br>
           {{'forum.list.by' | l10n}} <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
         </dd>
@@ -44,7 +21,7 @@
         <dd class="count col-md-1 hidden-sm hidden-xs">{{topic.views}}</dd>
         <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-show="topic.posts-1">
           {{'forum.list.by' | l10n}} <a ui-sref="user({userId: topic.lastpost.username})">{{topic.lastpost.username}}</a>
-          <a class="dont-underline" ui-sref="topic({topicId: topic.id, pageNum: lastPage(topic.posts)})" title="{{'forum.view.goToPost' | l10n}}">
+          <a class="dont-underline" ui-sref="topic.page({topicId: topic.id, pageNum: lastPage(topic.posts)})" title="{{'forum.view.goToPost' | l10n}}">
             <i class="fa fa-share-square-o"></i>
           </a>
           </br>
@@ -65,7 +42,7 @@
         </div>
         <div class="modal-body">
           <input ng-model="newTitle" type="text" class="form-control" placeholder="{{'forum.newTopic.enterTitle' | l10n}}"><br>
-          <div text-angular="text-angular" ta-toolbar="{{toolbar}}" ta-text-editor-class="editor-forum form-control"
+          <div text-angular="text-angular" ta-toolbar="{{user.toolbar}}" ta-text-editor-class="editor-forum form-control"
               ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
           </div>
         </div>

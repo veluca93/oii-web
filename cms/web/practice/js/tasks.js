@@ -152,46 +152,40 @@ angular.module('pws.tasks', ['pws.pagination'])
     this.subDetails = subDetails;
     return this;
   })
-  .controller('TasksCtrl', function($scope, $stateParams, $state,
-      $http, $location, notificationHub, navbarManager, userManager) {
+  .controller('TasklistSkel', function($scope, $state, navbarManager) {
     navbarManager.setActiveTab(0);
-    $scope.search = {};
-    $scope.search.tag = '';
-    $scope.tasksPerPage = 15;
-    $scope.currentPage = +$stateParams.pageNum;
-    $scope.updPage = function(newPage) {
-      if (newPage == '-' && $scope.currentPage > 1)
-        $state.go('tasks', {'pageNum': $scope.currentPage - 1});
-      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
-        $state.go('tasks', {'pageNum': $scope.currentPage + 1});
-      else if (newPage == '--')
-        $state.go('tasks', {'pageNum': 1});
-      else if (newPage == '++')
-        $state.go('tasks', {'pageNum': $scope.totalPages});
-      else if (newPage != '-' && newPage != '+')
-        $state.go('tasks', {'pageNum': newPage});
+    $scope.search = {tag: ''};
+    $scope.pagination = {perPage: 15};
+    $scope.getTasks = function() {
+      // richiama getTasks() di TasklistPage
+      $scope.$broadcast('getTasks');
     };
+  })
+  .controller('TasklistPage', function($scope, $stateParams, $state, $http,
+      notificationHub, userManager) {
+    $scope.pagination.current = +$stateParams.pageNum;
     $scope.getTasks = function() {
       var data = {
-        'first':    $scope.tasksPerPage * ($scope.currentPage-1),
-        'last':     $scope.tasksPerPage * $scope.currentPage,
+        'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
+        'last':     $scope.pagination.perPage * $scope.pagination.current,
         'username': userManager.getUsername(),
         'token':    userManager.getToken(),
         'action':   'list'
       };
       if ($scope.search.tag.length > 1) {
-        console.log($scope.search.tag);
+        console.log($scope.search.tag); //FIXME
         data.tag = $scope.search.tag;
       }
       $http.post('task', data)
         .success(function(data, status, headers, config) {
           $scope.tasks = data['tasks'];
-          $scope.totalPages = Math.ceil(data['num'] / $scope.tasksPerPage);
-          if ($scope.currentPage > $scope.totalPages)
-            $location.path('overview');
+          $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore di connessione', 2);
         });
     };
+    $scope.$on('getTasks', function(e) {
+      $scope.getTasks();
+    });
     $scope.getTasks();
   });

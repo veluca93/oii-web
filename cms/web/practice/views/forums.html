@@ -15,19 +15,19 @@
     <div class="panel-body">
       <dl class="row" ng-repeat="forum in forums">
         <dd class="content col-xs-6">
-          <a ui-sref="forum({ forumId: forum.id, pageNum: 1 })"><b>{{forum.title}}</b></a>
+          <a ui-sref="forum.page({ forumId: forum.id, pageNum: 1 })"><b>{{forum.title}}</b></a>
           </br>
           {{forum.description}}
         </dd>
         <dd class="count col-sm-1 hidden-xs">{{forum.topics}}</dd>
         <dd class="count col-md-1 hidden-sm hidden-xs">{{forum.posts}}</dd>
-        <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-show="forum.posts">
-          <a ui-sref="topic({ topicId: forum.lastpost.topic_id, pageNum: 1 })"><b>{{forum.lastpost.topic_title}}</b></a>
-          </br>
-          {{forum.lastpost.timestamp | dateFmt}} &middot; {{'forum.list.by' | l10n}} <a ui-sref="user({userId: forum.lastpost.username})">{{forum.lastpost.username}}</a> <!-- TODO: meno dati marginali (data/ora) da mobile -->
-          <a ui-sref="topic({ topicId: forum.lastpost.topic_id, pageNum: lastPage(forum.lastpost.num) })" title="Vai al messaggio">
-            <i class="fa fa-share-square-o"></i>
+        <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-show="forum.posts"> {{lastPage.get(forum.lastpost.num)}}
+          <a ui-sref="topic.page({ topicId: forum.lastpost.topic_id, pageNum: lastPage(forum.lastpost.num) })" title="{{'forum.view.goToPost' | l10n}}">
+            <b>{{forum.lastpost.topic_title}}</b>
           </a>
+          </br>
+          {{forum.lastpost.timestamp | dateFmt}} &middot; {{'forum.list.by' | l10n}} <a ui-sref="user({userId: forum.lastpost.username})">{{forum.lastpost.username}}</a>
+          <!-- TODO: meno dati marginali (data/ora) da mobile -->
         </dd>
         <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-hide="forum.posts">
           {{'forum.list.noPosts' | l10n}}

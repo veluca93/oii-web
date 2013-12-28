@@ -1,11 +1,4 @@
-<div class="container">
-  <ol class="breadcrumb">
-    <li><a ui-sref="forums">Forum</a></li>
-    <li><a ui-sref="forum({forumId: forumId, pageNum: 1})">{{forumTitle}}</a></li>
-    <li class="active">{{title}}</li>
-  </ol>
-  <pagination style="margin:0px" total-pages="totalPages" current-page="currentPage" on-select-page="updPage(page)">
-  </pagination>
+<div>
   <div class="forum-group post panel panel-info">
     <dl class="panel-heading" ng-repeat-start="post in posts">
       <dd class="head sidebar">
@@ -15,13 +8,13 @@
       </dd>
       <dd class="head mainbar">
         <div class="btn-group pull-right">
-          <button ng-hide="!amLogged() || isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#new_post" ng-click="doQuote(post.text,post.author.username)">
+          <button ng-hide="!user.isLogged() || user.isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#new_post" ng-click="doQuote(post.text,post.author.username)">
             {{'forum.view.quote' | l10n}}
           </button>
-          <button ng-show="isMine(post.author.username) || amMod()" class="btn btn-xs btn-link" data-toggle="modal" data-target="#edit_post" ng-click="doEdit(post.text,post.id)">
+          <button ng-show="user.isMod() || user.isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#edit_post" ng-click="doEdit(post.text,post.id)">
             {{'forum.view.edit' | l10n}}
           </button>
-          <button ng-show="amMod()" class="btn btn-xs btn-link" ng-click="deletePost(post.id)">
+          <button ng-show="user.isMod()" class="btn btn-xs btn-link" ng-click="deletePost(post.id)">
             {{'forum.view.delete' | l10n}}
           </button>
         </div>
@@ -47,7 +40,7 @@
       </dd>
     </dl>
   </div>
-  <button ng-show="amLogged()" class="btn btn-sm btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
+  <button ng-show="user.isLogged()" class="btn btn-sm btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
     {{'forum.view.createPost' | l10n}}
   </button>
   <!-- new post -->
@@ -79,7 +72,7 @@
           <h4 class="modal-title">{{'forum.editPost.title' | l10n}}</h4>
         </div>
         <div class="modal-body">
-          <div text-angular="text-angular" ta-toolbar="{{toolbar}}" ta-text-editor-class="editor-forum form-control"
+          <div text-angular="text-angular" ta-toolbar="{{user.toolbar}}" ta-text-editor-class="editor-forum form-control"
               ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
           </div>
         </div>

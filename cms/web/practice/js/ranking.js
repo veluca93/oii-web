@@ -21,27 +21,17 @@
 /* Ranking page */
 
 angular.module('pws.ranking', ['pws.pagination'])
-  .controller('RankingCtrl', function($scope, $stateParams, $state,
-        $http, $window, notificationHub, navbarManager, userManager) {
+  .controller('RankingSkel', function($scope, navbarManager) {
     navbarManager.setActiveTab(4);
-    $scope.currentPage = parseInt($stateParams.pageNum);
-    $scope.usersPerPage = 20;
-    $scope.updPage = function(newPage) {
-      if (newPage == '-' && $scope.currentPage > 1)
-        $state.go('ranking', {'pageNum': $scope.currentPage - 1});
-      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
-        $state.go('ranking', {'pageNum': $scope.currentPage + 1});
-      else if (newPage == '--')
-        $state.go('ranking', {'pageNum': 1});
-      else if (newPage == '++')
-        $state.go('ranking', {'pageNum': $scope.totalPages});
-      else if (newPage != '-' && newPage != '+')
-        $state.go('ranking', {'pageNum': newPage});
-    };
+    $scope.pagination = {perPage: 20};
+  })
+  .controller('RankingCtrl', function($scope, $stateParams, $state,
+      $http, userManager, notificationHub) {
+    $scope.pagination.current = +$stateParams.pageNum;
     $scope.getUsers = function() {
       var data = {
-        'first':    $scope.usersPerPage * ($scope.currentPage-1),
-        'last':     $scope.usersPerPage * $scope.currentPage,
+        'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
+        'last':     $scope.pagination.perPage * $scope.pagination.current,
         'username': userManager.getUsername(),
         'token':    userManager.getToken(),
         'action':   'list'
@@ -49,8 +39,7 @@ angular.module('pws.ranking', ['pws.pagination'])
       $http.post('user', data)
         .success(function(data, status, headers, config) {
           $scope.users = data['users'];
-          $scope.totalUsers = data['num'];
-          $scope.totalPages = Math.ceil(data['num'] / $scope.usersPerPage);
+          $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
         }).error(function(data, status, headers, config) {
           notificationHub.createAlert('danger', 'Errore di connessione', 2);
         });

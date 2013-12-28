@@ -1,12 +1,6 @@
-<div class="container">
-  <div class="row container">
-    <pagination style="margin-bottom:10px;margin-top:0px" total-pages="totalPages" current-page="currentPage" on-select-page="updPage(page)">
-    </pagination>
-  </div>
-  <div class="list-group">
-    <a ng-repeat="user in users" class="list-group-item" ui-sref="user({ userId: user.username })">
-      <i class="fa fa-angle-right"></i> {{user.username}}
-      <tt class="pull-right">{{user.score}}</tt>
-    </a>
-  </div>
+<div class="list-group">
+  <a ng-repeat="user in users" class="list-group-item" ui-sref="user({ userId: user.username })">
+    <i class="fa fa-angle-right"></i> {{user.username}}
+    <tt class="pull-right">{{user.score}}</tt>
+  </a>
 </div>
