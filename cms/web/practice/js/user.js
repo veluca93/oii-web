@@ -78,8 +78,8 @@ angular.module('pws.user', [])
         var ret = [];
         ret.push(t1);
         ret.push(t2);
-        ret.push(t3);
         if (al < 4) {
+          ret.push(t3); // FIXME: non lo mostro a tutti solo perche' sembra non funzionare :/
           ret.push(t4);
         }
         return ret;

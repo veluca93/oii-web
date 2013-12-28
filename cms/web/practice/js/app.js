@@ -47,19 +47,31 @@ angular.module('pws', [
         controller: 'ForumsCtrl'
       })
       .state('forum', {
+        templateUrl: 'partials/forum.html',
+        controller: 'ForumSkel'
+      })
+      .state('forum.page', {
         url: '/forum/{forumId}/{pageNum}',
         templateUrl: 'views/forum.html',
         controller: 'ForumCtrl'
       })
       .state('topic', {
+        templateUrl: 'partials/forum.topic.html',
+        controller: 'ForumSkel'
+      })
+      .state('topic.page', {
         url: '/topic/{topicId}/{pageNum}',
         templateUrl: 'views/forum.topic.html',
         controller: 'TopicCtrl'
       })
-      .state('tasks', {
+      .state('tasklist', {
+        templateUrl: 'partials/tasklist.html',
+        controller: 'TasklistSkel'
+      })
+      .state('tasklist.page', {
         url: '/tasks/{pageNum}',
         templateUrl: 'views/tasks.html',
-        controller: 'TasksCtrl'
+        controller: 'TasklistPage'
       })
       .state('task', {
         url: '/task/{taskName}',
@@ -86,6 +98,10 @@ angular.module('pws', [
         controller: 'StatsCtrl'
       })
       .state('ranking', {
+        templateUrl: 'partials/ranking.html',
+        controller: 'RankingSkel'
+      })
+      .state('ranking.page', {
         url: '/ranking/{pageNum}',
         templateUrl: 'views/ranking.html',
         controller: 'RankingCtrl'

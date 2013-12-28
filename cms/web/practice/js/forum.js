@@ -23,31 +23,36 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
   .controller('ForumsCtrl', function ($scope, $http, userManager,
         notificationHub, navbarManager) {
     navbarManager.setActiveTab(2);
-    $scope.lastPage = function(posts) {
-      // FIXME: se si modifica 'postsPerPage' si deve modificare anche qui
-      return Math.ceil(posts / 10);
-    };
     $http.post('forum', {
-        'action':   'list',
-        'username': userManager.getUsername(),
-        'token':    userManager.getToken()
-      })
-      .success(function(data, status, headers, config) {
-        $scope.forums = data.forums;
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
-      });
-  })
-  .controller('ForumCtrl', function ($scope, $http, $stateParams,
-      $state, $location, userManager, navbarManager, notificationHub) {
-    navbarManager.setActiveTab(0);
-    $scope.isLogged = userManager.isLogged;
-    $scope.toolbar = userManager.getForumToolbar();
-    $scope.newText = $scope.newTitle = '';
+      'action':   'list',
+      'username': userManager.getUsername(),
+      'token':    userManager.getToken()
+    })
+    .success(function(data, status, headers, config) {
+      $scope.forums = data.forums;
+    }).error(function(data, status, headers, config) {
+      notificationHub.createAlert('danger', 'Errore interno', 2);
+    });
     $scope.lastPage = function(posts) {
-      // FIXME: se si modifica 'postsPerPage' si deve modificare anche qui
+      // FIXME: se si modifica 'pagination.perPage' in TopicCtrl si deve modificare anche qui!
       return Math.ceil(posts / 10);
     };
+  })
+  .controller('ForumSkel', function ($scope, userManager, navbarManager) {
+    navbarManager.setActiveTab(0);
+    $scope.user = {
+      isLogged: userManager.isLogged,
+      toolbar:  userManager.getForumToolbar()
+    };
+    $scope.breadcrumb = {};
+    $scope.pagination = {perPage: 15};
+    $scope.lastPage = function(posts) {
+      // FIXME: se si modifica 'pagination.perPage' in TopicCtrl si deve modificare anche qui!
+      return Math.ceil(posts / 10);
+    };
+  })
+  .controller('ForumCtrl', function($scope, $http, $stateParams, $state,
+      userManager, navbarManager, notificationHub) {
     // FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
     //~ $scope.onlyUnans = function() {
       //~ $location.search('na', 1);
@@ -55,20 +60,8 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
     //~ $scope.showAll = function() {
       //~ $location.search('na', null);
     //~ };
-    $scope.topicsPerPage = 15;
-    $scope.currentPage = +$stateParams.pageNum;
-    $scope.updPage = function(newPage) {
-      if (newPage == '-' && $scope.currentPage > 1)
-        $state.go('forum', {'pageNum': $scope.currentPage - 1});
-      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
-        $state.go('forum', {'pageNum': $scope.currentPage + 1});
-      else if (newPage == '--')
-        $state.go('forum', {'pageNum': 1});
-      else if (newPage == '++')
-        $state.go('forum', {'pageNum': $scope.totalPages});
-      else if (newPage != '-' && newPage != '+')
-        $state.go('forum', {'pageNum': newPage});
-    };
+    $scope.newText = $scope.newTitle = '';
+    $scope.pagination.current = +$stateParams.pageNum;
     $scope.getTopics = function(onlyUnanswered) {
       onlyUnanswered = (typeof onlyUnanswered !== 'undefined') ? onlyUnanswered : false;
       //~ onlyUnanswered = ($location.search('na') === 1);
@@ -80,93 +73,77 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         //~ $("#showNoAns").show();
       //~ }
       $http.post('topic', {
-          'action':   'list',
-          'username': userManager.getUsername(),
-          'token':    userManager.getToken(),
-          'forum':    $stateParams.forumId,
-          'first':    $scope.topicsPerPage * ($scope.currentPage-1),
-          'last':     $scope.topicsPerPage * $scope.currentPage,
-          'noAnswer': onlyUnanswered
-        })
-        .success(function(data, status, headers, config) {
-          $scope.topics = data.topics;
-          $scope.numTopics = data.num;
-          $scope.totalPages = Math.ceil(data.num / $scope.topicsPerPage);
-          if ($scope.totalPages && $scope.currentPage > $scope.totalPages)
-            $location.path('overview');
-          $scope.unansweredTopics = data.numUnanswered;
-          $scope.forumTitle = data.title;
-          $scope.forumDesc = data.description;
-        }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno', 2);
-        });
+        'action':   'list',
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'forum':    $stateParams.forumId,
+        'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
+        'last':     $scope.pagination.perPage * $scope.pagination.current,
+        'noAnswer': onlyUnanswered
+      })
+      .success(function(data, status, headers, config) {
+        $scope.topics = data.topics;
+        $scope.numTopics = data.num;
+        $scope.pagination.total = Math.ceil(data.num / $scope.pagination.perPage);
+        $scope.unansweredTopics = data.numUnanswered;
+        $scope.breadcrumb.forumTitle = data.title;
+        $scope.breadcrumb.forumDesc = data.description;
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Errore interno', 2);
+      });
     };
     $scope.newTopic = function() {
       $http.post('topic', {
-          'action':   'new',
-          'title':    $scope.newTitle,
-          'text':     $scope.newText,
-          'username': userManager.getUsername(),
-          'token':    userManager.getToken(),
-          'forum':    $stateParams.forumId
-        })
-        .success(function(data, status, headers, config) {
-          if (data.success == 1) {
-            notificationHub.createAlert('info', 'Topic creato', 1);
-            $scope.getTopics();
-          } else {
-            notificationHub.createAlert('danger', data.error, 2);
-          }
-          //~ $location.path(); // TODO: redirect al topic creato?
-        }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno', 2);
-        });
+        'action':   'new',
+        'title':    $scope.newTitle,
+        'text':     $scope.newText,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'forum':    $stateParams.forumId
+      })
+      .success(function(data, status, headers, config) {
+        if (data.success == 1) {
+          notificationHub.createAlert('info', 'Topic creato', 1);
+          $scope.getTopics();
+        } else {
+          notificationHub.createAlert('danger', data.error, 2);
+        }
+        //~ $state.go(); // TODO: redirect al topic creato?
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Errore interno', 2);
+      });
     };
     $scope.getTopics();
   })
-  .controller('TopicCtrl', function ($scope, $http, $stateParams, $state,
-      $location, userManager, navbarManager, notificationHub, l10n) {
-    navbarManager.setActiveTab(0);
-    $scope.amLogged = userManager.isLogged;
-    $scope.toolbar = userManager.getForumToolbar();
-    $scope.isMine = function(usr) {
+  .controller('TopicCtrl', function($scope, $http, $stateParams, $state,
+      $location, userManager, notificationHub, l10n) {
+    $scope.user.isMine = function(usr) {
       return userManager.isLogged() && usr == userManager.getUsername();
     };
-    $scope.postsPerPage = 10;
-    $scope.currentPage = +$stateParams.pageNum;
-    $scope.updPage = function(newPage) {
-      if (newPage == '-' && $scope.currentPage > 1)
-        $state.go('topic', {'pageNum': $scope.currentPage - 1});
-      else if (newPage == '+' && $scope.currentPage < $scope.totalPages)
-        $state.go('topic', {'pageNum': $scope.currentPage + 1});
-      else if (newPage == '--')
-        $state.go('topic', {'pageNum': 1});
-      else if (newPage == '++')
-        $state.go('topic', {'pageNum': $scope.totalPages});
-      else if (newPage != '-' && newPage != '+')
-        $state.go('topic', {'pageNum': newPage});
+    $scope.user.isMod = function() {
+      return userManager.isLogged() && userManager.getAccessLevel() < 3;
     };
+    $scope.pagination.perPage = 10;
+    $scope.pagination.current = +$stateParams.pageNum;
     $scope.getPosts = function() {
       $http.post('post', {
-          'action':   'list',
-          'username': userManager.getUsername(),
-          'token':    userManager.getToken(),
-          'topic':    $stateParams.topicId,
-          'first':    $scope.postsPerPage * ($scope.currentPage-1),
-          'last':     $scope.postsPerPage * $scope.currentPage,
-        })
-        .success(function(data, status, headers, config) {
-          $scope.posts = data.posts;
-          $scope.numPosts = data.num;
-          $scope.totalPages = Math.ceil(data.num / $scope.postsPerPage);
-          if ($scope.totalPages && $scope.currentPage > $scope.totalPages)
-            $location.path('overview');
-          $scope.title = data.title;
-          $scope.forumId = data.forumId;
-          $scope.forumTitle = data.forumTitle;
-        }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno', 2);
-        });
+        'action':   'list',
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'topic':    $stateParams.topicId,
+        'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
+        'last':     $scope.pagination.perPage * $scope.pagination.current,
+      })
+      .success(function(data, status, headers, config) {
+        $scope.posts = data.posts;
+        $scope.numPosts = data.num;
+        $scope.pagination.total = Math.ceil(data.num / $scope.pagination.perPage);
+        $scope.breadcrumb.title = data.title;
+        $scope.breadcrumb.forumId = data.forumId;
+        $scope.breadcrumb.forumTitle = data.forumTitle;
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Errore interno', 2);
+      });
     }
     $scope.newPost = function() {
       $http.post('post', {
@@ -200,52 +177,48 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
     };
     $scope.editPost = function() {
       $http.post('post', {
-          'action':   'edit',
-          'id':       $scope.targetPost,
-          'text':     $scope.newText,
-          'username': userManager.getUsername(),
-          'token':    userManager.getToken(),
-          'topic':    $stateParams.topicId
-        })
-        .success(function(data, status, headers, config) {
-          if (data.success == 1) {
-            notificationHub.createAlert('info', 'Modifica registrata', 1);
-            $scope.getPosts();
-          } else {
-            notificationHub.createAlert('danger', data.error, 2);
-          }
-        }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno', 2);
-        });
+        'action':   'edit',
+        'id':       $scope.targetPost,
+        'text':     $scope.newText,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'topic':    $stateParams.topicId
+      })
+      .success(function(data, status, headers, config) {
+        if (data.success == 1) {
+          notificationHub.createAlert('info', 'Modifica registrata', 1);
+          $scope.getPosts();
+        } else {
+          notificationHub.createAlert('danger', data.error, 2);
+        }
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Errore interno', 2);
+      });
     };
     $scope.deletePost = function(id) {
       if (!confirm(l10n.get('forum.view.confirmDelete')))
         return;
       $http.post('post', {
-          'action':   'delete',
-          'id':       id,
-          'text':     $scope.newText,
-          'username': userManager.getUsername(),
-          'token':    userManager.getToken(),
-          'topic':    $stateParams.topicId
-        })
-        .success(function(data, status, headers, config) {
-          if (data.success) {
-            notificationHub.createAlert('info', 'Eliminazione completata', 1);
-            if (data.success == 1)
-              $scope.getPosts();
-            else
-              $state.go('forum', {'forumId': $scope.forumId, 'pageNum': 1});
-          } else {
-            notificationHub.createAlert('danger', data.error, 2);
-          }
-        }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno', 2);
-        });
-    };
-    $scope.amMod = function() {
-      return userManager.getAccessLevel() !== null &&
-             userManager.getAccessLevel() < 3;
+        'action':   'delete',
+        'id':       id,
+        'text':     $scope.newText,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'topic':    $stateParams.topicId
+      })
+      .success(function(data, status, headers, config) {
+        if (data.success) {
+          notificationHub.createAlert('info', 'Eliminazione completata', 1);
+          if (data.success == 1)
+            $scope.getPosts();
+          else
+            $state.go('forum', {'forumId': $scope.forumId, 'pageNum': 1});
+        } else {
+          notificationHub.createAlert('danger', data.error, 2);
+        }
+      }).error(function(data, status, headers, config) {
+        notificationHub.createAlert('danger', 'Errore interno', 2);
+      });
     };
     $scope.getPosts();
   })
