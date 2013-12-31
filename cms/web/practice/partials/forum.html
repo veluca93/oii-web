@@ -1,0 +1,26 @@
+<div class="container">
+  <ol class="breadcrumb">
+    <li><a ui-sref="forums">{{'forum.breadcrumb.forum' | l10n}}</a></li>
+    <li class="active" title="{{breadcrumb.forumDesc}}">{{breadcrumb.forumTitle}}</li>
+  </ol>
+  <div class="row container">
+    <pagination total-pages="pagination.total" current-page="pagination.current">
+    </pagination>
+    <div class="forum-top pull-right">
+      <button class="btn btn-md btn-success" data-toggle="modal" data-target="#new_topic" ng-show="user.isLogged()">
+        <i class="fa fa-file-text"></i>
+        {{'forum.view.createTopic' | l10n}}
+      </button>
+<!-- FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
+      <button id="showNoAns" class="btn btn-md btn-info" ng-click="onlyUnans()" ng-show="unansweredTopics && isLogged()">
+        <span class="badge pull-right">{{unansweredTopics}}</span>
+        Argomenti senza risposte
+      </button>
+      <button id="showAll" class="btn btn-md btn-warning" ng-click="showAll()" ng-show="isLogged()">
+        Tutti gli argomenti
+      </button>
+-->
+    </div>
+  </div>
+  <div ui-view></div>
+</div>
