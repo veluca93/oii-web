@@ -360,8 +360,9 @@ table.submissions th {
 }
 
 .forum-group .message blockquote {
-  border-left-color: #D3D3D3;
-  background-color: #F0F0F0;
+  background-color: #F6F9FC;
+  border: 1px solid #ADCDDD;
+  border-left-width: 4px;
 }
 
 @media (min-width: 768px){
