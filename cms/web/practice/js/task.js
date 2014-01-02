@@ -85,10 +85,14 @@ angular.module('pws.task', [])
     $scope.getStats();
   })
   .controller('SubmissionsCtrl', function($scope, $stateParams, $location,
-      $http, $timeout, userManager, notificationHub, subsDatabase,
-      taskbarManager) {
+      $http, $timeout, $rootScope, userManager, notificationHub,
+      subsDatabase, taskbarManager) {
     taskbarManager.setActiveTab(4);
     subsDatabase.load($stateParams.taskName);
+    $scope.areThereSubs = function(name) {
+      return $rootScope.submissions[name] !== undefined
+          && $rootScope.submissions[name].length > 0;
+    };
     $scope.prepareInput = function() {
       if(!$scope.task) {
         $timeout($scope.prepareInput, 200);
