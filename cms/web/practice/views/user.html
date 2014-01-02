@@ -1,4 +1,11 @@
 <div class="container">
-  <userbar></userbar>
+  <ul class="nav nav-tabs">
+    <li ng-class="{active: isActiveTab(1)}">
+      <a ui-sref=".profile"><i class="fa fa-file-text fa-lg"></i> {{'user.bar.profile' | l10n}}</a>
+    </li>
+    <li ng-show="isMe()" ng-class="{active: isActiveTab(2)}">
+      <a ui-sref=".edit"><i class="fa fa-pencil fa-lg"></i> {{'user.bar.edit' | l10n}}</a>
+    </li>
+  </ul>
   <div ui-view></div>
 </div>

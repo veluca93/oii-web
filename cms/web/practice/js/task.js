@@ -21,15 +21,6 @@
 /* Task page */
 
 angular.module('pws.task', [])
-  .directive('taskbar', function() {
-    return {
-      restrict: 'E',
-      templateUrl: 'partials/taskbar.html',
-      replace: true,
-      transclude: true,
-      controller: 'TaskbarCtrl'
-    };
-  })
   .factory('taskbarManager', function() {
     var activeTab = 0;
     return {
