@@ -56,7 +56,7 @@ angular.module('pws.user', [])
       },
       getForumToolbar: function() {
         var al = localStorage.getItem('access_level');
-        if (al === null) return;
+        if (al === null) return [];
         var t1 = ['p','pre','quote'];
         if (al < 4) {
           t1.unshift('h3');

@@ -22,13 +22,13 @@
     <h3 class="panel-title">Sottoposizioni precedenti</h3>
   </div>
   <table class="submissions table table-bordered table-striped">
-    <tr ng-hide="submissions.length==0">
+    <tr ng-show="areThereSubs(taskName)">
       <th class="col-xs-1">ID</th>
       <th class="col-xs-4">Data e ora</th>
       <th class="col-xs-5">Stato</th>
       <th class="col-xs-2">File</th>
     </tr>
-    <tr ng-show="submissions.length==0">
+    <tr ng-hide="areThereSubs(taskName)">
       <td colspan="4" class="no-submissions">nessuna sottoposizione</td>
     </tr>
     <tr class="submission" ng-repeat="sub in submissions[taskName]">
