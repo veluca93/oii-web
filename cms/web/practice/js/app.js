@@ -75,7 +75,8 @@ angular.module('pws', [
       })
       .state('task', {
         url: '/task/{taskName}',
-        templateUrl: 'views/task.html'
+        templateUrl: 'views/task.html',
+        controller: 'TaskbarCtrl'
       })
       .state('task.statement', {
         url: '/statement',
@@ -109,6 +110,7 @@ angular.module('pws', [
       .state('user', {
         url: '/user/{userId}',
         templateUrl: 'views/user.html',
+        controller: 'UserbarCtrl'
       })
       .state('user.edit', {
         url: '/edit',

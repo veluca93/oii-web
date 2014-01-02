@@ -20,15 +20,6 @@
 /* Signin page */
 
 angular.module('pws.user', [])
-  .directive('userbar', function() {
-    return {
-      restrict: 'E',
-      templateUrl: 'partials/userbar.html',
-      replace: true,
-      transclude: true,
-      controller: 'UserbarCtrl'
-    };
-  })
   .factory('userbarManager', function() {
     var activeTab = 0;
     return {
