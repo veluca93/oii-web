@@ -505,7 +505,7 @@ class APIHandler(object):
                 raise Unauthorized()
             try:
                 if len(local.data['description']) < 5:
-                    resp['error'] = 'DESCRIPTION_SHORT'
+                    resp['error'] = 'tags.description_short'
                 else:
                     tag = Tag(name=local.data['tag'],
                               description=local.data['description'],
@@ -513,70 +513,59 @@ class APIHandler(object):
                     local.session.add(tag)
                     local.session.commit()
                     resp['success'] = 1
-            except KeyError:
-                resp['error'] = 'DATA_MISSING'
             except IntegrityError:
-                resp['error'] = 'TAG_EXISTS'
+                resp['error'] = 'tags.tag_exists'
         elif local.data['action'] == 'delete':
             if local.access_level >= 4:
                 raise Unauthorized()
-            try:
-                tag = local.session.query(Tag)\
-                    .filter(Tag.name == local.data['tag']).first()
-                if tag is None:
-                    resp['error'] = 'TAG_DOESNT_EXIST'
-                elif tag.hidden is True and local.access_level > 0:
-                    raise Unauthorized()
-                else:
-                    local.session.delete(tag)
-                    local.session.commit()
-                    resp['success'] = 1
-            except KeyError:
-                resp['error'] = 'DATA_MISSING'
+            tag = local.session.query(Tag)\
+                .filter(Tag.name == local.data['tag']).first()
+            if tag is None:
+                resp['error'] = 'tags.tag_doesnt_exist'
+            elif tag.hidden is True and local.access_level > 0:
+                raise Unauthorized()
+            else:
+                local.session.delete(tag)
+                local.session.commit()
+                resp['success'] = 1
         elif local.data['action'] == 'add':
             if local.access_level >= 5:
                 raise Unauthorized()
-            try:
-                tag = local.session.query(Tag)\
-                    .filter(Tag.name == local.data['tag']).first()
-                task = local.session.query(Task)\
-                    .filter(Task.name == local.data['task']).first()
-                if tag is None:
-                    resp['error'] = 'TAG_DOESNT_EXIST'
-                elif tag.hidden is True and local.access_level > 0:
-                    raise Unauthorized()
-                elif task is None:
-                    resp['error'] = 'TASK_DOESNT_EXIST'
-                elif tag in task.tags:
-                    resp['error'] = 'TASK_TAG_ASSOC'
-                else:
-                    task.tags.append(tag)
-                    local.session.commit()
-                    resp['success'] = 1
-            except KeyError:
-                resp['error'] = 'DATA_MISSING'
+            tag = local.session.query(Tag)\
+                .filter(Tag.name == local.data['tag']).first()
+            task = local.session.query(Task)\
+                .filter(Task.name == local.data['task']).first()
+            if tag is None:
+                resp['error'] = 'tags.tag_doesnt_exist'
+            elif tag.hidden is True and local.access_level > 0:
+                raise Unauthorized()
+            elif task is None:
+                resp['error'] = 'tags.task_doesnt_exist'
+            elif tag in task.tags:
+                resp['error'] = 'tags.task_has_tag'
+            else:
+                task.tags.append(tag)
+                local.session.commit()
+                resp['success'] = 1
         elif local.data['action'] == 'remove':
             if local.access_level >= 5:
                 raise Unauthorized()
-            try:
-                tag = local.session.query(Tag)\
-                    .filter(Tag.name == local.data['tag']).first()
-                task = local.session.query(Task)\
-                    .filter(Task.name == local.data['task']).first()
-                if tag is None:
-                    resp['error'] = 'TAG_DOESNT_EXIST'
-                elif tag.hidden is True and local.access_level > 0:
-                    raise Unauthorized()
-                elif task is None:
-                    resp['error'] = 'TASK_DOESNT_EXIST'
-                elif tag not in task.tags:
-                    resp['error'] = 'TASK_TAG_NOT_ASSOC'
-                else:
-                    task.tags.remove(tag)
-                    local.session.commit()
-                    resp['success'] = 1
-            except KeyError:
-                resp['error'] = 'DATA_MISSING'
+            tag = local.session.query(Tag)\
+                .filter(Tag.name == local.data['tag']).first()
+            task = local.session.query(Task)\
+                .filter(Task.name == local.data['task']).first()
+            if tag is None:
+                resp['error'] = 'tags.tag_doesnt_exist'
+            elif tag.hidden is True and local.access_level > 0:
+                raise Unauthorized()
+            elif task is None:
+                resp['error'] = 'tags.tag_doesnt_exist'
+            elif tag not in task.tags:
+                resp['error'] = 'tags.task_hasnt_tag'
+            else:
+                task.tags.remove(tag)
+                local.session.commit()
+                resp['success'] = 1
         else:
             raise BadRequest()
         return resp
@@ -766,7 +755,7 @@ class APIHandler(object):
                 .order_by(desc(Submission.timestamp)).first()
             if lastsub is not None and \
                make_datetime() - lastsub.timestamp < timedelta(seconds=20):
-                return {'success': 0, 'error': 'SHORT_INTERVAL'}
+                return {'success': 0, 'error': 'submission.short_interval'}
 
             # TODO: implement archives and (?) partial submissions
             try:
@@ -784,9 +773,9 @@ class APIHandler(object):
             for sfe in task.submission_format:
                 f = local.data['files'].get(sfe.filename)
                 if f is None:
-                    return {'success': 0, 'error': 'FILES_MISSING'}
+                    return {'success': 0, 'error': 'submission.files_missing'}
                 if len(f['data']) > config.max_submission_length:
-                    return {'success': 0, 'error': 'FILES_TOO_BIG'}
+                    return {'success': 0, 'error': 'submission.files_too_big'}
                 f['name'] = sfe.filename
                 files.append(f)
                 if sfe.filename.endswith('.%l'):
@@ -795,10 +784,11 @@ class APIHandler(object):
                         if f['filename'].endswith(ext):
                             language = l
                     if language is None:
-                        return {'success': 0, 'error': 'LANGUAGE_UNKNOWN'}
+                        return {'success': 0,
+                                'error': 'submission.language_unknown'}
                     elif sub_lang is not None and sub_lang != language:
                         return {'success': 0,
-                                'error': 'LANGUAGE_DIFFERENT'}
+                                'error': 'submission.language_different'}
                     else:
                         sub_lang = language
 
@@ -873,10 +863,10 @@ class APIHandler(object):
                 raise Unauthorized()
             if local.data['title'] is None or \
                len(local.data['title']) < 4:
-                return {"success": 0, "error": "TITLE_SHORT"}
+                return {"success": 0, "error": "forum.title_short"}
             if local.data['description'] is None or \
                len(local.data['description']) < 4:
-                return {"success": 0, "error": "DESCRIPTION_SHORT"}
+                return {"success": 0, "error": "forum.description_short"}
             forum = Forum(title=local.data['title'],
                           description=local.data['description'],
                           access_level=7,
@@ -933,9 +923,9 @@ class APIHandler(object):
             if forum is None:
                 raise NotFound()
             if local.data['title'] is None or len(local.data['title']) < 4:
-                return {"success": 0, "error": "TITLE_SHORT"}
+                return {"success": 0, "error": "forum.title_short"}
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return {"success": 0, "error": "TEXT_SHORT"}
+                return {"success": 0, "error": "post.text_short"}
             topic = Topic(status='open',
                           title=local.data['title'],
                           timestamp=make_datetime(),
@@ -993,7 +983,7 @@ class APIHandler(object):
             if topic is None or topic.forum.access_level < local.access_level:
                 raise NotFound()
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return {"success": 0, "error": "TEXT_SHORT"}
+                return {"success": 0, "error": "post.text_short"}
             post = Post(text=local.data['text'],
                         timestamp=make_datetime())
             post.author = local.user
@@ -1042,7 +1032,7 @@ class APIHandler(object):
             if post.author != local.user and local.user.access_level > 2:
                 raise Unauthorized()
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return {"success": 0, "error": "TEXT_SHORT"}
+                return {"success": 0, "error": "post.text_short"}
             post.text = local.data['text']
             local.session.commit()
             resp['success'] = 1
