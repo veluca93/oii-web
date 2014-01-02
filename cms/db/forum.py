@@ -37,6 +37,8 @@ class PrivateMessage(Base):
 
     title = Column(Unicode, nullable=False)
 
+    read = Column(Boolean, nullable=False)
+
     sender_id = Column(
         Integer,
         ForeignKey(User.id,

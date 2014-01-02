@@ -36,7 +36,8 @@ from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import Service
 from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
-    Forum, Topic, Post, TestScore, Institute, Region, Province, City, TaskScore
+    Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
+    TaskScore, PrivateMessage
 from cmscommon.DateTime import make_timestamp, make_datetime
 
 from werkzeug.wrappers import Response, Request
@@ -958,12 +959,11 @@ class APIHandler(object):
                 raise NotFound()
             topic.nview += 1
             local.session.commit()
-            posts = local.session.query(Post)\
+            query = local.session.query(Post)\
                 .filter(Post.topic_id == topic.id)\
-                .order_by(Post.timestamp)\
-                .slice(data['first'], data['last']).all()
-            num = local.session.query(Post)\
-                .filter(Post.topic_id == topic.id).count()
+                .order_by(Post.timestamp)
+            posts = query.slice(data['first'], data['last']).all()
+            num = query.count()
             resp['num'] = num
             resp['title'] = topic.title
             resp['forumId'] = topic.forum.id
@@ -1039,6 +1039,77 @@ class APIHandler(object):
             resp['success'] = 1
         else:
             raise BadRequest()
+        return resp
+
+    def pm_handler(self, data):
+        resp = dict()
+        if data['action'] == 'list_sent':
+            if local.user is None:
+                raise Unauthorized()
+            query = local.session.query(PrivateMessage)\
+                .filter(PrivateMessage.sender_id == local.user.id)\
+                .order_by(PrivateMessage.timestamp)
+            pms = query.slice(data['first'], data['last']).all()
+            num = query.count()
+            resp['num'] = num
+            resp['pms'] = []
+            for p in pms:
+                pm = dict()
+                pm['title'] = p.title
+                pm['receiver'] = self.get_user_info(p.receiver)
+                pm['timestamp'] = make_timestamp(p.timestamp)
+                resp['pms'].append(pm)
+        elif data['action'] == 'list_received':
+            if local.user is None:
+                raise Unauthorized()
+            query = local.session.query(PrivateMessage)\
+                .filter(PrivateMessage.receiver_id == local.user.id)\
+                .order_by(PrivateMessage.timestamp)
+            pms = query.slice(data['first'], data['last']).all()
+            num = query.count()
+            resp['num'] = num
+            resp['pms'] = []
+            for p in pms:
+                pm = dict()
+                pm['title'] = p.title
+                pm['sender'] = self.get_user_info(p.sender)
+                pm['timestamp'] = make_timestamp(p.timestamp)
+                pm['read'] = p.read
+                resp['pms'].append(pm)
+        elif data['action'] == 'get':
+            pm = local.session.query(PrivateMessage)\
+                .filter(PrivateMessage.id == data['id']).first()
+            if pm is None:
+                raise NotFound()
+            if pm.receiver != local.user and pm.sender != local.user:
+                raise Unauthorized()
+            if pm.receiver == local.user:
+                pm.read = True
+                local.session.commit()
+            resp['title'] = pm.title
+            resp['sender'] = self.get_user_info(p.sender)
+            resp['receiver'] = self.get_user_info(p.receiver)
+            resp['timestamp'] = make_timestamp(p.timestamp)
+            resp['text'] = p.text
+        elif data['action'] == 'new':
+            if local.user is None:
+                raise Unauthorized()
+            if local.user.id == data['receiver_id']:
+                return {'success': 0, 'error': 'pm.self'}
+            pm = PrivateMessage(text=data['text'],
+                                title=data['title'],
+                                timestamp=make_datetime())
+            pm.sender_id = local.user.id
+            pm.receiver_id = data['receiver_id']
+            pm.read = False
+            local.session.add(pm)
+            local.session.commit()
+        elif data['action'] == 'get_unread':
+            if local.user is None:
+                raise Unauthorized()
+            resp['num'] = local.session.query(PrivateMessage)\
+                .filter(PrivateMessage.receiver_id == local.user.id)\
+                .filter(PrivateMessage.read == False).count()
         return resp
 
 
