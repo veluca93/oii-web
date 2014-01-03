@@ -196,7 +196,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       });
     };
     $scope.deletePost = function(id) {
-      if (!confirm(l10n.get('forum.view.confirmDelete')))
+      if (!confirm(l10n.get('Are you sure you want to delete this post?')))
         return;
       $http.post('post', {
         'action':   'delete',

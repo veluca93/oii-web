@@ -18,482 +18,299 @@
 
 angular.module('pws.l10n', [])
   .constant('words', {
-    overview: {
-      jumbotron: {
-        title: {
-          en: 'Italian Olympiads in Informatics training website',
-          it: 'Portale di allenamento delle Olimpiadi Italiane di \
-               Informatica',
-        },
-        text: {
-          en: 'Welcome to the official training website for OII! \
-               here you will be able to try and solve programming \
-               tasks by coding a solution in either C, C++ or Pascal.',
-          it: 'Benvenuto nella piattaforma ufficiale di allenamento \
-               per le OII! Qui avrai accesso a numerosi problemi ai \
-               quali potrai inviare delle soluzioni scritte in C, \
-               C++ o Pascal.',
-        },
-      },
-      col1: {
-        title: {
-          en: 'Learn to code',
-          it: 'Impara a programmare',
-        },
-        text: {
-          en: '',
-          it: 'La vasta scelta di problemi presenti nel sito ti \
-               permette di partire da quelli più facili fino ad \
-               arrivare a quelli più difficili: in questo modo \
-               migliorerai sempre più le tue abilità di programmazione \
-               e la tua capacità di analizzare ed affrontare problemi \
-               computazionali!',
-        },
-        button: {
-          en: 'Tasks archive',
-          it: 'Archivio dei problemi',
-        },
-      },
-      col2: {
-        title: {
-          en: 'Advance your ranking',
-          it: 'Scala la classifica',
-        },
-        text: {
-          en: '',
-          it: 'Man mano che risolverai i problemi presenti sulla \
-               piattaforma guadagnerai dei punti che si sommeranno al \
-               tuo punteggio totale. Competi con tutti gli altri \
-               studenti e studentesse d\'Italia per il traguardo del \
-               primo posto della classifica!',
-        },
-        button: {
-          en: 'See the rankings',
-          it: 'Guarda la classifica',
-        },
-      },
-      col3: {
-        title: {
-          en: 'Get to know other coders',
-          it: 'Partecipa alla community',
-        },
-        text: {
-          en: '',
-          it: 'Presentati agli altri aspiranti olimpici nel forum \
-               della piattaforma, discuti dei problemi, risolvi tutti \
-               i tuoi dubbi su: costrutti di base del tuo linguaggio \
-               di programmazione, algoritmi e strutture dati di \
-               libreria, tecniche algoritmiche, e tanto altro!',
-        },
-        button: {
-          en: 'Go to the forum',
-          it: 'Visita il forum',
-        },
-      },
-    },
-    navbar: {
-      home: {
-        en: 'Homepage',
-        it: 'Pagina iniziale',
-      },
-      archive: {
-        title: {
-          en: 'Task & quiz archive',
-          it: 'Archivio problemi e quiz',
-        },
-        allproblems: {
-          en: 'All tasks',
-          it: 'Tutti i problemi',
-        },
-        scolastiche: {
-          en: 'Quizzes',
-          it: 'Selezioni scolastiche',
-        },
-      },
-      ranking: {
-        en: 'Ranking',
-        it: 'Classifica',
-      },
-      forum: {
-        en: 'Forum',
-      },
-      signup: {
-        en: 'Sign up',
-        it: 'Registrati',
-      },
-      signin: {
-        en: 'Sign in',
-        it: 'Entra',
-      },
-      signout: {
-        en: 'Sign out',
-        it: 'Esci',
-      },
-      myprofile: {
-        en: 'My user profile',
-        it: 'Il mio profilo utente',
-      },
-    },
-    tasks: {
-      tagsearch: {
-        en: 'search',
-        it: 'cerca',
-      },
-      searchbytag: {
-        en: 'Search by tag',
-        it: 'Ricerca per tag',
-      },
-    },
-    signup: {
-      ui: {
-        loginData: {
-          title: {
-            en: 'Login data',
-            it: 'Dati di accesso al sito',
-          },
-          username: {
-            en: 'Username',
-          },
-          password: {
-            en: 'Password',
-          },
-          password2: {
-            en: 'Confirm password',
-            it: 'Ripeti password',
-          },
-        },
-        personalData: {
-          title: {
-            en: 'Personal data',
-            it: 'Dati personali',
-          },
-          firstname: {
-            en: 'First name',
-            it: 'Nome',
-          },
-          lastname: {
-            en: 'Last name',
-            it: 'Cognome',
-          },
-          email: {
-            en: 'E-mail address',
-            it: 'Indirizzo e-mail',
-          },
-          email2: {
-            en: 'Confirm e-mail',
-            it: 'Ripeti e-mail',
-          },
-        },
-        instituteData: {
-          title: {
-            en: 'Institute data',
-            it: 'Dati della scuola di provenienza',
-          },
-          region: {
-            en: 'Region',
-            it: 'Regione',
-          },
-          province: {
-            en: 'Province',
-            it: 'Provincia',
-          },
-          city: {
-            en: 'City',
-            it: 'Città',
-          },
-          institute: {
-            en: 'Institute',
-            it: 'Istituto',
-          },
-        },
-        userPreview: {
-          title: {
-            en: 'User profile preview',
-            it: 'Anteprima del profilo utente',
-          },
-        },
-        buttons: {
-          register: {
-            en: 'Sign up',
-            it: 'Registrati',
-          },
-        },
-      },
-      errors: {
-        username: {
-          short: {
-            en: 'Username is too short',
-            it: 'Username troppo corto',
-          },
-          invalid: {
-            en: 'Username is invalid',
-            it: 'Username non valido',
-          },
-          used: {
-            en: 'This username is not available',
-            it: 'Questo username non è disponibile',
-          },
-        },
-        mustPassword: {
-          en: 'You must specify your password',
-          it: 'Devi speficicare la tua password',
-        },
-        password: {
-          en: 'Password\'s too short',
-          it: 'Password troppo corta',
-        },
-        password2: {
-          en: 'Passwords don\'t match',
-          it: 'Le password non combaciano',
-        },
-        email: {
-          invalid: {
-            en: 'Invalid e-mail',
-            it: 'E-mail non valida',
-          },
-          used: {
-            en: 'E-mail already used',
-            it: 'E-mail già utilizzata',
-          },
-          match: {
-            en: 'E-mails don\'t match',
-            it: 'Gli indirizzi non combaciano',
-          }
-        },
-        region: {
-          en: 'You must specify a region',
-          it: 'Devi specificare una regione',
-        },
-        province: {
-          en: 'You must specify a province',
-          it: 'Devi specificare una provincia',
-        },
-        city: {
-          en: 'You must specify a city',
-          it: 'Devi specificare una città',
-        },
-        institute: {
-          en: 'You must specify an institute',
-          it: 'Devi specificare un istituto',
-        },
-      },
-    },
-    forum: {
-      breadcrumb: {
-        forum: {
-          en: 'Forum',
-        },
-      },
-      list: {
-        forums: {
-          en: 'Forums',
-          it: 'Forum',
-        },
-        topics: {
-          full: {
-            en: 'Topics',
-            it: 'Argomenti',
-          },
-          abbr: {
-            en: 'Top.',
-            it: 'Arg.',
-          },
-        },
-        posts: {
-          en: 'Posts',
-          it: 'Messaggi',
-        },
-        lastPost: {
-          en: 'Last post',
-          it: 'Ultimo messaggio',
-        },
-        by: {
-          en: 'by',
-          it: 'di',
-        },
-        noPosts: {
-          en: 'No posts',
-          it: 'Non ci sono messaggi',
-        },
-      },
-      view: {
-        createTopic: {
-          en: 'Create new topic',
-          it: 'Crea un nuovo argomento',
-        },
-        createPost: {
-          en: 'Post to this topic',
-          it: 'Scrivi una risposta',
-        },
-        answers: {
-          full: {
-            en: 'Answers',
-            it: 'Risposte',
-          },
-          abbr: {
-            en: 'Answ.',
-            it: 'Risp.',
-          },
-        },
-        clicks: {
-          en: 'Clicks',
-          it: 'Visite',
-        },
-        posts: {
-          en: 'posts',
-          it: 'messaggi',
-        },
-        score: {
-          en: 'User\'s score',
-          it: 'Punteggio dell\'utente',
-        },
-        signedUp: {
-          en: 'signed up',
-          it: 'iscrizione',
-        },
-        getPermalink: {
-          en: 'Get permalink',
-          it: 'Ottieni link permanente',
-        },
-        quote: {
-          en: 'quote',
-          it: 'cita',
-        },
-        edit: {
-          en: 'edit',
-          it: 'modifica',
-        },
-        'delete': {
-          en: 'delete',
-          it: 'elimina',
-        },
-        confirmDelete: {
-          en: 'Are you sure you want to delete this post?',
-          it: 'Sei sicuro di voler eliminare questo post?',
-        },
-        lastAnswer: {
-          en: 'Last answer',
-          it: 'Ultima risposta',
-        },
-        noAnswers: {
-          en: 'No answers',
-          it: 'Non ci sono risposte',
-        },
-        goToPost: {
-          en: 'Go to post',
-          it: 'Vai al messaggio',
-        },
-      },
-      newTopic: {
-        title: {
-          en: 'New topic',
-          it: 'Nuovo argomento',
-        },
-        close: {
-          en: 'Close',
-          it: 'Chiudi',
-        },
-        enterTitle: {
-          en: 'Enter topic title...',
-          it: 'Scrivi un titolo...',
-        },
-        //~ enterContent: {
-          //~ en: 'Enter topic content...',
-          //~ it: 'Scrivi il testo dell\'argomento...',
-        //~ },
-        submit: {
-          en: 'Submit',
-          it: 'Invia',
-        },
-      },
-      newPost: {
-        title: {
-          en: 'New post',
-          it: 'Nuova risposta',
-        },
-        //~ enterPost: {
-          //~ en: 'Write your answer...',
-          //~ it: 'Scrivi una risposta...',
-        //~ },
-      },
-      editPost: {
-        title: {
-          en: 'Edit this post',
-          it: 'Modifica questa risposta',
-        },
-        submit: {
-          en: 'Apply',
-          it: 'Applica',
-        },
-      },
-    },
-    user: {
-      bar: {
-        profile: {
-          en: 'Profile',
-          it: 'Profilo',
-        },
-        edit: {
-          en: 'Edit your data',
-          it: 'Modifica i tuoi dati',
-        },
-      },
-      profile: {
-        //
-      },
-      edit: {
-        oldPassword: {
-          en: 'Old password',
-          it: 'Vecchia password',
-        },
-        newPassword: {
-          en: 'New password',
-          it: 'Nuova password',
-        },
-        confirmPassword: {
-          en: 'Confirm new password',
-          it: 'Ripeti nuova password',
-        },
-        newEmail: {
-          en: 'New e-mail',
-          it: 'Nuovo indirizzo email',
-        },
-        changed: {
-          en: 'Changes recorded',
-          it: 'Modifiche registrate',
-        },
-        unchanged: {
-          en: 'No changes recorded',
-          it: 'Nessuna modifica registrata',
-        },
-        wrong: {
-          en: 'Wrong password',
-          it: 'Password errata',
-        },
-        leaveEmpty: {
-          en: 'Leave empty if you don\'t want to change your password',
-          it: 'Lascia questo campo vuoto se non vuoi cambiare la password',
-        },
-        submit: {
-          en: 'Update',
-          it: 'Aggiorna',
-        },
-      },
-    },
+    // User interface
+    'Close':
+    {it: 'Chiudi'},
+    'Submit':
+    {it: 'Invia'},
+    'Apply':
+    {it: 'Applica'},
+    'Update':
+    {it: 'Aggiorna'},
+    'Browse...':
+    {it: 'Sfoglia...'},
+    'Changes recorded':
+    {it: 'Modifiche registrate'},
+    'No changes recorded':
+    {it: 'Nessuna modifica registrata'},
+    'Leave empty if you don\'t want to change your password':
+    {it: 'Lascia questo campo vuoto se non vuoi cambiare la password'},
+    'MiB': // mebibyte
+    {},
+    'sec': // abbreviation of: seconds
+    {},
+
+    // Overview page
+    'Italian Olympiads in Informatics training website':
+    {it: 'Portale di allenamento delle Olimpiadi Italiane di Informatica'},
+    'Welcome to the official training website for OII! here you will be able to try and solve programming tasks by coding a solution in either C, C++ or Pascal.':
+    {it: 'Benvenuto nella piattaforma ufficiale di allenamento per le OII! Qui avrai accesso a numerosi problemi ai quali potrai inviare delle soluzioni scritte in C, C++ o Pascal.'},
+    'Learn to code':
+    {it: 'Impara a programmare'},
+    'Tasks archive':
+    {it: 'Archivio dei problemi'},
+    'Advance your ranking':
+    {it: 'Scala la classifica'},
+    'See the rankings':
+    {it: 'Guarda la classifica'},
+    'Get to know other coders':
+    {it: 'Partecipa alla community'},
+    'Go to the forum':
+    {it: 'Visita il forum'},
+    'The wide range of tasks available on this website will allow you to start from the easiest going to the toughest one: in this way you\'ll improve your programming abilities and your attitude to analyze and deal with hard computational problems!':
+    {it: 'La vasta scelta di problemi presenti nel sito ti permette di partire da quelli più facili fino ad arrivare a quelli più difficili: in questo modo migliorerai sempre più le tue abilità di programmazione e la tua capacità di analizzare ed affrontare problemi computazionali!'},
+    'By solving tasks on this website you\'ll earn points that will sum up to your total ranking. Compete with other italian students for the first place of the rankings page!':
+    {it: 'Man mano che risolverai i problemi presenti sulla piattaforma guadagnerai dei punti che si sommeranno al tuo punteggio totale. Competi con tutti gli altri studenti e studentesse italiani per il traguardo del primo posto della classifica!'},
+    'Introduce yourself to other students, discuss the tasks, clear up your doubts on: basic constructs of you programming language, algorithms and data structures, libraries, algorithm techniques, and much more!':
+    {it: 'Presentati agli altri aspiranti olimpici nel forum della piattaforma, discuti dei problemi, risolvi tutti i tuoi dubbi su: costrutti di base del tuo linguaggio di programmazione, algoritmi e strutture dati di libreria, tecniche algoritmiche, e tanto altro!'},
+
+    // Task page
+    'Statement':
+    {it: 'Testo'},
+    'Attachments':
+    {it: 'Allegati'},
+    'Stats':
+    {it: 'Statistiche'},
+    'Submissions':
+    {it: 'Sottoposizioni'},
+    'Memory limit':
+    {it: 'Limite di memoria'},
+    'Time limit':
+    {it: 'Limite di tempo'},
+    'Tags':
+    {it: 'Tag'},
+    'Tags list':
+    {it: 'Elenco dei tag'},
+    'Memory available for the execution of one testcase, measured in MiB.':
+    {it: 'La quantità di memoria, in MiB, disponibile per l\'esecuzione di un testcase.'},
+    'Time available for the execution of one testcase, measured in seconds.':
+    {it: 'La quantità di tempo, in secondi, disponibile per l\'esecuzione di un testcase.'},
+    'Tags are useful to classify tasks by a common characteristic or technique, such as: <i>greedy</i>, <i>graphs</i>, and so on.':
+    {it: 'I tag servono per classificare e raggruppare i problemi in base ad una caratteristica comune, ad esempio: <i>greedy</i>, <i>grafi</i>, e così via.'},
+
+    // Submissions page
+    'Submit a solution':
+    {it: 'Invia una sottoposizione'},
+    'Previous submissions':
+    {it: 'Sottoposizioni precedenti'},
+    'ID':
+    {},
+    'Time and date':
+    {it: 'Data e ora'},
+    'Status':
+    {it: 'Stato'},
+    'File(s)':
+    {it: 'File'},
+    'Submission details':
+    {it: 'Dettagli della sottoposizione'},
+    'Compilation output':
+    {it: 'Output della compilazione'},
+    'Compilation outcome:':
+    {it: 'Esito della compilazione:'},
+    'Compilation time:':
+    {it: 'Tempo di compilazione:'},
+    'Used memory:':
+    {it: 'Memoria utilizzata:'},
+    'Standard output':
+    {},
+    'Standard error':
+    {},
+    'Subtask':
+    {},
+    'Testcase':
+    {},
+    'Result':
+    {it: 'Risultato'},
+    'Details':
+    {it: 'Dettagli'},
+    'Time':
+    {it: 'Tempo'},
+    'Memory':
+    {it: 'Memoria'},
+
+    // Stats page
+    'Number of people who solved it:':
+    {it: 'Numero di persone che l\'hanno risolto:'},
+    'Number of people who tried it:':
+    {it: 'Numero di persone che l\'hanno provato:'},
+    'Number of correct submissions:':
+    {it: 'Numero di soluzioni corrette:'},
+    'Number of solutions submitted:':
+    {it: 'Numero di soluzioni inviate:'},
+    'Users with the best solutions':
+    {it: 'Utenti con le soluzioni migliori'},
+
+    // Navbar buttons
+    'Task & quiz archive':
+    {it: 'Archivio problemi e quiz'},
+    'All tasks':
+    {it: 'Tutti i problemi'},
+    'Quizzes':
+    {it: 'Selezioni scolastiche'},
+    'Ranking':
+    {it: 'Classifica'},
+    'Forum':
+    {},
+
+    // User related
+    'Sign up':
+    {it: 'Registrati'},
+    'Sign in':
+    {it: 'Entra'},
+    'Sign out':
+    {it: 'Esci'},
+    'My user profile':
+    {it: 'Il mio profilo utente'},
+    'Login data':
+    {it: 'Dati di accesso al sito'},
+    'Username':
+    {},
+    'Password':
+    {},
+    'Confirm password':
+    {it: 'Ripeti password'},
+    'Personal data':
+    {it: 'Dati personali'},
+    'First name':
+    {it: 'Nome'},
+    'Last name':
+    {it: 'Cognome'},
+    'E-mail address':
+    {it: 'Indirizzo e-mail'},
+    'Confirm e-mail':
+    {it: 'Ripeti e-mail'},
+    'Institute data':
+    {it: 'Dati della scuola di provenienza'},
+    'Region':
+    {it: 'Regione'},
+    'Province':
+    {it: 'Provincia'},
+    'City':
+    {it: 'Città'},
+    'Institute':
+    {it: 'Istituto'},
+    'User profile preview':
+    {it: 'Anteprima del profilo utente'},
+    'Profile':
+    {it: 'Profilo'},
+    'Edit your data':
+    {it: 'Modifica i tuoi dati'},
+    'Old password':
+    {it: 'Vecchia password'},
+    'New password':
+    {it: 'Nuova password'},
+    'Confirm new password':
+    {it: 'Ripeti nuova password'},
+    'New e-mail address':
+    {it: 'Nuovo indirizzo email'},
+
+    // Tasklist page
+    'search':
+    {it: 'cerca'},
+    'Search by tag':
+    {it: 'Ricerca per tag'},
+
+    // Errors
+    'Username is too short':
+    {it: 'Username troppo corto'},
+    'Username is invalid':
+    {it: 'Username non valido'},
+    'This username is not available':
+    {it: 'Questo username non è disponibile'},
+    'You must specify your password':
+    {it: 'Devi speficicare la tua password'},
+    'Password\'s too short':
+    {it: 'Password troppo corta'},
+    'Passwords don\'t match':
+    {it: 'Le password non combaciano'},
+    'Wrong password':
+    {it: 'Password errata'},
+    'Invalid e-mail':
+    {it: 'E-mail non valida'},
+    'E-mail already used':
+    {it: 'E-mail già utilizzata'},
+    'E-mails don\'t match':
+    {it: 'Gli indirizzi non combaciano'},
+    'You must specify a region':
+    {it: 'Devi specificare una regione'},
+    'You must specify a province':
+    {it: 'Devi specificare una provincia'},
+    'You must specify a city':
+    {it: 'Devi specificare una città'},
+    'You must specify an institute':
+    {it: 'Devi specificare un istituto'},
+
+    // Forum
+    'Forums':
+    {it: 'Forum'},
+    'Topics':
+    {it: 'Argomenti'},
+    'Top.': // abbreviation of: Topics
+    {it: 'Arg.'},
+    'Posts':
+    {it: 'Messaggi'},
+    'Last post':
+    {it: 'Ultimo messaggio'},
+    'by': // as in: postX by userY
+    {it: 'di'},
+    'No posts':
+    {it: 'Non ci sono messaggi'},
+    'Create new topic':
+    {it: 'Crea un nuovo argomento'},
+    'Post to this topic':
+    {it: 'Scrivi una risposta'},
+    'Answers':
+    {it: 'Risposte'},
+    'Answ.': // abbreviation of: Answers
+    {it: 'Risp.'},
+    'Clicks':
+    {it: 'Visite'},
+    'posts':
+    {it: 'messaggi'},
+    'User\'s score':
+    {it: 'Punteggio dell\'utente'},
+    'signed up':
+    {it: 'iscrizione'},
+    'Get permalink':
+    {it: 'Ottieni link permanente'},
+    'quote':
+    {it: 'cita'},
+    'edit':
+    {it: 'modifica'},
+    'delete':
+    {it: 'elimina'},
+    'Are you sure you want to delete this post?':
+    {it: 'Sei sicuro di voler eliminare questo post?'},
+    'Last answer':
+    {it: 'Ultima risposta'},
+    'No answers':
+    {it: 'Non ci sono risposte'},
+    'Go to post':
+    {it: 'Vai al messaggio'},
+    'New topic':
+    {it: 'Nuovo argomento'},
+    'Enter topic title...':
+    {it: 'Scrivi un titolo...'},
+    'New post':
+    {it: 'Nuova risposta'},
+    'Edit this post':
+    {it: 'Modifica questa risposta'},
+    'Go to user\'s page':
+    {it: 'Vai alla pagina utente'},
   })
   .factory('l10n', function(words) {
     return {
       get: function(input) {
         if (input === undefined)
           return input;
-        var x = input.split('.');
-        var ret = words;
-        for (var i in x)
-          ret = ret[x[i]];
-        if (ret.hasOwnProperty('it'))
-          return ret['it'];
+        if (!words.hasOwnProperty(input)) {
+          //~ return "***" + input + "***"; // we don't have this word
+          return input;
+        }
+        if (words[input].hasOwnProperty('it'))
+          return words[input].it;
         else
-          return ret['en'];
+          return input;
       },
     };
   })
