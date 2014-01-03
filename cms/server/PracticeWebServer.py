@@ -45,8 +45,7 @@ from cmscommon.DateTime import make_timestamp, make_datetime
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, wrap_file, responder
 from werkzeug.routing import Map, Rule
-from werkzeug.exceptions import HTTPException, NotFound, BadRequest, \
-    Unauthorized
+from werkzeug.exceptions import HTTPException, NotFound, BadRequest
 
 import gevent
 import gevent.wsgi
@@ -151,6 +150,8 @@ class APIHandler(object):
 
             try:
                 local.data = data
+                local.resp = dict()
+                local.resp['success'] = 1
                 ans = getattr(self, args['target'] + '_handler')()
             except AttributeError:
                 logger.error('Endpoint %s not implemented yet!' % endpoint)
@@ -159,13 +160,14 @@ class APIHandler(object):
             except KeyError:
                 logger.error(traceback.format_exc())
                 return BadRequest()
-            except HTTPException as e:
-                return e
 
         response = Response()
         response.mimetype = 'application/json'
         response.status_code = 200
-        response.data = json.dumps(ans)
+        if ans is None:
+            response.data = json.dumps(local.resp)
+        else:
+            response.data = json.dumps({'success': 0, 'error': ans})
         return response
 
     # Useful methods
@@ -180,37 +182,24 @@ class APIHandler(object):
             .filter(User.password == token).first()
 
     def check_user(self, username):
-        resp = dict()
         if len(username) < 4:
-            resp['success'] = 0
-            resp['error'] = 'signup.errors.username.short'
+            return 'signup.errors.username.short'
         elif not self.USERNAME_REG.match(username):
-            resp['success'] = 0
-            resp['error'] = 'signup.errors.username.invalid'
+            return 'signup.errors.username.invalid'
         else:
             user = local.session.query(User)\
                 .filter(User.username == username).first()
-            if user is None:
-                resp['success'] = 1
-            else:
-                resp['success'] = 0
-                resp['error'] = 'signup.errors.username.used'
-        return resp
+            if user is not None:
+                return 'signup.errors.username.used'
 
     def check_email(self, email):
-        resp = dict()
         if not self.EMAIL_REG.match(email):
-            resp['success'] = 0
-            resp['error'] = 'signup.errors.email.invalid'
+            return 'signup.errors.email.invalid'
         else:
             user = local.session.query(User)\
                 .filter(User.email == email).first()
-            if user is None:
-                resp['success'] = 1
-            else:
-                resp['success'] = 0
-                resp['error'] = 'signup.errors.email.used'
-        return resp
+            if user is not None:
+                return 'signup.errors.email.used'
 
     def hash(self, string, algo='sha256'):
         if string is None:
@@ -291,43 +280,45 @@ class APIHandler(object):
             rvalue = local.data['value']
         except KeyError:
             logger.warning('Missing parameters')
-            raise BadRequest()
+            return 'connection.badrequest'
 
         if rtype == 'username':
-            return self.check_user(rvalue)
+            err = self.check_user(rvalue)
         elif rtype == 'email':
-            return self.check_email(rvalue)
-
-        logger.warning('Request type not understood')
-        raise BadRequest()
+            err = self.check_email(rvalue)
+        else:
+            logger.warning('Request type not understood')
+            return 'connection.badrequest'
+        return err
 
     def location_handler(self):
-        resp = dict()
         if local.data['action'] == 'get':
             institute = local.session.query(Institute)\
                 .filter(Institute.id == local.data['id']).first()
             if institute is None:
-                raise NotFound()
-            resp = self.get_institute_info(institute)
+                return 'connection.notfound'
+            local.resp = self.get_institute_info(institute)
         elif local.data['action'] == 'listregions':
             out = local.session.query(Region).all()
-            resp['regions'] = [{'id': r.id, 'name': r.name} for r in out]
+            local.resp['regions'] = [{'id': r.id, 'name': r.name}
+                                     for r in out]
         elif local.data['action'] == 'listprovinces':
             out = local.session.query(Province)\
                 .filter(Province.region_id == local.data['id']).all()
-            resp['provinces'] = [{'id': r.id, 'name': r.name} for r in out]
+            local.resp['provinces'] = [{'id': r.id, 'name': r.name}
+                                       for r in out]
         elif local.data['action'] == 'listcities':
             out = local.session.query(City)\
                 .filter(City.province_id == local.data['id']).all()
-            resp['cities'] = [{'id': r.id, 'name': r.name} for r in out]
+            local.resp['cities'] = [{'id': r.id, 'name': r.name}
+                                    for r in out]
         elif local.data['action'] == 'listinstitutes':
             out = local.session.query(Institute)\
                 .filter(Institute.city_id == local.data['id']).all()
-            resp['institutes'] = [{'id': r.id, 'name': r.name} for r in out]
-        return resp
+            local.resp['institutes'] = [{'id': r.id, 'name': r.name}
+                                        for r in out]
 
     def user_handler(self):
-        resp = dict()
         if local.data['action'] == 'new':
             try:
                 username = local.data['username']
@@ -338,18 +329,17 @@ class APIHandler(object):
                 institute = int(local.data['institute'])
             except KeyError:
                 logger.warning('Missing parameters')
-                raise BadRequest()
+                return 'connection.badrequest'
 
             token = self.hashpw(password)
 
-            resp = self.check_user(username)
-            if not resp['success']:
-                return resp
-            resp = self.check_email(email)
-            if not resp['success']:
-                return resp
+            err = self.check_user(username)
+            if err is not None:
+                return err
+            err = self.check_email(email)
+            if err is not None:
+                return err
 
-            resp['success'] = 1
             user = User(
                 first_name=firstname,
                 last_name=lastname,
@@ -364,31 +354,29 @@ class APIHandler(object):
                 local.session.add(user)
                 local.session.commit()
             except IntegrityError:
-                resp['success'] = 0
-                resp['error'] = 'USER_EXISTS'
+                return 'signup.user_exists'
         elif local.data['action'] == 'login':
             try:
                 username = local.data['username']
                 password = local.data['password']
             except KeyError:
                 logger.warning('Missing parameter')
-                raise BadRequest()
+                return 'connection.badrequest'
 
             token = self.hashpw(password)
 
             user = self.get_user(username, token)
             if user is None:
-                resp['success'] = 0
+                return 'login.error'
             else:
-                resp['success'] = 1
-                resp['token'] = token
-                resp['access_level'] = user.access_level
+                local.resp['token'] = token
+                local.resp['access_level'] = user.access_level
         elif local.data['action'] == 'get':
             user = local.session.query(User)\
                 .filter(User.username == local.data['username']).first()
             if user is None:
-                raise NotFound()
-            resp = self.get_user_info(user)
+                return 'connection.notfound'
+            local.resp = self.get_user_info(user)
         elif local.data['action'] == 'list':
             query = local.session.query(User)\
                 .filter(User.hidden == False)\
@@ -397,186 +385,168 @@ class APIHandler(object):
             if 'institute' in local.data:
                 query = query\
                     .filter(User.institute_id == local.data['institute'])
-            users, resp['num'] = self.sliced_query(query)
-            resp['users'] = map(self.get_user_info, users)
+            users, local.resp['num'] = self.sliced_query(query)
+            local.resp['users'] = map(self.get_user_info, users)
         elif local.data['action'] == 'update':
             if local.user is None:
-                raise Unauthorized()
-            resp['success'] = 0
+                return 'connection.unauthorized'
             if 'institute' in local.data and \
                local.data['institute'] is not None:
                 local.user.institute_id = int(local.data['institute'])
-                resp['success'] = 1
             if 'email' in local.data and \
                local.data['email'] != '' and \
                local.user.email != local.data['email']:
-                resp = self.check_email(local.data['email'])
-                if not resp['success']:
-                    return resp
+                err = self.check_email(local.data['email'])
+                if err is not None:
+                    return err
                 local.user.email = local.data['email']
-                resp['success'] = 1
             if 'old_password' in local.data and \
                local.data['old_password'] != '':
                 old_token = self.hashpw(local.data['old_password'])
                 if local.user.password != old_token:
-                    resp['error'] = 'user.edit.wrong'
-                    return resp
+                    return 'user.edit.wrong'
                 if len(local.data['password']) < 5:
-                    resp['error'] = 'signup.errors.password'
-                    return resp
+                    return 'signup.errors.password'
                 new_token = self.hashpw(local.data['password'])
                 local.user.password = new_token
-                resp['token'] = new_token
-                resp['success'] = 1
+                local.resp['token'] = new_token
             local.session.commit()
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def task_handler(self):
-        resp = dict()
         if local.data['action'] == 'list':
             query = local.session.query(Task)\
                 .filter(Task.access_level >= local.access_level)\
                 .order_by(desc(Task.id))
             if 'tag' in local.data:
                 query = query.filter(Task.tags.any(name=local.data['tag']))
-            tasks, resp['num'] = self.sliced_query(query)
-            resp['tasks'] = []
+            tasks, local.resp['num'] = self.sliced_query(query)
+            local.resp['tasks'] = []
             for t in tasks:
                 task = dict()
                 task['id'] = t.id
                 task['name'] = t.name
                 task['title'] = t.title
-                resp['tasks'].append(task)
+                local.resp['tasks'].append(task)
         elif local.data['action'] == 'get':
             t = local.session.query(Task)\
                 .filter(Task.name == local.data['name'])\
                 .filter(Task.access_level >= local.access_level).first()
             if t is None:
-                raise NotFound()
-            resp['id'] = t.id
-            resp['name'] = t.name
-            resp['title'] = t.title
-            resp['statements'] =\
+                return 'connection.notfound'
+            local.resp['id'] = t.id
+            local.resp['name'] = t.name
+            local.resp['title'] = t.title
+            local.resp['statements'] =\
                 dict([(l, s.digest) for l, s in t.statements.iteritems()])
-            resp['submission_format'] =\
+            local.resp['submission_format'] =\
                 [sfe.filename for sfe in t.submission_format]
             for i in ['time_limit', 'memory_limit', 'task_type']:
-                resp[i] = getattr(t.active_dataset, i)
+                local.resp[i] = getattr(t.active_dataset, i)
             att = []
             for (name, obj) in t.attachments.iteritems():
                 att.append((name, obj.digest))
-            resp['attachments'] = att
-            resp['tags'] = [tag.name for tag in t.tags if tag.hidden is False]
+            local.resp['attachments'] = att
+            local.resp['tags'] = [tag.name
+                                  for tag in t.tags if tag.hidden is False]
         elif local.data['action'] == 'stats':
             t = local.session.query(Task)\
                 .filter(Task.name == local.data['name'])\
                 .filter(Task.access_level >= local.access_level).first()
             if t is None:
-                raise NotFound()
-            resp['nsubs'] = t.nsubs
-            resp['nusers'] = t.nusers
-            resp['nsubscorrect'] = t.nsubscorrect
-            resp['nuserscorrect'] = t.nuserscorrect
+                return 'connection.notfound'
+            local.resp['nsubs'] = t.nsubs
+            local.resp['nusers'] = t.nusers
+            local.resp['nsubscorrect'] = t.nsubscorrect
+            local.resp['nuserscorrect'] = t.nuserscorrect
             best = local.session.query(TaskScore)\
                 .filter(TaskScore.task == t)\
                 .filter(TaskScore.score == 100)\
                 .order_by(TaskScore.time)\
                 .slice(0, 10).all()
-            resp['best'] = [{'username': b.user.username,
-                             'time': b.time} for b in best]
+            local.resp['best'] = [{'username': b.user.username,
+                                   'time': b.time} for b in best]
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def tag_handler(self):
-        resp = dict()
         if local.data['action'] == 'list':
             tags = local.session.query(Tag)\
                 .order_by(Tag.id)\
                 .filter(Tag.hidden == False).all()
-            resp['tags'] = [t.name for t in tags]
-            return resp
-
-        resp['success'] = 0
-        if local.data['action'] == 'create':
+            local.resp['tags'] = [t.name for t in tags]
+        elif local.data['action'] == 'create':
             if local.access_level >= 4:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             try:
                 if len(local.data['description']) < 5:
-                    resp['error'] = 'tags.description_short'
+                    return 'tags.description_short'
                 else:
                     tag = Tag(name=local.data['tag'],
                               description=local.data['description'],
                               hidden=False)
                     local.session.add(tag)
                     local.session.commit()
-                    resp['success'] = 1
             except IntegrityError:
-                resp['error'] = 'tags.tag_exists'
+                return 'tags.tag_exists'
         elif local.data['action'] == 'delete':
             if local.access_level >= 4:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             tag = local.session.query(Tag)\
                 .filter(Tag.name == local.data['tag']).first()
             if tag is None:
-                resp['error'] = 'tags.tag_doesnt_exist'
+                return 'tags.tag_doesnt_exist'
             elif tag.hidden is True and local.access_level > 0:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             else:
                 local.session.delete(tag)
                 local.session.commit()
-                resp['success'] = 1
         elif local.data['action'] == 'add':
             if local.access_level >= 5:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             tag = local.session.query(Tag)\
                 .filter(Tag.name == local.data['tag']).first()
             task = local.session.query(Task)\
                 .filter(Task.name == local.data['task']).first()
             if tag is None:
-                resp['error'] = 'tags.tag_doesnt_exist'
+                return 'tags.tag_doesnt_exist'
             elif tag.hidden is True and local.access_level > 0:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             elif task is None:
-                resp['error'] = 'tags.task_doesnt_exist'
+                return 'tags.task_doesnt_exist'
             elif tag in task.tags:
-                resp['error'] = 'tags.task_has_tag'
+                return 'tags.task_has_tag'
             else:
                 task.tags.append(tag)
                 local.session.commit()
-                resp['success'] = 1
         elif local.data['action'] == 'remove':
             if local.access_level >= 5:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             tag = local.session.query(Tag)\
                 .filter(Tag.name == local.data['tag']).first()
             task = local.session.query(Task)\
                 .filter(Task.name == local.data['task']).first()
             if tag is None:
-                resp['error'] = 'tags.tag_doesnt_exist'
+                return 'tags.tag_doesnt_exist'
             elif tag.hidden is True and local.access_level > 0:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             elif task is None:
-                resp['error'] = 'tags.tag_doesnt_exist'
+                return 'tags.tag_doesnt_exist'
             elif tag not in task.tags:
-                resp['error'] = 'tags.task_hasnt_tag'
+                return 'tags.task_hasnt_tag'
             else:
                 task.tags.remove(tag)
                 local.session.commit()
-                resp['success'] = 1
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def test_handler(self):
-        resp = dict()
         if local.data['action'] == 'list':
             tests = local.session.query(Test)\
                 .filter(Test.access_level >= local.access_level)\
                 .order_by(Test.id).all()
-            resp['tests'] = []
+            local.resp['tests'] = []
             for t in tests:
                 test = {
                     'name': t.name,
@@ -589,16 +559,16 @@ class APIHandler(object):
                         .filter(TestScore.user_id == local.user.id).first()
                     if testscore is not None:
                         test['score'] = testscore.score
-                resp['tests'].append(test)
+                local.resp['tests'].append(test)
         elif local.data['action'] == 'get':
             test = local.session.query(Test)\
                 .filter(Test.name == local.data['test_name'])\
                 .filter(Test.access_level >= local.access_level).first()
             if test is None:
-                raise NotFound()
-            resp['name'] = test.name
-            resp['description'] = test.description
-            resp['questions'] = []
+                return 'connection.notfound'
+            local.resp['name'] = test.name
+            local.resp['description'] = test.description
+            local.resp['questions'] = []
             for i in test.questions:
                 q = dict()
                 q['type'] = i.type
@@ -609,24 +579,24 @@ class APIHandler(object):
                     q['choices'] = [t[0] for t in ansdata]
                 else:
                     q['answers'] = [[t[0], len(t[1])] for t in ansdata]
-                resp['questions'].append(q)
+                local.resp['questions'].append(q)
         elif local.data['action'] == 'answer':
             test = local.session.query(Test)\
                 .filter(Test.name == local.data['test_name'])\
                 .filter(Test.access_level >= local.access_level).first()
             if test is None:
-                raise NotFound()
+                return 'connection.notfound'
             data = local.data['answers']
             for i in xrange(len(test.questions)):
                 q = test.questions[i]
                 ansdata = json.loads(q.answers)
                 if q.type == 'choice':
-                    resp[i] = [q.wrong_score, 'wrong']
+                    local.resp[i] = [q.wrong_score, 'wrong']
                     try:
                         if data[i] is None:
-                            resp[i] = [0, 'empty']
+                            local.resp[i] = [0, 'empty']
                         elif ansdata[int(data[i])][1]:
-                            resp[i] = [q.score, 'correct']
+                            local.resp[i] = [q.score, 'correct']
                     except IndexError:
                         pass
                     continue
@@ -634,10 +604,10 @@ class APIHandler(object):
                     for key, correct in ansdata:
                         ans = data[i].get(key, None)
                         if len(ans) != len(correct):
-                            resp[i] = [q.wrong_score, 'wrong']
+                            local.resp[i] = [q.wrong_score, 'wrong']
                         for a in xrange(len(ans)):
                             if ans[a] is None:
-                                resp[i] = [0, 'empty']
+                                local.resp[i] = [0, 'empty']
                                 break
                             if q.type == 'number':
                                 an = float(ans[a])
@@ -646,11 +616,11 @@ class APIHandler(object):
                                 an = ans[a].lower()
                                 cor = correct[a].lower()
                             if an != cor:
-                                resp[i] = [q.wrong_score, 'wrong']
-                    if resp.get(i, None) is None:
-                        resp[i] = [q.score, 'correct']
+                                local.resp[i] = [q.wrong_score, 'wrong']
+                    if local.resp.get(i, None) is None:
+                        local.resp[i] = [q.score, 'correct']
             if local.user is not None:
-                score = sum([q[0] for q in resp.itervalues()])
+                score = sum([q[0] for q in local.resp.itervalues()])
                 testscore = local.session.query(TestScore)\
                     .filter(TestScore.test_id == test.id)\
                     .filter(TestScore.user_id == local.user.id).first()
@@ -664,18 +634,16 @@ class APIHandler(object):
                         testscore.score = score
                 local.session.commit()
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def submission_handler(self):
-        resp = dict()
         if local.data['action'] == 'list':
             task = local.session.query(Task)\
                 .filter(Task.name == local.data['task_name']).first()
             if task is None:
-                raise NotFound()
+                return 'connection.notfound'
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             subs = local.session.query(Submission)\
                 .filter(Submission.user_id == local.user.id)\
                 .filter(Submission.task_id == task.id)\
@@ -701,14 +669,14 @@ class APIHandler(object):
                 if result is not None and result.score is not None:
                     submission['score'] = round(result.score, 2)
                 submissions.append(submission)
-            resp['submissions'] = submissions
+            local.resp['submissions'] = submissions
         elif local.data['action'] == 'details':
             s = local.session.query(Submission)\
                 .filter(Submission.id == local.data['id']).first()
             if s is None:
-                raise NotFound()
+                return 'connection.notfound'
             if local.user is None or s.user_id != local.user.id:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             submission = dict()
             submission['id'] = s.id
             submission['task_id'] = s.task_id
@@ -746,16 +714,16 @@ class APIHandler(object):
                         testcase['text'] = data[0] % tuple(data[1:])
             else:
                 submission['score_details'] = None
-            resp = submission
+            local.resp = submission
         elif local.data['action'] == 'new':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             lastsub = local.session.query(Submission)\
                 .filter(Submission.user_id == local.user.id)\
                 .order_by(desc(Submission.timestamp)).first()
             if lastsub is not None and \
                make_datetime() - lastsub.timestamp < timedelta(seconds=20):
-                return {'success': 0, 'error': 'submission.short_interval'}
+                return 'submission.short_interval'
 
             # TODO: implement archives and (?) partial submissions
             try:
@@ -763,9 +731,7 @@ class APIHandler(object):
                     .filter(Task.name == local.data['task_name'])\
                     .filter(Task.access_level >= local.access_level).first()
             except KeyError:
-                raise NotFound()
-            resp = dict()
-            resp['success'] = 1
+                return 'connection.notfound'
 
             # Detect language
             files = []
@@ -773,9 +739,9 @@ class APIHandler(object):
             for sfe in task.submission_format:
                 f = local.data['files'].get(sfe.filename)
                 if f is None:
-                    return {'success': 0, 'error': 'submission.files_missing'}
+                    return 'submission.files_missing'
                 if len(f['data']) > config.max_submission_length:
-                    return {'success': 0, 'error': 'submission.files_too_big'}
+                    return 'submission.files_too_big'
                 f['name'] = sfe.filename
                 files.append(f)
                 if sfe.filename.endswith('.%l'):
@@ -784,11 +750,9 @@ class APIHandler(object):
                         if f['filename'].endswith(ext):
                             language = l
                     if language is None:
-                        return {'success': 0,
-                                'error': 'submission.language_unknown'}
+                        return 'submission.language_unknown'
                     elif sub_lang is not None and sub_lang != language:
-                        return {'success': 0,
-                                'error': 'submission.language_different'}
+                        return 'submission.language_different'
                     else:
                         sub_lang = language
 
@@ -816,13 +780,13 @@ class APIHandler(object):
             )
 
             # Answer with submission data
-            resp['id'] = submission.id
-            resp['task_id'] = submission.task_id
-            resp['timestamp'] = make_timestamp(submission.timestamp)
-            resp['compilation_outcome'] = None
-            resp['evaluation_outcome'] = None
-            resp['score'] = None
-            resp['files'] = []
+            local.resp['id'] = submission.id
+            local.resp['task_id'] = submission.task_id
+            local.resp['timestamp'] = make_timestamp(submission.timestamp)
+            local.resp['compilation_outcome'] = None
+            local.resp['evaluation_outcome'] = None
+            local.resp['score'] = None
+            local.resp['files'] = []
             for name, f in submission.files.iteritems():
                 fi = dict()
                 if submission.language is None:
@@ -830,18 +794,16 @@ class APIHandler(object):
                 else:
                     fi['name'] = name.replace('%l', submission.language)
                 fi['digest'] = f.digest
-                resp['files'].append(fi)
+                local.resp['files'].append(fi)
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def forum_handler(self):
-        resp = dict()
         if local.data['action'] == 'list':
             forums = local.session.query(Forum)\
                 .filter(Forum.access_level >= local.access_level)\
                 .order_by(Forum.id).all()
-            resp['forums'] = []
+            local.resp['forums'] = []
             for f in forums:
                 forum = dict()
                 forum['id'] = f.id
@@ -857,16 +819,16 @@ class APIHandler(object):
                         'topic_id':     f.topics[0].id,
                         'num':          f.topics[0].npost
                     }
-                resp['forums'].append(forum)
+                local.resp['forums'].append(forum)
         elif local.data['action'] == 'new':
             if local.access_level > 1:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             if local.data['title'] is None or \
                len(local.data['title']) < 4:
-                return {"success": 0, "error": "forum.title_short"}
+                return "forum.title_short"
             if local.data['description'] is None or \
                len(local.data['description']) < 4:
-                return {"success": 0, "error": "forum.description_short"}
+                return "forum.description_short"
             forum = Forum(title=local.data['title'],
                           description=local.data['description'],
                           access_level=7,
@@ -874,30 +836,27 @@ class APIHandler(object):
                           npost=0)
             local.session.add(forum)
             local.session.commit()
-            resp['success'] = 1
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def topic_handler(self):
-        resp = dict()
         if local.data['action'] == 'list':
             forum = local.session.query(Forum)\
                 .filter(Forum.access_level >= local.access_level)\
                 .filter(Forum.id == local.data['forum']).first()
             if forum is None:
-                raise NotFound()
+                return 'connection.notfound'
             noAnswer = 'noAnswer' in local.data and local.data['noAnswer']
-            resp['title'] = forum.title
-            resp['description'] = forum.description
+            local.resp['title'] = forum.title
+            local.resp['description'] = forum.description
             query = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
                 .order_by(desc(Topic.timestamp))
-            topics, resp['num'] = self.sliced_query(query)
-            resp['numUnanswered'] = local.session.query(Topic)\
+            topics, local.resp['num'] = self.sliced_query(query)
+            local.resp['numUnanswered'] = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
                 .filter(Topic.answered == False).count()
-            resp['topics'] = []
+            local.resp['topics'] = []
             for t in topics:
                 if noAnswer and t.answered is True:
                     continue
@@ -913,19 +872,19 @@ class APIHandler(object):
                     'username':  t.last_writer.username,
                     'timestamp': make_timestamp(t.timestamp)
                 }
-                resp['topics'].append(topic)
+                local.resp['topics'].append(topic)
         elif local.data['action'] == 'new':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             forum = local.session.query(Forum)\
                 .filter(Forum.access_level >= local.access_level)\
                 .filter(Forum.id == local.data['forum']).first()
             if forum is None:
-                raise NotFound()
+                return 'connection.notfound'
             if local.data['title'] is None or len(local.data['title']) < 4:
-                return {"success": 0, "error": "forum.title_short"}
+                return "forum.title_short"
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return {"success": 0, "error": "post.text_short"}
+                return "post.text_short"
             topic = Topic(status='open',
                           title=local.data['title'],
                           timestamp=make_datetime(),
@@ -946,44 +905,41 @@ class APIHandler(object):
             forum.npost = local.session.query(Post)\
                 .filter(Post.forum_id == forum.id).count()
             local.session.commit()
-            resp['success'] = 1
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def post_handler(self):
-        resp = dict()
         if local.data['action'] == 'list':
             topic = local.session.query(Topic)\
                 .filter(Topic.id == local.data['topic']).first()
             if topic is None or topic.forum.access_level < local.access_level:
-                raise NotFound()
+                return 'connection.notfound'
             topic.nview += 1
             local.session.commit()
             query = local.session.query(Post)\
                 .filter(Post.topic_id == topic.id)\
                 .order_by(Post.timestamp)
-            posts, resp['num'] = self.sliced_query(query)
-            resp['title'] = topic.title
-            resp['forumId'] = topic.forum.id
-            resp['forumTitle'] = topic.forum.title
-            resp['posts'] = []
+            posts, local.resp['num'] = self.sliced_query(query)
+            local.resp['title'] = topic.title
+            local.resp['forumId'] = topic.forum.id
+            local.resp['forumTitle'] = topic.forum.title
+            local.resp['posts'] = []
             for p in posts:
                 post = dict()
                 post['id'] = p.id
                 post['text'] = p.text
                 post['timestamp'] = make_timestamp(p.timestamp)
                 post['author'] = self.get_user_info(p.author)
-                resp['posts'].append(post)
+                local.resp['posts'].append(post)
         elif local.data['action'] == 'new':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             topic = local.session.query(Topic)\
                 .filter(Topic.id == local.data['topic']).first()
             if topic is None or topic.forum.access_level < local.access_level:
-                raise NotFound()
+                return 'connection.notfound'
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return {"success": 0, "error": "post.text_short"}
+                return "post.text_short"
             post = Post(text=local.data['text'],
                         timestamp=make_datetime())
             post.author = local.user
@@ -998,25 +954,23 @@ class APIHandler(object):
             topic.npost = local.session.query(Post)\
                 .filter(Post.topic_id == topic.id).count()
             local.session.commit()
-            resp['success'] = 1
         elif local.data['action'] == 'delete':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             post = local.session.query(Post)\
                 .filter(Post.id == local.data['id']).first()
             if post is None:
-                raise NotFound()
+                return 'connection.notfound'
             if post.author != local.user and local.user.access_level > 2:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             forum = post.topic.forum
             if post.topic.posts[0] == post:
                 local.session.delete(post.topic)
-                resp['success'] = 2
+                local.resp['success'] = 2
             else:
                 local.session.delete(post)
                 post.topic.npost = local.session.query(Post)\
                     .filter(Post.topic_id == post.topic.id).count()
-                resp['success'] = 1
             forum.npost = local.session.query(Post)\
                 .filter(Post.forum_id == forum.id).count()
             forum.ntopic = local.session.query(Topic)\
@@ -1024,73 +978,70 @@ class APIHandler(object):
             local.session.commit()
         elif local.data['action'] == 'edit':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             post = local.session.query(Post)\
                 .filter(Post.id == local.data['id']).first()
             if post is None:
-                raise NotFound()
+                return 'connection.notfound'
             if post.author != local.user and local.user.access_level > 2:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return {"success": 0, "error": "post.text_short"}
+                return 'post.text_short'
             post.text = local.data['text']
             local.session.commit()
-            resp['success'] = 1
         else:
-            raise BadRequest()
-        return resp
+            return 'connection.badrequest'
 
     def pm_handler(self):
-        resp = dict()
         if local.data['action'] == 'list_sent':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             query = local.session.query(PrivateMessage)\
                 .filter(PrivateMessage.sender_id == local.user.id)\
                 .order_by(PrivateMessage.timestamp)
-            pms, resp['num'] = self.sliced_query(query)
-            resp['pms'] = []
+            pms, local.resp['num'] = self.sliced_query(query)
+            local.resp['pms'] = []
             for p in pms:
                 pm = dict()
                 pm['title'] = p.title
                 pm['receiver'] = self.get_user_info(p.receiver)
                 pm['timestamp'] = make_timestamp(p.timestamp)
-                resp['pms'].append(pm)
+                local.resp['pms'].append(pm)
         elif local.data['action'] == 'list_received':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             query = local.session.query(PrivateMessage)\
                 .filter(PrivateMessage.receiver_id == local.user.id)\
                 .order_by(PrivateMessage.timestamp)
-            pms, resp['num'] = self.sliced_query(query)
-            resp['pms'] = []
+            pms, local.resp['num'] = self.sliced_query(query)
+            local.resp['pms'] = []
             for p in pms:
                 pm = dict()
                 pm['title'] = p.title
                 pm['sender'] = self.get_user_info(p.sender)
                 pm['timestamp'] = make_timestamp(p.timestamp)
                 pm['read'] = p.read
-                resp['pms'].append(pm)
+                local.resp['pms'].append(pm)
         elif local.data['action'] == 'get':
             pm = local.session.query(PrivateMessage)\
                 .filter(PrivateMessage.id == local.data['id']).first()
             if pm is None:
-                raise NotFound()
+                return 'connection.notfound'
             if pm.receiver != local.user and pm.sender != local.user:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             if pm.receiver == local.user:
                 pm.read = True
                 local.session.commit()
-            resp['title'] = pm.title
-            resp['sender'] = self.get_user_info(p.sender)
-            resp['receiver'] = self.get_user_info(p.receiver)
-            resp['timestamp'] = make_timestamp(p.timestamp)
-            resp['text'] = p.text
+            local.resp['title'] = pm.title
+            local.resp['sender'] = self.get_user_info(p.sender)
+            local.resp['receiver'] = self.get_user_info(p.receiver)
+            local.resp['timestamp'] = make_timestamp(p.timestamp)
+            local.resp['text'] = p.text
         elif local.data['action'] == 'new':
             if local.user is None:
-                raise Unauthorized()
+                return 'connection.unauthorized'
             if local.user.id == local.data['receiver_id']:
-                return {'success': 0, 'error': 'pm.self'}
+                return 'pm.self'
             pm = PrivateMessage(text=local.data['text'],
                                 title=local.data['title'],
                                 timestamp=make_datetime())
@@ -1101,11 +1052,12 @@ class APIHandler(object):
             local.session.commit()
         elif local.data['action'] == 'get_unread':
             if local.user is None:
-                raise Unauthorized()
-            resp['num'] = local.session.query(PrivateMessage)\
+                return 'connection.unauthorized'
+            local.resp['num'] = local.session.query(PrivateMessage)\
                 .filter(PrivateMessage.receiver_id == local.user.id)\
                 .filter(PrivateMessage.read == False).count()
-        return resp
+        else:
+            return 'connection.badrequest'
 
 
 class PracticeWebServer(Service):
