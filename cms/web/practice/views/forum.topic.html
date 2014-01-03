@@ -9,31 +9,34 @@
       <dd class="head mainbar">
         <div class="btn-group pull-right">
           <button ng-hide="!user.isLogged() || user.isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#new_post" ng-click="doQuote(post.text,post.author.username)">
-            {{'forum.view.quote' | l10n}}
+            {{'quote' | l10n}}
           </button>
           <button ng-show="user.isMod() || user.isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#edit_post" ng-click="doEdit(post.text,post.id)">
-            {{'forum.view.edit' | l10n}}
+            {{'edit' | l10n}}
           </button>
           <button ng-show="user.isMod()" class="btn btn-xs btn-link" ng-click="deletePost(post.id)">
-            {{'forum.view.delete' | l10n}}
+            {{'delete' | l10n}}
           </button>
         </div>
-        <button class="btn btn-xs btn-link hidden-xs" title="{{'forum.view.getPermalink' | l10n}}">
+        <button class="btn btn-xs btn-link hidden-xs">
+<!--
+          title="{{'Get permalink' | l10n}}">
+-->
           {{post.timestamp | dateFmt}} <!-- TODOLATER: show permalink to this post -->
         </button>
       </dd>
     </dl>
     <dl class="panel-body" ng-repeat-end>
       <dd class="sidebar bordered">
-        <a class="dont-underline" title="Vai alla pagina utente" ui-sref="user({userId: post.author.username})">
+        <a class="dont-underline" title="{{'Go to user\'s page' | l10n}}" ui-sref="user({userId: post.author.username})">
           <img class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{post.author.mail_hash}}?d=identicon&s=75" />
         </a>
         <br />
-        <abbr title="{{'forum.view.score' | l10n}}">score</abbr>: {{post.author.score}}
+        <abbr title="{{'User\'s score' | l10n}}">score</abbr>: {{post.author.score}}
         <br />
-        <small>{{'forum.view.posts' | l10n}}: {{post.author.post_count}}</small>
+        <small>{{'posts' | l10n}}: {{post.author.post_count}}</small>
         <br />
-        <small>{{'forum.view.signedUp' | l10n}}: {{post.author.join_date | monthYearFmt}}</small>
+        <small>{{'signed up' | l10n}}: {{post.author.join_date | monthYearFmt}}</small>
       </dd>
       <dd class="mainbar">
         <div class="message" ng-bind-html="post.text"></div>
@@ -41,7 +44,7 @@
     </dl>
   </div>
   <button ng-show="user.isLogged()" class="btn btn-sm btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
-    {{'forum.view.createPost' | l10n}}
+    {{'Post to this topic' | l10n}}
   </button>
   <!-- new post -->
   <div class="modal fade" id="new_post" tabindex="-1" role="dialog" aria-hidden="true">
@@ -49,7 +52,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title">{{'forum.newPost.title' | l10n}}</h4>
+          <h4 class="modal-title">{{'New post' | l10n}}</h4>
         </div>
         <div class="modal-body">
           <div text-angular="text-angular" ta-toolbar="{{toolbar}}" ta-text-editor-class="editor-forum form-control"
@@ -57,8 +60,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
-          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newPost()">{{'forum.newTopic.submit' | l10n}}</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newPost()">{{'Submit' | l10n}}</button>
         </div>
       </div>
     </div>
@@ -69,7 +72,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title">{{'forum.editPost.title' | l10n}}</h4>
+          <h4 class="modal-title">{{'Edit this post' | l10n}}</h4>
         </div>
         <div class="modal-body">
           <div text-angular="text-angular" ta-toolbar="{{user.toolbar}}" ta-text-editor-class="editor-forum form-control"
@@ -77,8 +80,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
-          <button type="button" class="btn btn-warning" data-dismiss="modal" ng-click="editPost()">{{'forum.editPost.submit' | l10n}}</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
+          <button type="button" class="btn btn-warning" data-dismiss="modal" ng-click="editPost()">{{'Apply' | l10n}}</button>
         </div>
       </div>
     </div>

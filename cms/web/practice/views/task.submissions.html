@@ -1,6 +1,6 @@
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">Invia una sottoposizione</h3>
+    <h3 class="panel-title">{{'Submit a solution' | l10n}}</h3>
   </div>
   <div class="panel-body">
     <form class="form-horizontal" ng-submit="loadFiles()" id="submitform">
@@ -8,33 +8,33 @@
         <label class="control-label col-lg-3" for="{{file}}">{{file | repext}}</label>
         <div class="col-lg-9">
           <span />
-          <a id="{{file}}" class="btn btn-default btn-sm" name="{{file}}">Browse...</a>
+          <a id="{{file}}" class="btn btn-default btn-sm" name="{{file}}">{{'Browse...' | l10n}}</a>
         </div>
       </div>
       <div class="form-group">
         <div class="col-lg-offset-3 col-lg-9">
-          <button type="submit" class="btn btn-success">Invia</button>
+          <button type="submit" class="btn btn-success">{{'Submit' | l10n}}</button>
         </div>
       </div>
     </form>
   </div>
   <div class="panel-heading">
-    <h3 class="panel-title">Sottoposizioni precedenti</h3>
+    <h3 class="panel-title">{{'Previous submissions' | l10n}}</h3>
   </div>
   <table class="submissions table table-bordered table-striped">
     <tr ng-show="areThereSubs(taskName)">
-      <th class="col-xs-1">ID</th>
-      <th class="col-xs-4">Data e ora</th>
-      <th class="col-xs-5">Stato</th>
-      <th class="col-xs-2">File</th>
+      <th class="col-xs-1">{{'ID' | l10n}}</th>
+      <th class="col-xs-4">{{'Time and date' | l10n}}</th>
+      <th class="col-xs-5">{{'Status' | l10n}}</th>
+      <th class="col-xs-2">{{'File(s)' | l10n}}</th>
     </tr>
     <tr ng-hide="areThereSubs(taskName)">
-      <td colspan="4" class="no-submissions">nessuna sottoposizione</td>
+      <td colspan="4" class="no-submissions">{{'no submissions' | l10n}}</td>
     </tr>
     <tr class="submission" ng-repeat="sub in submissions[taskName]">
       <td><a data-toggle="modal" data-target="#submission_detail" ng-click="showDetails(sub.id)">{{sub.id}}</a></td>
       <td>{{sub.time}}</td>
-      <td class="{{sub.cl}}">{{sub.status}}</td>
+      <td class="{{sub.cl}}">{{sub.status | l10n}}</td>
       <td class="files">
         <div class="btn-group">
           <a class="dropdown-toggle" data-toggle="dropdown">
@@ -55,13 +55,13 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title">Dettagli della sottoposizione</h4>
+          <h4 class="modal-title">{{'Submission details' | l10n}}</h4>
         </div>
         <div class="modal-body">
           <div class="score_details">
             <div ng-repeat="subtask in actualCurSub.score_details">
               <h3 ng-show="actualCurSub.score_details.length > 1">
-                Subtask {{subtask.idx}}
+                {{'Subtask' | l10n}} {{subtask.idx}}
                 <span class="pull-right">
                   {{subtask.score}}/{{subtask.max_score}}
                 </span>
@@ -69,11 +69,11 @@
               <table class="testcase-list table table-bordered">
                 <thead>
                   <tr>
-                    <th>Testcase</th>
-                    <th>Risultato</th>
-                    <th>Dettagli</th>
-                    <th>Tempo</th>
-                    <th>Memoria</th>
+                    <th>{{'Testcase' | l10n}}</th>
+                    <th>{{'Result' | l10n}}</th>
+                    <th>{{'Details' | l10n}}</th>
+                    <th>{{'Time' | l10n}}</th>
+                    <th>{{'Memory' | l10n}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -88,30 +88,30 @@
               </table>
             </div>
           </div>
-          <h4>Output della compilazione</h4>
+          <h4>{{'Compilation output' | l10n}}</h4>
           <table class="table table-bordered" style="table-layout: fixed;">
             <tbody>
               <tr>
-                <th>Esito della compilazione:</th>
+                <th>{{'Compilation outcome:' | l10n}}</th>
                 <td>{{actualCurSub.compilation_outcome}}</td>
               </tr>
               <tr>
-                <th>Tempo di compilazione:</th>
+                <th>{{'Compilation time:' | l10n}}</th>
                 <td>{{actualCurSub.compilation_time | timeFmt}}</td>
               </tr>
               <tr>
-                <th>Memoria utilizzata:</th>
+                <th>{{'Used memory:' | l10n}}</th>
                 <td>{{actualCurSub.compilation_memory | memoryFmt}}</td>
               </tr>
             </tbody>
           </table>
-          <h4>Standard output</h4>
+          <h4>{{'Standard output' | l10n}}</h4>
           <pre>{{actualCurSub.compilation_stdout}}</pre>
-          <h4>Standard error</h4>
+          <h4>{{'Standard error' | l10n}}</h4>
           <pre>{{actualCurSub.compilation_stderr}}</pre>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
         </div>
       </div>
     </div>

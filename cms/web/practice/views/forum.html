@@ -2,11 +2,11 @@
   <div class="forum-group focus-light panel panel-info">
     <div class="panel-heading">
       <dl class="row">
-        <dd class="content col-xs-6"><b>{{'forum.list.topics.full' | l10n}}</b></dd>
-        <dd class="count col-md-1 hidden-xs hidden-sm">{{'forum.view.answers.full' | l10n}}</dd>
-        <dd class="count col-sm-1 visible-sm">{{'forum.view.answers.abbr' | l10n}}</dd>
-        <dd class="count col-md-1 hidden-sm hidden-xs">{{'forum.view.clicks' | l10n}}</dd>
-        <dd class="lastpost col-xs-6 col-sm-5 col-md-4">{{'forum.view.lastAnswer' | l10n}}</dd>
+        <dd class="content col-xs-6"><b>{{'Topics' | l10n}}</b></dd>
+        <dd class="count col-md-1 hidden-xs hidden-sm">{{'Answers' | l10n}}</dd>
+        <dd class="count col-sm-1 visible-sm">{{'Answ.' | l10n}}</dd>
+        <dd class="count col-md-1 hidden-sm hidden-xs">{{'Clicks' | l10n}}</dd>
+        <dd class="lastpost col-xs-6 col-sm-5 col-md-4">{{'Last answer' | l10n}}</dd>
       </dl>
     </div>
     <div class="panel-body">
@@ -15,20 +15,20 @@
           <i class="fa fa-{{topic.status | getIcon}}"></i>
           <a ui-sref="topic.page({ topicId: topic.id, pageNum: 1 })"><b>{{topic.title}}</b></a>
           </br>
-          {{'forum.list.by' | l10n}} <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
+          {{'by' | l10n}} <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
         </dd>
         <dd class="count col-sm-1 hidden-xs">{{topic.posts-1}}</dd>
         <dd class="count col-md-1 hidden-sm hidden-xs">{{topic.views}}</dd>
         <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-show="topic.posts-1">
-          {{'forum.list.by' | l10n}} <a ui-sref="user({userId: topic.lastpost.username})">{{topic.lastpost.username}}</a>
-          <a class="dont-underline" ui-sref="topic.page({topicId: topic.id, pageNum: lastPage(topic.posts)})" title="{{'forum.view.goToPost' | l10n}}">
+          {{'by' | l10n}} <a ui-sref="user({userId: topic.lastpost.username})">{{topic.lastpost.username}}</a>
+          <a class="dont-underline" ui-sref="topic.page({topicId: topic.id, pageNum: lastPage(topic.posts)})" title="{{'Go to post' | l10n}}">
             <i class="fa fa-share-square-o"></i>
           </a>
           </br>
           {{topic.lastpost.timestamp | dateFmt}}
         </dd>
         <dd class="lastpost col-xs-6 col-sm-5 col-md-4" ng-hide="topic.posts-1">
-          {{'forum.view.noAnswers' | l10n}}
+          {{'No answers' | l10n}}
         </dd>
       </dl>
     </div>
@@ -38,17 +38,17 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title">{{'forum.newTopic.title' | l10n}}</h4>
+          <h4 class="modal-title">{{'New topic' | l10n}}</h4>
         </div>
         <div class="modal-body">
-          <input ng-model="newTitle" type="text" class="form-control" placeholder="{{'forum.newTopic.enterTitle' | l10n}}"><br>
+          <input ng-model="newTitle" type="text" class="form-control" placeholder="{{'Enter topic title...' | l10n}}"><br>
           <div text-angular="text-angular" ta-toolbar="{{user.toolbar}}" ta-text-editor-class="editor-forum form-control"
               ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">{{'forum.newTopic.close' | l10n}}</button>
-          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newTopic()">{{'forum.newTopic.submit' | l10n}}</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newTopic()">{{'Submit' | l10n}}</button>
         </div>
       </div>
     </div>

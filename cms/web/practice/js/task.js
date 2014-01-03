@@ -33,8 +33,10 @@ angular.module('pws.task', [])
     };
   })
   .controller('TaskbarCtrl', function($scope, $stateParams, $http,
-        $rootScope, userManager, notificationHub, taskbarManager) {
-    $("#timeLimit, #memoLimit").popover();
+        $rootScope, $timeout, userManager, notificationHub, taskbarManager) {
+    $timeout(function() {
+      $(".my-popover").popover(); // enable popovers
+    });
     $scope.isActiveTab = taskbarManager.isActiveTab;
     $scope.isLogged = userManager.isLogged;
     $scope.taskName = $stateParams.taskName;
