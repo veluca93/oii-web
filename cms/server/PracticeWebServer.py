@@ -411,6 +411,17 @@ class APIHandler(object):
                 local.user.password = new_token
                 local.resp['token'] = new_token
             local.session.commit()
+        elif local.data['action'] == 'get_task_scores':
+            taskscores = local.session.query(TaskScore)\
+                .filter(TaskScore.user_id == local.data['user_id'])\
+                .order_by(desc(TaskScore.task_id)).all()
+            local.data['scores'] = []
+            for ts in taskscores:
+                taskinfo = dict()
+                taskinfo['name'] = ts.task.name
+                taskinfo['score'] = ts.score
+                taskinfo['title'] = ts.task.title
+                local.data['scores'].append(taskinfo)
         else:
             return 'connection.badrequest'
 
