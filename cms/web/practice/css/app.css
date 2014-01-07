@@ -68,8 +68,12 @@ a.dont-underline:hover {
   margin-bottom: 10px;
 }
 
-.list-group-item .label {
-  vertical-align: middle;
+.badge-correct {
+  background-color: #25AD25;
+}
+
+.badge-partial {
+  background-color: #F3A22A;
 }
 
 /* Task page */
