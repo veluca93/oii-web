@@ -426,6 +426,12 @@ class APIHandler(object):
                 task['id'] = t.id
                 task['name'] = t.name
                 task['title'] = t.title
+                if local.user is not None:
+                    taskscore = local.session.query(TaskScore)\
+                        .filter(TaskScore.task_id == t.id)\
+                        .filter(TaskScore.user_id == local.user.id).first()
+                    if taskscore is not None:
+                        task['score'] = taskscore.score
                 local.resp['tasks'].append(task)
         elif local.data['action'] == 'get':
             t = local.session.query(Task)\
