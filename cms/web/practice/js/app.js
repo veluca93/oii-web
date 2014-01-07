@@ -38,8 +38,7 @@ angular.module('pws', [
     $stateProvider
       .state('overview', {
         url: '/overview',
-        templateUrl: 'views/overview.html',
-        controller: 'OverviewCtrl'
+        templateUrl: 'views/overview.html'
       })
       .state('forums', {
         url: '/forum',

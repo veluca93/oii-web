@@ -1,8 +1,7 @@
 <div class="list-group">
   <a ng-repeat="task in tasks" ng-class="{'correct': task.score == 100, 'partial': task.score < 100, 'empty': task.score === undefined}" class="list-group-item" ui-sref="task.statement({ taskName: task.name })">
     <i class="fa fa-angle-right"></i> {{task.title}}
-    <span ng-if="task.score < 100" class="label label-warning">{{task.score}} / 100</span>
-    <span ng-if="task.score == 100" class="label label-success">100 / 100</span>
-    <tt class="pull-right">{{task.name}}</tt>
+    <span ng-if="task.score < 100" class="badge badge-partial">{{task.score}} / 100</span>
+    <span ng-if="task.score == 100" class="badge badge-correct">100 / 100</span>
   </a>
 </div>
