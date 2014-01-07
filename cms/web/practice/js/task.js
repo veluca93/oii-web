@@ -155,8 +155,6 @@ angular.module('pws.task', [])
             for(var i in $scope.fileInputs) {
               $scope.fileInputs[i].container.children[0].innerHTML = '';
             }
-            delete $scope.fileInputs;
-            $scope.prepareInput();
           }
           else
             notificationHub.createAlert('danger', data['error'], 2);
