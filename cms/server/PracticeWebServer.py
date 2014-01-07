@@ -624,7 +624,8 @@ class APIHandler(object):
                     if local.resp.get(i, None) is None:
                         local.resp[i] = [q.score, 'correct']
             if local.user is not None:
-                score = sum([q[0] for q in local.resp.itervalues()])
+                score = sum([local.resp[i][0] for i in
+                             xrange(len(test.questions))])
                 testscore = local.session.query(TestScore)\
                     .filter(TestScore.test_id == test.id)\
                     .filter(TestScore.user_id == local.user.id).first()
