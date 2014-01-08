@@ -22,7 +22,7 @@
 angular.module('pws', [
     'ui.router', 'pws.l10n', 'pws.navbar', 'pws.tasks', 'pws.task',
     'pws.user', 'pws.footer', 'pws.notifications', 'pws.signup',
-    'pws.tests', 'pws.overview', 'pws.forum', 'pws.ranking'
+    'pws.tests', 'pws.forum', 'pws.ranking'
   ])
   .config(function($locationProvider, $stateProvider, $urlRouterProvider) {
     $locationProvider.html5Mode(false);//.hashPrefix('!');
