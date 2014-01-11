@@ -60,7 +60,7 @@ angular.module('pws.tasks', ['pws.pagination'])
       return i/4;
     }
     function extendSub(sub) {
-      sub.cl = 'sub-notdone';
+      sub.cl = 'empty';
       var date = new Date(sub.timestamp * 1000);
       sub.time = date.toLocaleString();
       if (sub.compilation_outcome == null) {
@@ -68,7 +68,7 @@ angular.module('pws.tasks', ['pws.pagination'])
         updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
       }
       else if (sub.compilation_outcome == 'fail') {
-        sub.cl = 'sub-zero';
+        sub.cl = 'wrong';
         sub.status = 'Compilazione fallita';
       }
       else if (sub.evaluation_outcome == null) {
@@ -76,7 +76,7 @@ angular.module('pws.tasks', ['pws.pagination'])
         updInterval[sub.id] = intervalFromAttempts(updAttempts[sub.id]);
       }
       else if (sub.evaluation_outcome == 'fail') { // ???
-        sub.cl = 'sub-zero';
+        sub.cl = 'wrong';
         sub.status = 'Valutazione fallita';
       }
       else if (sub.score == null) {
@@ -86,12 +86,12 @@ angular.module('pws.tasks', ['pws.pagination'])
       else {
         var score = sub.score;
         if (100-score < 0.01)
-          sub.cl = 'sub-full';
+          sub.cl = 'correct';
         else if (score < 0.01)
-          sub.cl = 'sub-zero';
+          sub.cl = 'wrong';
         else
-          sub.cl = 'sub-partial';
-        sub.status = score + '/100';
+          sub.cl = 'partial';
+        sub.status = score + ' / 100';
       }
       return sub;
     }

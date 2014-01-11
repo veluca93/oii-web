@@ -145,10 +145,10 @@ angular.module('pws', [
   .filter('outcomeToClass', function() {
     return function(input) {
       if (input == "Correct")
-        return "sub-full";
+        return "correct";
       if (input == "Not correct")
-        return "sub-zero";
-      return "sub-partial";
+        return "wrong";
+      return "partial";
     };
   })
   .filter('timeFmt', function() {
