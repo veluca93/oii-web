@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Programming contest management system
-# Copyright © 2013 Luca Versari <veluca93@gmail.com>
+# Copyright © 2013-2014 Luca Versari <veluca93@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -55,7 +55,6 @@ def main():
     test = Test()
     test.name = os.path.basename(sys.argv[1]).replace(".txt", "")
     test.description = lines[0].strip()
-    test.maxscore = 0
     dirname = os.path.dirname(sys.argv[1])
     question = TestQuestion()
     question.text = "<p>\n"
@@ -88,7 +87,7 @@ def main():
         if status == "score":
             try:
                 score, wrong_score = map(int, l.split(","))
-                test.maxscore += score
+                test.max_score += score
             except ValueError:
                 continue
             question.score = score
@@ -122,7 +121,7 @@ def main():
         if status == "answer":
             pos = l.index(":")
             name = l[:pos]
-            value = json.loads("[" + l[pos+1:] + "]")
+            value = json.loads("[" + l[pos + 1:] + "]")
             if isinstance(value[0], basestring):
                 question.type = "string"
             elif not question.type:
