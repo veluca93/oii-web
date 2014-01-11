@@ -76,6 +76,10 @@ a.dont-underline:hover {
   background-color: #F3A22A;
 }
 
+.badge-wrong {
+  background-color: #FF2222;
+}
+
 /* Task page */
 
 iframe.viewer {
