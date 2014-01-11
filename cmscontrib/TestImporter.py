@@ -55,6 +55,7 @@ def main():
     test = Test()
     test.name = os.path.basename(sys.argv[1]).replace(".txt", "")
     test.description = lines[0].strip()
+    test.max_score = 0
     dirname = os.path.dirname(sys.argv[1])
     question = TestQuestion()
     question.text = "<p>\n"
