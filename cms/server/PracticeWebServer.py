@@ -183,23 +183,23 @@ class APIHandler(object):
 
     def check_user(self, username):
         if len(username) < 4:
-            return 'signup.errors.username.short'
+            return 'Username is too short'
         elif not self.USERNAME_REG.match(username):
-            return 'signup.errors.username.invalid'
+            return 'Username is invalid'
         else:
             user = local.session.query(User)\
                 .filter(User.username == username).first()
             if user is not None:
-                return 'signup.errors.username.used'
+                return 'This username is not available'
 
     def check_email(self, email):
         if not self.EMAIL_REG.match(email):
-            return 'signup.errors.email.invalid'
+            return 'Invalid e-mail'
         else:
             user = local.session.query(User)\
                 .filter(User.email == email).first()
             if user is not None:
-                return 'signup.errors.email.used'
+                return 'E-mail already used'
 
     def hash(self, string, algo='sha256'):
         if string is None:
