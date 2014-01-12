@@ -38,7 +38,8 @@ angular.module('pws', [
     $stateProvider
       .state('overview', {
         url: '/overview',
-        templateUrl: 'views/overview.html'
+        templateUrl: 'views/overview.html',
+        controller: 'HomepageCtrl'
       })
       .state('forums', {
         url: '/forum',
@@ -136,6 +137,9 @@ angular.module('pws', [
         templateUrl: 'views/testpage.html',
         controller: 'TestpageCtrl'
       });
+  })
+  .controller('HomepageCtrl', function(navbarManager) {
+    navbarManager.setActiveTab(0);
   })
   .filter('repext', function() {
     return function(input) {
