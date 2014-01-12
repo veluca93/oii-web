@@ -57,13 +57,13 @@ angular.module('pws.signup', [])
       'password2': ''
     };
     $scope.errorMsg = {
-      'password':  'signup.errors.password',
-      'password2': 'signup.errors.password2',
-      'email2':    'signup.errors.email.match',
-      'region':    'signup.errors.region',
-      'province':  'signup.errors.province',
-      'city':      'signup.errors.city',
-      'institute': 'signup.errors.institute'
+      'password':  'Password\'s too short',
+      'password2': 'Passwords don\'t match',
+      'email2':    'E-mails don\'t match',
+      'region':    'You must specify a region',
+      'province':  'You must specify a province',
+      'city':      'You must specify a city',
+      'institute': 'You must specify an institute'
     };
     $http.post('location', {
       'action': 'listregions'
