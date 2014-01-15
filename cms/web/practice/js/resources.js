@@ -22,7 +22,57 @@
 
 angular.module('pws.resources', [])
   .controller('ResourcesCtrl', function($scope, navbarManager) {
-    navbarManager.setActiveTab(5);
+    navbarManager.setActiveTab(0);
   })
-  .controller('DescCtrl', function($scope) {
+  .controller('VideoPas', function($scope, $sce, navbarManager) {
+    navbarManager.setActiveTab(0);
+    $scope.videolezioni = [
+      {
+        title: 'Introduzione all\'ambiente di programmazione Web e scrittura del primo programma in Pascal',
+        youtube: 'DYy2IbteC2U',
+        files: ['lez1.pas']
+      },
+      {
+        title: 'Utilizzo di variabili',
+        youtube: 'YZKX5n3Qz-g',
+        files: ['somma.pas']
+      },
+      {
+        title: 'Generazione di numeri casuali',
+        youtube: '2-xkcCs7-3M',
+        files: ['dado.pas']
+      },
+      {
+        title: 'Introduzione alle istruzioni di controllo condizionate',
+        youtube: 'S9RjxdKbWF0',
+        files: ['moneta.pas']
+      },
+      {
+        title: 'Introduzione ai cicli definiti',
+        youtube: 'wxf2tOPLZxo',
+        files: []
+      },
+      {
+        title: 'Cicli a conteggio',
+        youtube: 'xCpl-Er4gEU',
+        files: ['stream_di_int.pas']
+      },
+      {
+        title: 'Introduzione ai vettori di variabili (array)',
+        youtube: 'O4PNXMLpiBE',
+        files: []
+      },
+      {
+        title: 'Esercitazione sull\'uso di vettori di variabili',
+        youtube: '41nWMbLKmAE',
+        files: ['verifyCoin.pas']
+      },
+    ];
+    for (var i in $scope.videolezioni) {
+      $scope.videolezioni[i].youtube = $sce.trustAsResourceUrl('//www.youtube.com/embed/' + $scope.videolezioni[i].youtube);
+      for (var j in $scope.videolezioni[i].files) {
+        $scope.videolezioni[i].files[j] = {'title': $scope.videolezioni[i].files[j]};
+        $scope.videolezioni[i].files[j].url = $sce.trustAsUrl('resources/' + $scope.videolezioni[i].files[j].title);
+      }
+    }
   });
