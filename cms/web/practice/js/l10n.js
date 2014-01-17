@@ -14,6 +14,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//Save browser language (only first two characters) to localStorage 
+var language = navigator.userLanguage || navigator.language;
+if (language.length > 2)
+    language = language.substring(0,2);
+localStorage.setItem("language", language);    
+
 'use strict';
 
 angular.module('pws.l10n', [])
@@ -304,11 +311,15 @@ angular.module('pws.l10n', [])
         if (input === undefined)
           return input;
         if (!words.hasOwnProperty(input)) {
-          //~ return "***" + input + "***"; // we don't have this word
-          return input;
+          return input; //No matching found, so return input string
         }
-        if (words[input].hasOwnProperty('it'))
-          return words[input].it;
+        var lang = localStorage.getItem("language");
+        if (lang === null)
+            lang = 'en'; //Default language is 'en'
+        if (lang == 'en') //Input is already in english, so just return it
+            return input;
+        if (words[input].hasOwnProperty(lang))
+          return words[input].lang;
         else
           return input;
       },
