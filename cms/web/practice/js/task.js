@@ -111,7 +111,6 @@ angular.module('pws.task', [])
         };
         finput.init();
         $scope.fileInputs.push(finput);
-        window.fileInputs = $scope.fileInputs;
       }
     }
     $scope.loadFiles = function() {
@@ -122,19 +121,24 @@ angular.module('pws.task', [])
           $scope.submitFiles();
           return;
         }
-        if ($scope.fileInputs[i].files.length < 1) {
+        if ($scope.fileInputs[i].files == null) {
           readFile(i+1);
           return;
         }
-        reader.filename = $scope.fileInputs[i].files[0].name
-        reader.inputname = $scope.fileInputs[i].name
+        reader.filename = $scope.fileInputs[i].files[0].name;
+        reader.inputname = $scope.fileInputs[i].name;
+        reader.number = i;
+        reader.already_done = false;
         reader.onloadend = function(){
+          if(reader.already_done) {
+            return;
+          }
+          reader.already_done = true;
           $scope.files[reader.inputname] = {
             'filename': reader.filename,
             'data': reader.result
           };
-          readFile(i+1);
-          delete reader.result;
+          readFile(reader.number+1);
         };
         reader.readAsBinaryString($scope.fileInputs[i].files[0]);
       }
