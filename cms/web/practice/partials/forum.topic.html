@@ -7,7 +7,7 @@
   <div class="row container">
     <pagination total-pages="pagination.total" current-page="pagination.current">
     </pagination>
-    <button ng-show="user.isLogged()" class="pull-right btn btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
+    <button ng-show="user.isLogged()" class="pull-right btn btn-info" data-toggle="modal" data-target="#new_post" ng-click="post.doNew()">
       <i class="fa fa-reply"></i> {{'Post to this topic' | l10n}}
     </button>
   </div>
@@ -15,7 +15,7 @@
   <div class="row container">
     <pagination total-pages="pagination.total" current-page="pagination.current">
     </pagination>
-    <button ng-show="user.isLogged()" class="pull-right btn btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
+    <button ng-show="user.isLogged()" class="pull-right btn btn-info" data-toggle="modal" data-target="#new_post" ng-click="post.doNew()">
       <i class="fa fa-reply"></i> {{'Post to this topic' | l10n}}
     </button>
   </div>
@@ -29,12 +29,12 @@
         </div>
         <div class="modal-body">
           <div text-angular="text-angular" ta-toolbar="{{toolbar}}" ta-text-editor-class="editor-forum form-control"
-              ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
+              ta-toolbar-button-class="btn btn-xs btn-default" name="post.newText" ng-model="post.newText" >
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
-          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newPost()">{{'Submit' | l10n}}</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="post.createNew()">{{'Submit' | l10n}}</button>
         </div>
       </div>
     </div>
@@ -49,12 +49,12 @@
         </div>
         <div class="modal-body">
           <div text-angular="text-angular" ta-toolbar="{{user.toolbar}}" ta-text-editor-class="editor-forum form-control"
-              ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
+              ta-toolbar-button-class="btn btn-xs btn-default" name="post.newText" ng-model="post.newText" >
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
-          <button type="button" class="btn btn-warning" data-dismiss="modal" ng-click="editPost()">{{'Apply' | l10n}}</button>
+          <button type="button" class="btn btn-warning" data-dismiss="modal" ng-click="post.edit()">{{'Apply' | l10n}}</button>
         </div>
       </div>
     </div>

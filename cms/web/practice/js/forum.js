@@ -50,6 +50,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       // FIXME: se si modifica 'pagination.perPage' in TopicCtrl si deve modificare anche qui!
       return Math.ceil(posts / 10);
     };
+    $scope.post = {};
   })
   .controller('ForumCtrl', function($scope, $http, $stateParams, $state,
       userManager, navbarManager, notificationHub) {
@@ -145,10 +146,20 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         notificationHub.createAlert('danger', 'Errore interno', 2);
       });
     }
-    $scope.newPost = function() {
+    $scope.doQuote = function(text, user) {
+      $("#new_post textarea").val($scope.post.newText = '<blockquote>' + text + '<p><small>' + user + '</small></p></blockquote><br>');
+    };
+    $scope.doEdit = function(text, id) {
+      $("#edit_post textarea").val($scope.post.newText = text);
+      $scope.post.target = id;
+    };
+    $scope.post.doNew = function() {
+      $("#new_post textarea").val($scope.post.newText = '');
+    };
+    $scope.post.createNew = function() {
       $http.post('post', {
           'action':   'new',
-          'text':     $scope.newText,
+          'text':     $scope.post.newText,
           'username': userManager.getUsername(),
           'token':    userManager.getToken(),
           'topic':    $stateParams.topicId
@@ -165,24 +176,13 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
           notificationHub.createAlert('danger', 'Errore interno', 2);
         });
     };
-    $scope.doEdit = function(text, id) {
-      $("#edit_post textarea").val($scope.newText = text);
-      $scope.targetPost = id;
-    };
-    $scope.doQuote = function(text, user) {
-      $("#new_post textarea").val($scope.newText = '<blockquote>' + text + '<p><small>' + user + '</small></p></blockquote><br>');
-    };
-    $scope.doNew = function() {
-      $("#new_post textarea").val($scope.newText = '');
-    };
-    $scope.editPost = function() {
+    $scope.post.edit = function() {
       $http.post('post', {
         'action':   'edit',
-        'id':       $scope.targetPost,
-        'text':     $scope.newText,
+        'id':       $scope.post.target,
+        'text':     $scope.post.newText,
         'username': userManager.getUsername(),
-        'token':    userManager.getToken(),
-        'topic':    $stateParams.topicId
+        'token':    userManager.getToken()
       })
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
@@ -201,10 +201,8 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       $http.post('post', {
         'action':   'delete',
         'id':       id,
-        'text':     $scope.newText,
         'username': userManager.getUsername(),
-        'token':    userManager.getToken(),
-        'topic':    $stateParams.topicId
+        'token':    userManager.getToken()
       })
       .success(function(data, status, headers, config) {
         if (data.success) {
