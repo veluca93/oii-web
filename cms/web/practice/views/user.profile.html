@@ -30,7 +30,7 @@
         <div class="progress-bar"
              ng-class="{'progress-bar-warning': p.score < 100, 'progress-bar-success': p.score == 100}"
              ng-style="{width: p.score + '%'}">
-          <a class="progress-bar-text dont-underline" ui-sref="task.statement({taskName: 'maree'})">{{p.name}}</a>
+          <a class="progress-bar-text dont-underline" ui-sref="task.statement({taskName: p.name})">{{p.name}}</a>
         </div>
       </div>
     </div>
