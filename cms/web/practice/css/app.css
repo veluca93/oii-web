@@ -328,6 +328,10 @@ table.submissions th {
   height: 85px;
 }
 
+.forum-group.post {
+  margin-bottom: 10px;
+}
+
 .forum-group.post dd {
   vertical-align: top;
   display: table-cell;
