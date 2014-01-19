@@ -153,6 +153,19 @@ ul.nav-tabs > li > a {
   text-transform: uppercase;
 }
 
+.problem {
+  padding: 4px;
+}
+
+.problem .progress {
+  margin: 0px;
+}
+
+.progress-bar-text {
+  margin-left: 4px;
+  color: #414141;
+}
+
 /* Submissions */
 
 #submission_detail .modal-body {

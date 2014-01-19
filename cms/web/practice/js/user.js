@@ -121,8 +121,11 @@ angular.module('pws.user', [])
     };
   })
   .controller('UserpageCtrl', function($scope, $http, notificationHub,
-      $stateParams, $location, userbarManager) {
+      $stateParams, $location, $timeout, userbarManager) {
     userbarManager.setActiveTab(1);
+    $timeout(function() {
+      $('.my-tooltip').tooltip(); // enable tooltips
+    });
     $http.post('user', {
       'action':   'get',
       'username': $stateParams.userId

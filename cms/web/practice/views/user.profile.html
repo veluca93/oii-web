@@ -3,7 +3,7 @@
     <h3 class="panel-title">{{'Profile' | l10n}}</h3>
   </div>
   <div class="panel-body row">
-    <div class="col-lg-6">
+    <div class="col-xs-6">
       <h3 class="userbadge {{user.access_level | levelClass}}">
         {{user.username}}
         <small class="label label-default">{{user.access_level | levelClass}}</small>
@@ -11,7 +11,28 @@
       <br />
       <i class="fa fa-home fa-lg"></i> {{user.institute.name}} ({{user.institute.province}})
       <br />
-      <img class="avatar img-thumbnail" src="http://gravatar.com/avatar/{{user.mail_hash}}?d=identicon&s=200"/>
+    </div>
+    <div class="col-xs-6">
+      <a class="pull-right well well-lg" href="http://gravatar.com/emails/" target="_blank">
+        <img class="my-tooltip avatar img-thumbnail"
+             data-toggle="tooltip" data-placement="bottom"
+             title="{{'Change your avatar at gravatar.com' | l10n}}"
+             src="http://gravatar.com/avatar/{{user.mail_hash}}?d=identicon&s=200"/>
+      </a>
+    </div>
+  </div>
+  <div class="topleft-fix panel-heading">
+    <h3 class="panel-title">{{'Submitted tasks' | l10n}}</h3>
+  </div>
+  <div class="panel-body">
+    <div ng-repeat="p in user.scores | orderBy:'-score'" class="problem col-lg-1" title="{{p.title}}">
+      <div class="progress">
+        <div class="progress-bar"
+             ng-class="{'progress-bar-warning': p.score < 100, 'progress-bar-success': p.score == 100}"
+             ng-style="{width: p.score + '%'}">
+          <a class="progress-bar-text dont-underline" ui-sref="task.statement({taskName: 'maree'})">{{p.name}}</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>

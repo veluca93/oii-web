@@ -203,6 +203,10 @@ angular.module('pws.l10n', [])
     {it: 'Ripeti nuova password'},
     'New e-mail address':
     {it: 'Nuovo indirizzo email'},
+    'Change your avatar at gravatar.com':
+    {it: 'Cambia la tua foto di profilo su gravatar.com'},
+    'Submitted tasks':
+    {it: 'Problemi sottomessi'},
 
     // Tasklist page
     'search':
