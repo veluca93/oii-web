@@ -158,11 +158,14 @@ ul.nav-tabs > li > a {
 }
 
 .problem .progress {
+  position: relative;
   margin: 0px;
 }
 
 .progress-bar-text {
-  margin-left: 4px;
+  position: absolute;
+  width: 100%;
+  left: 0px;
   color: #414141;
 }
 
