@@ -375,6 +375,14 @@ class APIHandler(object):
             if user is None:
                 return 'connection.notfound'
             local.resp = self.get_user_info(user)
+            # Append scores of tried tasks
+            local.resp['scores'] = []
+            for ts in user.taskscores:
+                taskinfo = dict()
+                taskinfo['name'] = ts.task.name
+                taskinfo['score'] = ts.score
+                taskinfo['title'] = ts.task.title
+                local.resp['scores'].append(taskinfo)
         elif local.data['action'] == 'list':
             query = local.session.query(User)\
                 .filter(User.hidden == False)\
@@ -409,17 +417,6 @@ class APIHandler(object):
                 local.user.password = new_token
                 local.resp['token'] = new_token
             local.session.commit()
-        elif local.data['action'] == 'get_task_scores':
-            taskscores = local.session.query(TaskScore)\
-                .filter(TaskScore.user_id == local.data['user_id'])\
-                .order_by(desc(TaskScore.task_id)).all()
-            local.data['scores'] = []
-            for ts in taskscores:
-                taskinfo = dict()
-                taskinfo['name'] = ts.task.name
-                taskinfo['score'] = ts.score
-                taskinfo['title'] = ts.task.title
-                local.data['scores'].append(taskinfo)
         else:
             return 'connection.badrequest'
 
