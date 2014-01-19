@@ -4,7 +4,59 @@
     <li><a ui-sref="forum.page({forumId: breadcrumb.forumId, pageNum: 1})">{{breadcrumb.forumTitle}}</a></li>
     <li class="active">{{breadcrumb.title}}</li>
   </ol>
-  <pagination total-pages="pagination.total" current-page="pagination.current">
-  </pagination>
+  <div class="row container">
+    <pagination total-pages="pagination.total" current-page="pagination.current">
+    </pagination>
+    <button ng-show="user.isLogged()" class="pull-right btn btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
+      <i class="fa fa-reply"></i> {{'Post to this topic' | l10n}}
+    </button>
+  </div>
   <div ui-view></div>
+  <div class="row container">
+    <pagination total-pages="pagination.total" current-page="pagination.current">
+    </pagination>
+    <button ng-show="user.isLogged()" class="pull-right btn btn-info" data-toggle="modal" data-target="#new_post" ng-click="doNew()">
+      <i class="fa fa-reply"></i> {{'Post to this topic' | l10n}}
+    </button>
+  </div>
+  <!-- new post -->
+  <div class="modal fade" id="new_post" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false">
+    <div class="wider-modal modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">{{'New post' | l10n}}</h4>
+        </div>
+        <div class="modal-body">
+          <div text-angular="text-angular" ta-toolbar="{{toolbar}}" ta-text-editor-class="editor-forum form-control"
+              ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newPost()">{{'Submit' | l10n}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- edit post -->
+  <div class="modal fade" id="edit_post" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false">
+    <div class="wider-modal modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">{{'Edit this post' | l10n}}</h4>
+        </div>
+        <div class="modal-body">
+          <div text-angular="text-angular" ta-toolbar="{{user.toolbar}}" ta-text-editor-class="editor-forum form-control"
+              ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>
+          <button type="button" class="btn btn-warning" data-dismiss="modal" ng-click="editPost()">{{'Apply' | l10n}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

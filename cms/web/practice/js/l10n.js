@@ -269,7 +269,7 @@ angular.module('pws.l10n', [])
     'Create new topic':
     {it: 'Crea un nuovo argomento'},
     'Post to this topic':
-    {it: 'Scrivi una risposta'},
+    {it: 'Rispondi a questo argomento'},
     'Answers':
     {it: 'Risposte'},
     'Answ.': // abbreviation of: Answers
