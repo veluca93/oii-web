@@ -214,6 +214,8 @@ angular.module('pws.l10n', [])
     {it: 'Cambia la tua foto di profilo su gravatar.com'},
     'Submitted tasks':
     {it: 'Problemi sottomessi'},
+    'no submissions':
+    {it: 'nessuna sottoposizione'},
 
     // Tasklist page
     'search':
