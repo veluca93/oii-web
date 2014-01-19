@@ -25,7 +25,7 @@
     <h3 class="panel-title">{{'Submitted tasks' | l10n}}</h3>
   </div>
   <div class="panel-body">
-    <div ng-repeat="p in user.scores | orderBy:'-score'" class="problem col-lg-1" title="{{p.title}}">
+    <div ng-repeat="p in user.scores | orderBy:'-score'" class="problem col-lg-1 col-md-2 col-sm-3" title="{{p.title}}">
       <div class="progress">
         <div class="progress-bar"
              ng-class="{'progress-bar-warning': p.score < 100, 'progress-bar-success': p.score == 100}"
