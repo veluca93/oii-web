@@ -1,6 +1,8 @@
 *~
 .*.sw?
 *.pyc
-build
-dist
-cms.egg-info
+build/
+dist/
+cms.egg-info/
+
+!cms/web/assets/pdfjs/build/
