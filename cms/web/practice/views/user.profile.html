@@ -30,7 +30,7 @@
   </div>
   <div class="panel-body">
     <div ng-if="user.scores.length < 1" class="no-submissions">{{'no submissions' | l10n}}</div>
-    <div ng-repeat="p in user.scores | orderBy:'-score'" class="problem col-lg-1 col-md-2 col-sm-3">
+    <div ng-repeat="p in user.scores | orderBy:'-score'" class="problem col-lg-1 col-md-2 col-sm-3 col-xs-4">
       <div class="progress" title="{{p.title}}">
         <div class="progress-bar"
              ng-class="{'progress-bar-warning': p.score < 100, 'progress-bar-success': p.score == 100}"

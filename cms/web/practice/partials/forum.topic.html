@@ -7,9 +7,6 @@
   <div class="row container">
     <pagination total-pages="pagination.total" current-page="pagination.current">
     </pagination>
-    <button ng-show="user.isLogged()" class="pull-right btn btn-info" data-toggle="modal" data-target="#new_post" ng-click="post.doNew()">
-      <i class="fa fa-reply"></i> {{'Post to this topic' | l10n}}
-    </button>
   </div>
   <div ui-view></div>
   <div class="row container">
