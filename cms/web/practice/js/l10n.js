@@ -305,6 +305,7 @@ angular.module('pws.l10n', [])
     {it: 'Vai alla pagina utente'},
   })
   .factory('l10n', function(words) {
+    // Detect browser language (ISO 639) and save it in localStorage
     var language = navigator.userLanguage || navigator.language;
     if (language.length > 2)
       language = language.substring(0,2);
@@ -314,11 +315,11 @@ angular.module('pws.l10n', [])
         if (input === undefined)
           return input;
         if (!words.hasOwnProperty(input)) {
-          return input; //No matching found, so return input string
+          return input; // no matching found, return input string
         }
         var lang = localStorage.getItem("language") || "en";
-        if (lang == "en") //Input is already in english, so just return it
-          return input;
+        if (lang == "en")
+          return input; // input is already in english, so just return it
         if (words[input].hasOwnProperty(lang))
           return words[input].lang;
         else
