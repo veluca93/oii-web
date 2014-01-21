@@ -305,16 +305,23 @@ angular.module('pws.l10n', [])
     {it: 'Vai alla pagina utente'},
   })
   .factory('l10n', function(words) {
+    // Detect browser language (ISO 639) and save it in localStorage
+    var language = navigator.userLanguage || navigator.language;
+    if (language.length > 2)
+      language = language.substring(0,2);
+    localStorage.setItem("language", language);
     return {
       get: function(input) {
         if (input === undefined)
           return input;
         if (!words.hasOwnProperty(input)) {
-          //~ return "***" + input + "***"; // we don't have this word
-          return input;
+          return input; // no matching found, return input string
         }
-        if (words[input].hasOwnProperty('it'))
-          return words[input].it;
+        var lang = localStorage.getItem("language") || "en";
+        if (lang == "en")
+          return input; // input is already in english, so just return it
+        if (words[input].hasOwnProperty(lang))
+          return words[input].lang;
         else
           return input;
       },
