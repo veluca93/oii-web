@@ -1,12 +1,14 @@
 *~
 .*.sw?
 *.pyc
-build
-dist
-cms.egg-info
+build/
+dist/
+cms.egg-info/
 .testfailures
 .unittestfailures
 .coverage*
 cache/
 lib/
 log/
+
+!cms/web/assets/pdfjs/build/
