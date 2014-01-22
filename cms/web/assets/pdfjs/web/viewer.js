@@ -19,7 +19,7 @@
            getFileName, scrollIntoView, getPDFFileNameFromURL, PDFHistory,
            Preferences, ViewHistory, PageView, ThumbnailView,
            noContextMenuHandler, SecondaryToolbar, PasswordPrompt,
-           PresentationMode, HandTool, Promise */
+           PresentationMode, HandTool, Promise, DocumentProperties */
 
 'use strict';
 
@@ -611,6 +611,7 @@ var DownloadManager = (function DownloadManagerClosure() {
 
   return DownloadManager;
 })();
+
 
 
 
@@ -1558,6 +1559,7 @@ var SecondaryToolbar = {
   initialize: function secondaryToolbarInitialize(options) {
     this.toolbar = options.toolbar;
     this.presentationMode = options.presentationMode;
+    this.documentProperties = options.documentProperties;
     this.buttonContainer = this.toolbar.firstElementChild;
 
     // Define the toolbar buttons.
@@ -1571,6 +1573,7 @@ var SecondaryToolbar = {
     this.lastPage = options.lastPage;
     this.pageRotateCw = options.pageRotateCw;
     this.pageRotateCcw = options.pageRotateCcw;
+    this.documentPropertiesButton = options.documentPropertiesButton;
 
     // Attach the event listeners.
     var elements = [
@@ -1587,7 +1590,9 @@ var SecondaryToolbar = {
       { element: this.firstPage, handler: this.firstPageClick },
       { element: this.lastPage, handler: this.lastPageClick },
       { element: this.pageRotateCw, handler: this.pageRotateCwClick },
-      { element: this.pageRotateCcw, handler: this.pageRotateCcwClick }
+      { element: this.pageRotateCcw, handler: this.pageRotateCcwClick },
+      { element: this.documentPropertiesButton,
+        handler: this.documentPropertiesClick }
     ];
 
     for (var item in elements) {
@@ -1606,17 +1611,17 @@ var SecondaryToolbar = {
 
   openFileClick: function secondaryToolbarOpenFileClick(evt) {
     document.getElementById('fileInput').click();
-    this.close(evt.target);
+    this.close();
   },
 
   printClick: function secondaryToolbarPrintClick(evt) {
     window.print();
-    this.close(evt.target);
+    this.close();
   },
 
   downloadClick: function secondaryToolbarDownloadClick(evt) {
     PDFView.download();
-    this.close(evt.target);
+    this.close();
   },
 
   viewBookmarkClick: function secondaryToolbarViewBookmarkClick(evt) {
@@ -1639,6 +1644,11 @@ var SecondaryToolbar = {
 
   pageRotateCcwClick: function secondaryToolbarPageRotateCcwClick(evt) {
     PDFView.rotatePages(-90);
+  },
+
+  documentPropertiesClick: function secondaryToolbarDocumentPropsClick(evt) {
+    this.documentProperties.show();
+    this.close();
   },
 
   // Misc. functions for interacting with the toolbar.
@@ -1729,6 +1739,7 @@ var PasswordPrompt = {
     }
     this.visible = true;
     this.overlayContainer.classList.remove('hidden');
+    this.overlayContainer.firstElementChild.classList.remove('hidden');
     this.passwordField.focus();
 
     var promptString = mozL10n.get('password_label', null,
@@ -1749,6 +1760,7 @@ var PasswordPrompt = {
     this.visible = false;
     this.passwordField.value = '';
     this.overlayContainer.classList.add('hidden');
+    this.overlayContainer.firstElementChild.classList.add('hidden');
   },
 
   verifyPassword: function passwordPromptVerifyPassword() {
@@ -2254,6 +2266,167 @@ var HandTool = {
 };
 
 
+var DocumentProperties = {
+  overlayContainer: null,
+  fileSize: '',
+  visible: false,
+
+  // Document property fields (in the viewer).
+  fileNameField: null,
+  fileSizeField: null,
+  titleField: null,
+  authorField: null,
+  subjectField: null,
+  keywordsField: null,
+  creationDateField: null,
+  modificationDateField: null,
+  creatorField: null,
+  producerField: null,
+  versionField: null,
+  pageCountField: null,
+
+  initialize: function documentPropertiesInitialize(options) {
+    this.overlayContainer = options.overlayContainer;
+
+    // Set the document property fields.
+    this.fileNameField = options.fileNameField;
+    this.fileSizeField = options.fileSizeField;
+    this.titleField = options.titleField;
+    this.authorField = options.authorField;
+    this.subjectField = options.subjectField;
+    this.keywordsField = options.keywordsField;
+    this.creationDateField = options.creationDateField;
+    this.modificationDateField = options.modificationDateField;
+    this.creatorField = options.creatorField;
+    this.producerField = options.producerField;
+    this.versionField = options.versionField;
+    this.pageCountField = options.pageCountField;
+
+    // Bind the event listener for the Close button.
+    if (options.closeButton) {
+      options.closeButton.addEventListener('click', this.hide.bind(this));
+    }
+  },
+
+  getProperties: function documentPropertiesGetProperties() {
+    var self = this;
+
+    // Get the file size.
+    PDFView.pdfDocument.dataLoaded().then(function(data) {
+      self.setFileSize(data.length);
+    });
+
+    // Get the other document properties.
+    PDFView.pdfDocument.getMetadata().then(function(data) {
+      var fields = [
+        { field: self.fileNameField, content: PDFView.url },
+        { field: self.fileSizeField, content: self.fileSize },
+        { field: self.titleField, content: data.info.Title },
+        { field: self.authorField, content: data.info.Author },
+        { field: self.subjectField, content: data.info.Subject },
+        { field: self.keywordsField, content: data.info.Keywords },
+        { field: self.creationDateField,
+          content: self.parseDate(data.info.CreationDate) },
+        { field: self.modificationDateField,
+          content: self.parseDate(data.info.ModDate) },
+        { field: self.creatorField, content: data.info.Creator },
+        { field: self.producerField, content: data.info.Producer },
+        { field: self.versionField, content: data.info.PDFFormatVersion },
+        { field: self.pageCountField, content: PDFView.pdfDocument.numPages }
+      ];
+
+      // Show the properties in the dialog.
+      for (var item in fields) {
+        var element = fields[item];
+        if (element.field && element.content !== undefined &&
+            element.content !== '') {
+          element.field.textContent = element.content;
+        }
+      }
+    });
+  },
+
+  setFileSize: function documentPropertiesSetFileSize(fileSize) {
+    var kb = Math.round(fileSize / 1024);
+    if (kb < 1024) {
+      this.fileSize = mozL10n.get('document_properties_kb',
+                                  {size_kb: kb}, '{{size_kb}} KB');
+    } else {
+      var mb = Math.round((kb / 1024) * 100) / 100;
+      this.fileSize = mozL10n.get('document_properties_mb',
+                                  {size_mb: mb}, '{{size_mb}} MB');
+    }
+  },
+
+  show: function documentPropertiesShow() {
+    if (this.visible) {
+      return;
+    }
+    this.visible = true;
+    this.overlayContainer.classList.remove('hidden');
+    this.overlayContainer.lastElementChild.classList.remove('hidden');
+    this.getProperties();
+  },
+
+  hide: function documentPropertiesClose() {
+    if (!this.visible) {
+      return;
+    }
+    this.visible = false;
+    this.overlayContainer.classList.add('hidden');
+    this.overlayContainer.lastElementChild.classList.add('hidden');
+  },
+
+  parseDate: function documentPropertiesParseDate(inputDate) {
+    // This is implemented according to the PDF specification (see
+    // http://www.gnupdf.org/Date for an overview), but note that 
+    // Adobe Reader doesn't handle changing the date to universal time
+    // and doesn't use the user's time zone (they're effectively ignoring
+    // the HH' and mm' parts of the date string).
+    var dateToParse = inputDate;
+    if (dateToParse === undefined) {
+      return '';
+    }
+
+    // Remove the D: prefix if it is available.
+    if (dateToParse.substring(0,2) === 'D:') {
+      dateToParse = dateToParse.substring(2);
+    }
+
+    // Get all elements from the PDF date string.
+    // JavaScript's Date object expects the month to be between
+    // 0 and 11 instead of 1 and 12, so we're correcting for this.
+    var year = parseInt(dateToParse.substring(0,4), 10);
+    var month = parseInt(dateToParse.substring(4,6), 10) - 1;
+    var day = parseInt(dateToParse.substring(6,8), 10);
+    var hours = parseInt(dateToParse.substring(8,10), 10);
+    var minutes = parseInt(dateToParse.substring(10,12), 10);
+    var seconds = parseInt(dateToParse.substring(12,14), 10);
+    var utRel = dateToParse.substring(14,15);
+    var offsetHours = parseInt(dateToParse.substring(15,17), 10);
+    var offsetMinutes = parseInt(dateToParse.substring(18,20), 10);
+
+    // As per spec, utRel = 'Z' means equal to universal time.
+    // The other cases ('-' and '+') have to be handled here.
+    if (utRel == '-') {
+      hours += offsetHours;
+      minutes += offsetMinutes;
+    } else if (utRel == '+') {
+      hours -= offsetHours;
+      minutes += offsetMinutes;
+    }
+
+    // Return the new date format from the user's locale.
+    var date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+    var dateString = date.toLocaleDateString();
+    var timeString = date.toLocaleTimeString();
+    return mozL10n.get('document_properties_date_string',
+                       {date: dateString, time: timeString},
+                       '{{date}}, {{time}}');
+  }
+};
+
+
 var PDFView = {
   pages: [],
   thumbnails: [],
@@ -2325,7 +2498,9 @@ var PDFView = {
       firstPage: document.getElementById('firstPage'),
       lastPage: document.getElementById('lastPage'),
       pageRotateCw: document.getElementById('pageRotateCw'),
-      pageRotateCcw: document.getElementById('pageRotateCcw')
+      pageRotateCcw: document.getElementById('pageRotateCcw'),
+      documentProperties: DocumentProperties,
+      documentPropertiesButton: document.getElementById('documentProperties')
     });
 
     PasswordPrompt.initialize({
@@ -2343,6 +2518,23 @@ var PDFView = {
       lastPage: document.getElementById('contextLastPage'),
       pageRotateCw: document.getElementById('contextPageRotateCw'),
       pageRotateCcw: document.getElementById('contextPageRotateCcw')
+    });
+
+    DocumentProperties.initialize({
+      overlayContainer: document.getElementById('overlayContainer'),
+      closeButton: document.getElementById('documentPropertiesClose'),
+      fileNameField: document.getElementById('fileNameField'),
+      fileSizeField: document.getElementById('fileSizeField'),
+      titleField: document.getElementById('titleField'),
+      authorField: document.getElementById('authorField'),
+      subjectField: document.getElementById('subjectField'),
+      keywordsField: document.getElementById('keywordsField'),
+      creationDateField: document.getElementById('creationDateField'),
+      modificationDateField: document.getElementById('modificationDateField'),
+      creatorField: document.getElementById('creatorField'),
+      producerField: document.getElementById('producerField'),
+      versionField: document.getElementById('versionField'),
+      pageCountField: document.getElementById('pageCountField')
     });
 
     this.initialized = true;
@@ -4993,6 +5185,7 @@ document.addEventListener('DOMContentLoaded', function webViewerLoad(evt) {
 
 
   PDFView.open(file, 0);
+
 }, true);
 
 function updateViewarea() {
