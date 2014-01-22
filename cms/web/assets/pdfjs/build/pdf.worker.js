@@ -20,8 +20,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '0.8.909';
-PDFJS.build = 'c6d201b';
+PDFJS.version = '0.8.924';
+PDFJS.build = '18a163c';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -252,7 +252,7 @@ var UnsupportedManager = PDFJS.UnsupportedManager =
 function combineUrl(baseUrl, url) {
   if (!url)
     return baseUrl;
-  if (url.indexOf(':') >= 0)
+  if (/^[a-z][a-z0-9+\-.]*:/i.test(url))
     return url;
   if (url.charAt(0) == '/') {
     // absolute path
@@ -276,11 +276,13 @@ function isValidUrl(url, allowRelative) {
   if (!url) {
     return false;
   }
-  var colon = url.indexOf(':');
-  if (colon < 0) {
+  // RFC 3986 (http://tools.ietf.org/html/rfc3986#section-3.1)
+  // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+  var protocol = /^[a-z][a-z0-9+\-.]*(?=:)/i.exec(url);
+  if (!protocol) {
     return allowRelative;
   }
-  var protocol = url.substr(0, colon);
+  protocol = protocol[0].toLowerCase();
   switch (protocol) {
     case 'http':
     case 'https':
@@ -4141,7 +4143,13 @@ var LinkAnnotation = (function LinkAnnotationClosure() {
     if (action) {
       var linkType = action.get('S').name;
       if (linkType === 'URI') {
-        var url = addDefaultProtocolToUrl(action.get('URI'));
+        var url = action.get('URI');
+        if (isName(url)) {
+          // Some bad PDFs do not put parentheses around relative URLs.
+          url = '/' + url.name;
+        } else {
+          url = addDefaultProtocolToUrl(url);
+        }
         // TODO: pdf spec mentions urls can be relative to a Base
         // entry in the dictionary.
         if (!isValidUrl(url, false)) {
