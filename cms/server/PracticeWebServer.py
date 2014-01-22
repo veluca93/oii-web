@@ -238,7 +238,7 @@ class APIHandler(object):
 
         response = Response()
         response.status_code = 200
-        response.mimetype = 'application/octect-stream'
+        response.mimetype = 'application/octet-stream'
         mimetype = mimetypes.guess_type(filename)[0]
         if mimetype is not None:
             response.mimetype = mimetype
@@ -258,7 +258,7 @@ class APIHandler(object):
         response = Response()
         response.status_code = 200
 
-        response.mimetype = 'application/octect-stream'
+        response.mimetype = 'application/octet-stream'
         if 'filename' in args:
             response.headers.add_header(
                 b'Content-Disposition', b'attachment',
