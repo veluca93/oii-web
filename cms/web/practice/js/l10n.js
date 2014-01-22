@@ -321,7 +321,7 @@ angular.module('pws.l10n', [])
         if (lang == "en")
           return input; // input is already in english, so just return it
         if (words[input].hasOwnProperty(lang))
-          return words[input].lang;
+          return words[input][lang];
         else
           return input;
       },
