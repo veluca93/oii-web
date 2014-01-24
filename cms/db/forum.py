@@ -50,7 +50,7 @@ class PrivateMessage(Base):
         foreign_keys=[sender_id],
         backref=backref(
             'pm_sent',
-            order_by="PrivateMessage.timestamp",
+            order_by="PrivateMessage.timestamp.desc()",
             cascade="all, delete-orphan",
             passive_deletes=True))
 
@@ -65,7 +65,7 @@ class PrivateMessage(Base):
         foreign_keys=[receiver_id],
         backref=backref(
             'pm_received',
-            order_by="PrivateMessage.timestamp",
+            order_by="PrivateMessage.timestamp.desc()",
             cascade="all, delete-orphan",
             passive_deletes=True))
 

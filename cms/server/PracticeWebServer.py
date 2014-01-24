@@ -31,6 +31,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import desc
+from sqlalchemy.sql import or_, and_
 
 from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import Service
@@ -1006,50 +1007,58 @@ class APIHandler(object):
             return 'connection.badrequest'
 
     def pm_handler(self):
-        if local.data['action'] == 'list_sent':
+        if local.data['action'] == 'list_users':
             if local.user is None:
                 return 'connection.unauthorized'
+            query = local.session.query(User)\
+                .join(User.pm_sent)\
+                .join(User.pm_received)\
+                .filter(or_(
+                    PrivateMessage.sender_id == local.user.id,
+                    PrivateMessage.receiver_id == local.user.id))\
+                .order_by(PrivateMessage.timestamp)
+            users, local.resp['num'] = self.sliced_query(query)
+            local.resp['users'] = []
+            for u in users:
+                user = self.get_user_info(u)
+                user['sent'] = make_timestamp(u.pm_sent[0].timestamp)
+                user['received'] = make_timestamp(u.pm_received[0].timestamp)
+                local.resp['users'].append(user)
+        elif local.data['action'] == 'get':
+            if local.user is None:
+                return 'connection.unauthorized'
+            other = local.session.query(User)\
+                .filter(User.username == local.data['username']).first()
+            if other is None:
+                return 'connection.notfound'
             query = local.session.query(PrivateMessage)\
-                .filter(PrivateMessage.sender_id == local.user.id)\
+                .filter(or_(
+                    and_(
+                        PrivateMessage.receiver_id == local.user.id,
+                        PrivateMessage.sender_id == other.id),
+                    and_(
+                        PrivateMessage.sender_id == local.user.id,
+                        PrivateMessage.receiver_id == other.id)))\
                 .order_by(PrivateMessage.timestamp)
             pms, local.resp['num'] = self.sliced_query(query)
+            local.resp['users'] = dict()
             local.resp['pms'] = []
+            local.resp['users'][pms[0].sender.username] = \
+                self.get_user_info(pms[0].sender)
+            local.resp['users'][pms[0].receiver.username] = \
+                self.get_user_info(pms[0].receiver)
             for p in pms:
                 pm = dict()
                 pm['title'] = p.title
-                pm['receiver'] = self.get_user_info(p.receiver)
-                pm['timestamp'] = make_timestamp(p.timestamp)
-                local.resp['pms'].append(pm)
-        elif local.data['action'] == 'list_received':
-            if local.user is None:
-                return 'connection.unauthorized'
-            query = local.session.query(PrivateMessage)\
-                .filter(PrivateMessage.receiver_id == local.user.id)\
-                .order_by(PrivateMessage.timestamp)
-            pms, local.resp['num'] = self.sliced_query(query)
-            local.resp['pms'] = []
-            for p in pms:
-                pm = dict()
-                pm['title'] = p.title
-                pm['sender'] = self.get_user_info(p.sender)
+                pm['sender'] = p.sender.username
+                pm['receiver'] = p.receiver.username
                 pm['timestamp'] = make_timestamp(p.timestamp)
                 pm['read'] = p.read
+                pm['text'] = p.text
                 local.resp['pms'].append(pm)
-        elif local.data['action'] == 'get':
-            pm = local.session.query(PrivateMessage)\
-                .filter(PrivateMessage.id == local.data['id']).first()
-            if pm is None:
-                return 'connection.notfound'
-            if pm.receiver != local.user and pm.sender != local.user:
-                return 'connection.unauthorized'
-            if pm.receiver == local.user:
-                pm.read = True
-                local.session.commit()
-            local.resp['title'] = pm.title
-            local.resp['sender'] = self.get_user_info(p.sender)
-            local.resp['receiver'] = self.get_user_info(p.receiver)
-            local.resp['timestamp'] = make_timestamp(p.timestamp)
-            local.resp['text'] = p.text
+                if pm.receiver_id == local.user.id:
+                    p.read = True
+            local.session.commit()
         elif local.data['action'] == 'new':
             if local.user is None:
                 return 'connection.unauthorized'
