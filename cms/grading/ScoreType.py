@@ -44,7 +44,7 @@ def N_(message):
     return message
 
 
-class ScoreType:
+class ScoreType(object):
     """Base class for all score types, that must implement all methods
     defined here.
 
@@ -101,7 +101,7 @@ class ScoreType:
 
         """
         logger.error("Unimplemented method max_scores.")
-        raise NotImplementedError
+        raise NotImplementedError("Please subclass this class.")
 
     def compute_score(self, submission_result):
         """Computes a score of a single submission. We don't know here
@@ -117,7 +117,7 @@ class ScoreType:
 
         """
         logger.error("Unimplemented method compute_score.")
-        raise NotImplementedError
+        raise NotImplementedError("Please subclass this class.")
 
 
 class ScoreTypeAlone(ScoreType):
@@ -202,7 +202,7 @@ class ScoreTypeGroup(ScoreTypeAlone):
                     <td>{{ format_status_text(tc["text"], _) }}</td>
                     <td>
             {% if "time" in tc and tc["time"] is not None %}
-                        {{ "%(seconds)0.3f s" % {'seconds': tc["time"]} }}
+                        {{ _("%(seconds)0.3f s") % {'seconds': tc["time"]} }}
             {% else %}
                         {{ _("N/A") }}
             {% end %}
@@ -248,7 +248,7 @@ class ScoreTypeGroup(ScoreTypeAlone):
             if all(self.public_testcases[idx]
                    for idx in indices[current:next_]):
                 public_score += parameter[0]
-            headers += ["Subtask %d (%g)" % (i+1, parameter[0])]
+            headers += ["Subtask %d (%g)" % (i + 1, parameter[0])]
             current = next_
 
         return score, public_score, headers
@@ -262,7 +262,8 @@ class ScoreTypeGroup(ScoreTypeAlone):
         """
         # Actually, this means it didn't even compile!
         if not submission_result.evaluated():
-            return 0.0, "[]", 0.0, "[]", json.dumps(["%lg" % 0.0 for _ in self.parameters])
+            return 0.0, "[]", 0.0, "[]", \
+                json.dumps(["%lg" % 0.0 for _ in self.parameters])
 
         # XXX Lexicographical order by codename
         indices = sorted(self.public_testcases.keys())
@@ -320,12 +321,13 @@ class ScoreTypeGroup(ScoreTypeAlone):
             tc_start = tc_end
 
         score = sum(st["score"] for st in subtasks)
-        public_score = sum(st["score"] for st in public_subtasks
-                                       if "score" in st)
+        public_score = sum(st["score"]
+                           for st in public_subtasks
+                           if "score" in st)
 
         return score, json.dumps(subtasks), \
-               public_score, json.dumps(public_subtasks), \
-               json.dumps(ranking_details)
+            public_score, json.dumps(public_subtasks), \
+            json.dumps(ranking_details)
 
     def get_public_outcome(self, outcome, parameter):
         """Return a public outcome from an outcome.
@@ -343,7 +345,7 @@ class ScoreTypeGroup(ScoreTypeAlone):
 
         """
         logger.error("Unimplemented method get_public_outcome.")
-        raise NotImplementedError
+        raise NotImplementedError("Please subclass this class.")
 
     def reduce(self, outcomes, parameter):
         """Return the score of a subtask given the outcomes.
@@ -356,4 +358,4 @@ class ScoreTypeGroup(ScoreTypeAlone):
 
         """
         logger.error("Unimplemented method reduce.")
-        raise NotImplementedError
+        raise NotImplementedError("Please subclass this class.")

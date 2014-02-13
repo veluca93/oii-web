@@ -18,13 +18,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import os
 import sys
 import subprocess
 import datetime
 import re
+
 from argparse import ArgumentParser
 
+from cms import LANGUAGES
 from cmstestsuite import get_cms_config, CONFIG, info, sh
 from cmstestsuite import add_contest, add_existing_user, add_existing_task, \
     add_user, add_task, add_testcase, add_manager, combine_coverage, \
@@ -32,7 +36,7 @@ from cmstestsuite import add_contest, add_existing_user, add_existing_task, \
     start_ranking_web_server, shutdown_services, restart_service
 from cmstestsuite.Test import TestFailure
 import cmstestsuite.Tests
-from cmscommon.DateTime import get_system_timezone
+from cmscommon.datetime import get_system_timezone
 
 
 FAILED_TEST_FILENAME = '.testfailures'
@@ -56,15 +60,17 @@ def create_contest():
     contest_id = add_contest(
         name="testcontest1",
         description="A test contest #1.",
+        languages=LANGUAGES,
         start=start_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
         stop=stop_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
         timezone=get_system_timezone(),
-        token_initial="100",
-        token_max="100",
-        token_total="100",
+        token_mode="finite",
+        token_max_number="100",
         token_min_interval="0",
-        token_gen_time="0",
+        token_gen_initial="100",
         token_gen_number="0",
+        token_gen_interval="1",
+        token_gen_max="100",
     )
 
     info("Created contest %d." % contest_id)
@@ -122,12 +128,13 @@ def get_task_id(contest_id, user_id, task_module):
         return task_id_map[name][0]
 
     task_create_args = {
-        "token_initial": "100",
-        "token_max": "100",
-        "token_total": "100",
+        "token_mode": "finite",
+        "token_max_number": "100",
         "token_min_interval": "0",
-        "token_gen_time": "0",
+        "token_gen_initial": "100",
         "token_gen_number": "0",
+        "token_gen_interval": "1",
+        "token_gen_max": "100",
         "max_submission_number": "100",
         "max_user_test_number": "100",
         "min_submission_interval": None,
@@ -200,7 +207,7 @@ def load_test_list_from_file(filename):
         with open(filename) as f:
             lines = f.readlines()
     except (IOError, OSError) as e:
-        print "Failed to read test list. %s." % (e)
+        print("Failed to read test list. %s." % (e))
         return None
 
     errors = False
@@ -208,7 +215,7 @@ def load_test_list_from_file(filename):
     name_to_test_map = {}
     for test in cmstestsuite.Tests.ALL_TESTS:
         if test.name in name_to_test_map:
-            print "ERROR: Multiple tests with the same name `%s'." % test.name
+            print("ERROR: Multiple tests with the same name `%s'." % test.name)
             errors = True
         name_to_test_map[test.name] = test
 
@@ -216,22 +223,22 @@ def load_test_list_from_file(filename):
     for i, line in enumerate(lines):
         bits = [x.strip() for x in line.split()]
         if len(bits) != 2:
-            print "ERROR: %s:%d invalid line: %s" % (filename, i + 1, line)
+            print("ERROR: %s:%d invalid line: %s" % (filename, i + 1, line))
             errors = True
             continue
 
         name, lang = bits
 
         if name not in name_to_test_map:
-            print "ERROR: %s:%d invalid test case: %s" % (
-                filename, i + 1, name)
+            print("ERROR: %s:%d invalid test case: %s" %
+                  (filename, i + 1, name))
             errors = True
             continue
 
         test = name_to_test_map[name]
         if lang not in test.languages:
-            print "ERROR: %s:%d test `%s' does not have language `%s'" % (
-                filename, i + 1, name, lang)
+            print("ERROR: %s:%d test `%s' does not have language `%s'" %
+                  (filename, i + 1, name, lang))
             errors = True
             continue
 
@@ -394,7 +401,7 @@ def main():
 
     if args.dry_run:
         for t in test_list:
-            print t[0].name, t[1]
+            print(t[0].name, t[1])
         return 0
 
     if args.retry_failed:
@@ -442,10 +449,10 @@ def main():
     shutdown_services()
     combine_coverage()
 
-    print test_results
+    print(test_results)
 
     end_time = datetime.datetime.now()
-    print time_difference(start_time, end_time)
+    print(time_difference(start_time, end_time))
 
     if passed:
         return 0

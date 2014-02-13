@@ -24,6 +24,7 @@
 
 """
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import hashlib
@@ -44,17 +45,17 @@ from cms.io.GeventUtils import copyfileobj, move, rmtree
 logger = logging.getLogger(__name__)
 
 
-class FileCacherBackend:
+class FileCacherBackend(object):
 
     def get_file(self, digest):
         """Retrieve a file from the storage.
 
-        digest (bytes): the digest of the file to retrieve.
+        digest (unicode): the digest of the file to retrieve.
 
         return (fileobj): a readable binary file-like object from which
             to read the contents of the file.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         raise NotImplementedError("Please subclass this class.")
@@ -62,7 +63,7 @@ class FileCacherBackend:
     def put_file(self, digest, desc=""):
         """Store a file to the storage.
 
-        digest (bytes): the digest of the file to store.
+        digest (unicode): the digest of the file to store.
         desc (unicode): the optional description of the file to
             store, intended for human beings.
 
@@ -76,11 +77,11 @@ class FileCacherBackend:
     def describe(self, digest):
         """Return the description of a file given its digest.
 
-        digest (bytes): the digest of the file to describe.
+        digest (unicode): the digest of the file to describe.
 
         return (unicode): the description of the file.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         raise NotImplementedError("Please subclass this class.")
@@ -88,11 +89,12 @@ class FileCacherBackend:
     def get_size(self, digest):
         """Return the size of a file given its digest.
 
-        digest (bytes): the digest of the file to calculate the size of.
+        digest (unicode): the digest of the file to calculate the size
+            of.
 
         return (int): the size of the file, in bytes.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         raise NotImplementedError("Please subclass this class.")
@@ -100,9 +102,7 @@ class FileCacherBackend:
     def delete(self, digest):
         """Delete a file from the storage.
 
-        digest (bytes): the digest of the file to delete.
-
-        raise: KeyError if the file cannot be found.
+        digest (unicode): the digest of the file to delete.
 
         """
         raise NotImplementedError("Please subclass this class.")
@@ -110,8 +110,8 @@ class FileCacherBackend:
     def list(self):
         """List the files available in the storage.
 
-        return ([(bytes, unicode)]): a list of pairs, each representing
-            a file in the form (digest, description).
+        return ([(unicode, unicode)]): a list of pairs, each
+            representing a file in the form (digest, description).
 
         """
         raise NotImplementedError("Please subclass this class.")
@@ -197,10 +197,10 @@ class FSBackend(FileCacherBackend):
         """
         file_path = os.path.join(self.path, digest)
 
-        if not os.path.exists(file_path):
-            raise KeyError("File not found.")
-
-        os.unlink(file_path)
+        try:
+            os.unlink(file_path)
+        except OSError:
+            pass
 
     def list(self):
         """See FileCacherBackend.list().
@@ -304,9 +304,11 @@ class DBBackend(FileCacherBackend):
             fso = FSObject.get_from_digest(digest, session)
 
             if fso is None:
-                raise KeyError("File not found.")
+                session.rollback()
+                return
 
             fso.delete()
+
             session.commit()
 
     def list(self, session=None):
@@ -355,13 +357,13 @@ class NullBackend(FileCacherBackend):
         raise KeyError("File not found.")
 
     def delete(self, digest):
-        raise KeyError("File not found.")
+        pass
 
     def list(self):
         return list()
 
 
-class FileCacher:
+class FileCacher(object):
 
     """This class implement a local cache for files stored as FSObject
     in the database.
@@ -428,12 +430,20 @@ class FileCacher:
         Ask the backend to provide the file and, if it's available,
         copy its content into the file-system cache.
 
-        digest (bytes): the digest of the file to load.
+        digest (unicode): the digest of the file to load.
 
-        raise: KeyError if the backend cannot find the file.
+        raise (KeyError): if the backend cannot find the file.
 
         """
-        pass
+        cache_file_path = os.path.join(self.file_dir, digest)
+
+        fobj = self.backend.get_file(digest)
+
+        try:
+            with io.open(cache_file_path, 'wb') as dst:
+                copyfileobj(fobj, dst, self.CHUNK_SIZE)
+        finally:
+            fobj.close()
 
     def get_file(self, digest):
         """Retrieve a file from the storage.
@@ -446,21 +456,27 @@ class FileCacher:
         available as `get_file_content', `get_file_to_fobj' and `get_
         file_to_path'.
 
-        digest (bytes): the digest of the file to get.
+        digest (unicode): the digest of the file to get.
 
         return (fileobj): a readable binary file-like object from which
             to read the contents of the file.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         cache_file_path = os.path.join(self.file_dir, digest)
 
         logger.debug("Getting file %s." % digest)
-        if isinstance(self.backend, NullBackend):
-            return io.open(cache_file_path, 'rb')
-        else:
-            return self.backend.get_file(digest)
+
+        if not os.path.exists(cache_file_path):
+            logger.debug("File %s not in cache, downloading "
+                         "from database." % digest)
+
+            self.load(digest)
+
+            logger.debug("File %s downloaded." % digest)
+
+        return io.open(cache_file_path, 'rb')
 
     def get_file_content(self, digest):
         """Retrieve a file from the storage.
@@ -468,11 +484,11 @@ class FileCacher:
         See `get_file'. This method returns the content of the file, as
         a binary string.
 
-        digest (bytes): the digest of the file to get.
+        digest (unicode): the digest of the file to get.
 
         return (bytes): the content of the retrieved file.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         with self.get_file(digest) as src:
@@ -484,11 +500,11 @@ class FileCacher:
         See `get_file'. This method will write the content of the file
         to the given file-object.
 
-        digest (bytes): the digest of the file to get.
+        digest (unicode): the digest of the file to get.
         dst (fileobj): a writable binary file-like object on which to
             write the contents of the file.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         with self.get_file(digest) as src:
@@ -500,11 +516,11 @@ class FileCacher:
         See `get_file'. This method will write the content of a file
         to the given file-system location.
 
-        digest (bytes): the digest of the file to get.
+        digest (unicode): the digest of the file to get.
         dst_path (string): an accessible location on the file-system on
             which to write the contents of the file.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         with self.get_file(digest) as src:
@@ -517,7 +533,7 @@ class FileCacher:
         Use to local copy, available in the file-system cache, to store
         the file in the backend, if it's not already there.
 
-        digest (bytes): the digest of the file to load.
+        digest (unicode): the digest of the file to load.
         desc (unicode): the (optional) description to associate to the
             file.
 
@@ -552,7 +568,7 @@ class FileCacher:
         desc (unicode): the (optional) description to associate to the
             file.
 
-        return (bytes): the digest of the stored file.
+        return (unicode): the digest of the stored file.
 
         """
         logger.debug("Reading input file to store on the database.")
@@ -578,7 +594,7 @@ class FileCacher:
                         break
                     buf = buf[written:]
                 buf = src.read(self.CHUNK_SIZE)
-            digest = hasher.hexdigest()
+            digest = hasher.hexdigest().decode("ascii")
             dst.flush()
 
             logger.debug("File has digest %s." % digest)
@@ -608,7 +624,7 @@ class FileCacher:
         desc (unicode): the (optional) description to associate to the
             file.
 
-        return (bytes): the digest of the stored file.
+        return (unicode): the digest of the stored file.
 
         """
         with io.BytesIO(content) as src:
@@ -625,7 +641,7 @@ class FileCacher:
         desc (unicode): the (optional) description to associate to the
             file.
 
-        return (bytes): the digest of the stored file.
+        return (unicode): the digest of the stored file.
 
         """
         with io.open(src_path, 'rb') as src:
@@ -634,11 +650,11 @@ class FileCacher:
     def describe(self, digest):
         """Return the description of a file given its digest.
 
-        digest (bytes): the digest of the file to describe.
+        digest (unicode): the digest of the file to describe.
 
         return (unicode): the description of the file.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
         return self.backend.describe(digest)
@@ -646,31 +662,20 @@ class FileCacher:
     def get_size(self, digest):
         """Return the size of a file given its digest.
 
-        digest (bytes): the digest of the file to calculate the size of.
+        digest (unicode): the digest of the file to calculate the size
+            of.
 
         return (int): the size of the file, in bytes.
 
-        raise: KeyError if the file cannot be found.
+        raise (KeyError): if the file cannot be found.
 
         """
-        cache_file_path = os.path.join(self.file_dir, digest)
-
-        logger.debug("Getting size of file %s." % digest)
-
-        if not os.path.exists(cache_file_path):
-            logger.debug("File %s not in cache, downloading "
-                         "from database." % digest)
-
-            self.load(digest)
-
-            logger.debug("File %s downloaded." % digest)
-
-        return os.stat(cache_file_path).st_size
+        return self.backend.get_size(digest)
 
     def delete(self, digest):
         """Delete a file from the backend and the local cache.
 
-        digest (bytes): the digest of the file to delete.
+        digest (unicode): the digest of the file to delete.
 
         """
         self.drop(digest)
@@ -679,7 +684,7 @@ class FileCacher:
     def drop(self, digest):
         """Delete a file only from the local cache.
 
-        digest (bytes): the file to delete.
+        digest (unicode): the file to delete.
 
         """
         cache_file_path = os.path.join(self.file_dir, digest)
@@ -710,8 +715,8 @@ class FileCacher:
     def list(self):
         """List the files available in the storage.
 
-        return ([(bytes, unicode)]): a list of pairs, each representing
-            a file in the form (digest, description).
+        return ([(unicode, unicode)]): a list of pairs, each
+            representing a file in the form (digest, description).
 
         """
         return self.backend.list()

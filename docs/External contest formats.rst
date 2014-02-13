@@ -52,7 +52,7 @@ The following are optional keys.
 
 - ``stop`` (integer; also accepted: ``fine``): the UNIX timestamp of the end of the contest (copied in the ``stop`` field); defaults to zero, meaning that contest times haven't yet been decided.
 
-- ``token_*``: token parameters for the contest, see :ref:`configuringacontest_tokens` (the names of the parameters are the same as the internal names described there); by default tokens are disabled.
+- ``token_*``: token parameters for the contest, see :ref:`configuringacontest_tokens` (the names of the parameters are the same as the internal names described there); by default tokens are infinite.
 
 - ``max_*_number`` and ``min_*_interval`` (integers): limitations for the whole contest, see :ref:`configuringacontest_limitations` (the names of the parameters are the same as the internal names described there); by default they're all unset.
 
@@ -74,9 +74,9 @@ The following are optional keys.
 
 - ``last_name`` (string; also accepted: ``cognome``): the user real last name; defaults to the value of ``username``.
 
-- ``ip`` (string): the IP address from which incoming connections for this user are accepted, see :ref:`configuringacontest_login`.
+- ``ip`` (string): the IP address or subnet from which incoming connections for this user are accepted, see :ref:`configuringacontest_login`.
 
-- ``hidden`` (string; also accepted: ``fake``): when set to ``True`` (case-sensitive _string_) set the ``hidden`` flag in the user, see :ref:`configuringacontest_login`; defaults to ``False``.
+- ``hidden`` (boolean; also accepted: ``fake``): when set to true set the ``hidden`` flag in the user, see :ref:`configuringacontest_login`; defaults to false (the case-sensitive _string_ ``True`` is also accepted).
 
 
 Task description
@@ -134,7 +134,7 @@ The following are optional files, that must be present for certain task types or
 
 - :file:`sol/*.h` and :file:`sol/*lib.pas`: if a grader is present, all other files in the :file:`sol` directory that end with ``.h`` or ``lib.pas`` are treated as auxiliary files needed by the compilation of the grader with the submitted solution.
 
-- :file:`check/checker` (also accepted: :file:`cor/correttore`): for tasks of types :ref:`tasktypes_batch` or :ref:`tasktypes_outputonly`, if this file is present, it must be the executable that examines the input and both the correct and the contestant's output files and assigns the outcome. If the file is not present, a simple diff is used to compare the correct and the contestant's output files.
+- :file:`check/checker` (also accepted: :file:`cor/correttore`): for tasks of types :ref:`tasktypes_batch` or :ref:`tasktypes_outputonly`, if this file is present, it must be the executable that examines the input and both the correct and the contestant's output files and assigns the outcome. It must be a statically linked executable (for example, if compiled from a C or C++ source, the :samp:`-static` option must be used) because otherwise the sandbox will prevent it from accessing its dependencies. If instead the file is not present, a simple diff is used to compare the correct and the contestant's output files.
 
 - :file:`check/manager`: (also accepted: :file:`cor/manager`) for tasks of type :ref:`tasktypes_communication`, this executable is the program that reads the input and communicates with the user solution.
 

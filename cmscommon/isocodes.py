@@ -3,6 +3,7 @@
 
 # Programming contest management system
 # Copyright © 2012 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2013 Stefano Maggiolo <s.maggiolo@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -17,9 +18,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
 import os.path
 from xml.sax import parse
 from xml.sax.handler import ContentHandler
+
+
+__all__ = [
+    "is_language_code", "translate_language_code",
+    "is_country_code", "translate_country_code",
+    "is_language_country_code", "translate_country_code",
+    ]
+
 
 # We need the config to access the iso_codes_prefix value. It would be
 # better not to depend on cms (i.e. be standalone). The best solution
@@ -55,11 +66,11 @@ _country_codes = dict()
 parse(os.path.join(config.iso_codes_prefix,
                    'share', 'xml', 'iso-codes', 'iso_639.xml'),
       _make_dict(["iso_639_entries", "iso_639_entry"],
-                "iso_639_1_code", "name", _language_codes))
+                 "iso_639_1_code", "name", _language_codes))
 parse(os.path.join(config.iso_codes_prefix,
                    'share', 'xml', 'iso-codes', 'iso_3166.xml'),
       _make_dict(["iso_3166_entries", "iso_3166_entry"],
-                "alpha_2_code", "name", _country_codes))
+                 "alpha_2_code", "name", _country_codes))
 
 
 def is_language_code(code):
@@ -68,7 +79,7 @@ def is_language_code(code):
 
 def translate_language_code(code, locale):
     if code not in _language_codes:
-        raise ValueError
+        raise ValueError("Language code not recognized.")
 
     return locale.translate(_language_codes[code]).split(';')[0]
 
@@ -79,7 +90,7 @@ def is_country_code(code):
 
 def translate_country_code(code, locale):
     if code not in _country_codes:
-        raise ValueError
+        raise ValueError("Country code not recognized.")
 
     return locale.translate(_country_codes[code]).split(';')[0]
 
@@ -98,7 +109,7 @@ def translate_language_country_code(code, locale):
     if len(tokens) != 2 or \
             tokens[0] not in _language_codes or \
             tokens[1] not in _country_codes:
-        raise ValueError
+        raise ValueError("Language and country code not recognized.")
 
     return "%s (%s)" % (translate_language_code(tokens[0], locale),
                         translate_country_code(tokens[1], locale))

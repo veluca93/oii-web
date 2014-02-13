@@ -3,7 +3,7 @@
 
 # Programming contest management system
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2013 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
@@ -34,12 +34,12 @@ import random
 from datetime import timedelta
 from collections import namedtuple
 
-from cms.io.GeventLibrary import Service, rpc_method, rpc_callback
-from cms.io import ServiceCoord, get_service_shards
+from cms import ServiceCoord, get_service_shards
+from cms.io import Service, rpc_method
 from cms.db import SessionGen, Contest, Dataset, Submission, \
     SubmissionResult, UserTest, UserTestResult
 from cms.service import get_submission_results, get_datasets_to_judge
-from cmscommon.DateTime import make_datetime, make_timestamp
+from cmscommon.datetime import make_datetime, make_timestamp
 from cms.grading.Job import JobGroup
 
 
@@ -55,8 +55,9 @@ def to_compile(submission_result):
 
     """
     r = submission_result
-    return r is None or (not r.compiled() and
-        r.compilation_tries < EvaluationService.MAX_COMPILATION_TRIES)
+    return r is None or \
+        (not r.compiled() and
+         r.compilation_tries < EvaluationService.MAX_COMPILATION_TRIES)
 
 
 def to_evaluate(submission_result):
@@ -82,8 +83,9 @@ def user_test_to_compile(user_test_result):
 
     """
     r = user_test_result
-    return r is None or (not r.compiled() and
-        r.compilation_tries < EvaluationService.MAX_TEST_COMPILATION_TRIES)
+    return r is None or \
+        (not r.compiled() and
+         r.compilation_tries < EvaluationService.MAX_TEST_COMPILATION_TRIES)
 
 
 def user_test_to_evaluate(user_test_result):
@@ -102,10 +104,10 @@ def user_test_to_evaluate(user_test_result):
 
 # job_type is a constant defined in EvaluationService.
 JobQueueEntry = namedtuple('JobQueueEntry',
-    ['job_type', 'object_id', 'dataset_id'])
+                           ['job_type', 'object_id', 'dataset_id'])
 
 
-class JobQueue:
+class JobQueue(object):
     """An instance of this class will contains the (unique) priority
     queue of jobs (compilations, evaluations, ...) that the ES needs
     to process next.
@@ -126,7 +128,7 @@ class JobQueue:
     def __contains__(self, job):
         """Implement the 'in' operator for a job in the queue.
 
-        job (job): a job to search.
+        job (JobQueueEntry): a job to search.
 
         return (bool): True if job is in the queue.
 
@@ -142,7 +144,7 @@ class JobQueue:
 
         """
         self._queue[idx1], self._queue[idx2] = \
-                           self._queue[idx2], self._queue[idx1]
+            self._queue[idx2], self._queue[idx1]
         self._reverse[self._queue[idx1][2]] = idx1
         self._reverse[self._queue[idx2][2]] = idx2
 
@@ -177,7 +179,7 @@ class JobQueue:
         while 2 * idx + 1 <= last:
             child = 2 * idx + 1
             if 2 * idx + 2 <= last and \
-                   self._queue[2 * idx + 2] < self._queue[child]:
+                    self._queue[2 * idx + 2] < self._queue[child]:
                 child = 2 * idx + 2
             if self._queue[child] < self._queue[idx]:
                 self._swap(child, idx)
@@ -202,9 +204,9 @@ class JobQueue:
         """Push a job in the queue. If timestamp is not specified,
         uses the current time.
 
-        job (job): a tuple (job_type, object_id, dataset_id)
-        priority (int): the priority of the job
-        timestamp (int): the time of the submission
+        job (JobQueueEntry): the job to add to the queue.
+        priority (int): the priority of the job.
+        timestamp (datetime): the time of the submission.
 
         """
         if timestamp is None:
@@ -218,9 +220,10 @@ class JobQueue:
         """Returns the first element in the queue without extracting
         it. If the queue is empty raises an exception.
 
-        returns (job): first element in the queue
+        returns ((int, datetime, JobQueueEntry)): first element in the
+            queue.
 
-        raise: LookupError on empty queue.
+        raise (LookupError): on empty queue.
 
         """
         if len(self._queue) > 0:
@@ -231,9 +234,10 @@ class JobQueue:
     def pop(self):
         """Extracts (and returns) the first element in the queue.
 
-        returns (job): first element in the queue
+        returns ((int, datetime, JobQueueEntry)): first element in the
+            queue.
 
-        raise: LookupError on empty queue.
+        raise (LookupError): on empty queue.
 
         """
         top = self.top()
@@ -249,11 +253,11 @@ class JobQueue:
     def remove(self, job):
         """Remove a job from the queue. Raise a KeyError if not present.
 
-        job (job): the job to remove
+        job (JobQueueEntry): the job to remove.
 
         return (int, int, job): priority, timestamp, and job.
 
-        raise: KeyError if job not present.
+        raise (KeyError): if job not present.
 
         """
         pos = self._reverse[job]
@@ -269,10 +273,10 @@ class JobQueue:
         """Change the priority of a job inside the queue. Raises an
         exception if the job is not in the queue.
 
-        job (job): the job whose priority needs to change.
+        job (JobQueueEntry): the job whose priority needs to change.
         priority (int): the new priority.
 
-        raise: LookupError if job not present.
+        raise (LookupError): if job not present.
 
         """
         pos = self._reverse[job]
@@ -311,7 +315,7 @@ class JobQueue:
         return ret
 
 
-class WorkerPool:
+class WorkerPool(object):
     """This class keeps the state of the workers attached to ES, and
     allow the ES to get a usable worker when it needs it.
 
@@ -389,12 +393,13 @@ class WorkerPool:
         are available then this returns None, otherwise this returns
         the chosen worker.
 
-        job (job): the job to assign to a worker
+        job (JobQueueEntry): the job to assign to a worker.
         side_data (object): object to attach to the worker for later
-                            use
+            use.
 
         returns (int): None if no workers are available, the worker
-                       assigned to the job otherwise
+            assigned to the job otherwise.
+
         """
         # We look for an available worker
         try:
@@ -442,7 +447,7 @@ class WorkerPool:
 
             self._worker[shard].execute_job_group(
                 job_group_dict=job_group.export_to_dict(),
-                callback=self._service.action_finished.__func__,
+                callback=self._service.action_finished,
                 plus=(job_type, object_id, dataset_id, side_data, shard))
         return shard
 
@@ -481,17 +486,17 @@ class WorkerPool:
         there is a placeholder job to signal that the worker is not
         doing anything (or disabled).
 
-        job (job): the job we are looking for, or WorkerPool.WORKER_*.
+        job (JobQueueEntry): the job we are looking for, or
+            WorkerPool.WORKER_*.
         require_connection (bool): True if we want to find a worker
-                                   doing the job and that is actually
-                                   connected to us (i.e., did not
-                                   die).
+            doing the job and that is actually connected to us (i.e.,
+            did not die).
         random_worker (bool): if True, choose uniformly amongst all
-                       workers doing the job.
+            workers doing the job.
 
         returns (int): the shard of the worker working on job.
 
-        raise: LookupError if nothing has been found.
+        raise (LookupError): if nothing has been found.
 
         """
         pool = []
@@ -509,9 +514,9 @@ class WorkerPool:
     def ignore_job(self, job):
         """Mark the job to be ignored, and try to inform the worker.
 
-        job (job): the job to ignore.
+        job (JobQueueEntry): the job to ignore.
 
-        raise: LookupError if job is not found.
+        raise (LookupError): if job is not found.
 
         """
         shard = self.find_worker(job)
@@ -594,8 +599,8 @@ class WorkerPool:
         lost_jobs = []
         for shard in self._worker:
             if not self._worker[shard].connected and \
-                   self._job[shard] not in [WorkerPool.WORKER_DISABLED,
-                                            WorkerPool.WORKER_INACTIVE]:
+                    self._job[shard] not in [WorkerPool.WORKER_DISABLED,
+                                             WorkerPool.WORKER_INACTIVE]:
                 if not self._ignore[shard]:
                     job = self._job[shard]
                     priority, timestamp = self._side_data[shard]
@@ -684,7 +689,7 @@ class EvaluationService(Service):
         new_jobs = 0
         with SessionGen() as session:
             contest = session.query(Contest).\
-                      filter_by(id=self.contest_id).first()
+                filter_by(id=self.contest_id).first()
 
             # Only adding submission not compiled/evaluated that have
             # not yet reached the limit of tries.
@@ -694,21 +699,21 @@ class EvaluationService(Service):
                         submission.get_result_or_create(dataset)
                     if to_compile(submission_result):
                         if self.push_in_queue(
-                            JobQueueEntry(
-                                EvaluationService.JOB_TYPE_COMPILATION,
-                                submission.id,
-                                dataset.id),
-                            EvaluationService.JOB_PRIORITY_HIGH,
-                            submission.timestamp):
+                                JobQueueEntry(
+                                    EvaluationService.JOB_TYPE_COMPILATION,
+                                    submission.id,
+                                    dataset.id),
+                                EvaluationService.JOB_PRIORITY_HIGH,
+                                submission.timestamp):
                             new_jobs += 1
                     elif to_evaluate(submission_result):
                         if self.push_in_queue(
-                            JobQueueEntry(
-                                EvaluationService.JOB_TYPE_EVALUATION,
-                                submission.id,
-                                dataset.id),
-                            EvaluationService.JOB_PRIORITY_MEDIUM,
-                            submission.timestamp):
+                                JobQueueEntry(
+                                    EvaluationService.JOB_TYPE_EVALUATION,
+                                    submission.id,
+                                    dataset.id),
+                                EvaluationService.JOB_PRIORITY_MEDIUM,
+                                submission.timestamp):
                             new_jobs += 1
 
             # The same for user tests
@@ -718,21 +723,22 @@ class EvaluationService(Service):
                         user_test.get_result_or_create(dataset)
                     if user_test_to_compile(user_test_result):
                         if self.push_in_queue(
-                            JobQueueEntry(
-                                EvaluationService.JOB_TYPE_TEST_COMPILATION,
-                                user_test.id,
-                                dataset.id),
-                            EvaluationService.JOB_PRIORITY_HIGH,
-                            user_test.timestamp):
+                                JobQueueEntry(
+                                    EvaluationService.
+                                    JOB_TYPE_TEST_COMPILATION,
+                                    user_test.id,
+                                    dataset.id),
+                                EvaluationService.JOB_PRIORITY_HIGH,
+                                user_test.timestamp):
                             new_jobs += 1
                     elif user_test_to_evaluate(user_test_result):
                         if self.push_in_queue(
-                            JobQueueEntry(
-                                EvaluationService.JOB_TYPE_TEST_EVALUATION,
-                                user_test.id,
-                                dataset.id),
-                            EvaluationService.JOB_PRIORITY_MEDIUM,
-                            user_test.timestamp):
+                                JobQueueEntry(
+                                    EvaluationService.JOB_TYPE_TEST_EVALUATION,
+                                    user_test.id,
+                                    dataset.id),
+                                EvaluationService.JOB_PRIORITY_MEDIUM,
+                                user_test.timestamp):
                             new_jobs += 1
 
             session.commit()
@@ -810,7 +816,7 @@ class EvaluationService(Service):
                     stats["compilation_fail"] += 1
                 elif not submission_result.compiled():
                     if submission_result.compilation_tries >= \
-                           EvaluationService.MAX_COMPILATION_TRIES:
+                            EvaluationService.MAX_COMPILATION_TRIES:
                         stats["max_compilations"] += 1
                     else:
                         stats["compiling"] += 1
@@ -822,7 +828,7 @@ class EvaluationService(Service):
                             stats["evaluated"] += 1
                     else:
                         if submission_result.evaluation_tries >= \
-                               EvaluationService.MAX_EVALUATION_TRIES:
+                                EvaluationService.MAX_EVALUATION_TRIES:
                             stats["max_evaluations"] += 1
                         else:
                             stats["evaluating"] += 1
@@ -930,8 +936,7 @@ class EvaluationService(Service):
         """Push a job in the job queue if the submission is not
         already in the queue or assigned to a worker.
 
-        job (JobQueueEntry): a tuple (job_type, object_id, dataset_id)
-                             to push.
+        job (JobQueueEntry): the job to put in the queue.
 
         return (bool): True if pushed, False if not.
 
@@ -942,7 +947,6 @@ class EvaluationService(Service):
             self.queue.push(job, priority, timestamp)
             return True
 
-    @rpc_callback
     def action_finished(self, data, plus, error=None):
         """Callback from a worker, to signal that is finished some
         action (compilation or evaluation).
@@ -980,7 +984,7 @@ class EvaluationService(Service):
                 job_group = JobGroup.import_from_dict(data)
             except:
                 logger.error("[action_finished] Couldn't build JobGroup for "
-                             "data %s." % data)
+                             "data %s." % data, exc_info=True)
                 job_success = False
 
             else:
@@ -1336,9 +1340,9 @@ class EvaluationService(Service):
         with SessionGen() as session:
             submission_results = get_submission_results(
                 # Give contest_id only if all others are None.
-                self.contest_id \
-                    if {user_id, task_id, submission_id, dataset_id} == {None}
-                    else None,
+                self.contest_id
+                if {user_id, task_id, submission_id, dataset_id} == {None}
+                else None,
                 user_id, task_id, submission_id, dataset_id, session)
 
             logger.info("Submission results to invalidate %s for: %d." %

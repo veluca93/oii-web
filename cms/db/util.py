@@ -21,6 +21,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from __future__ import print_function
 
 import sys
 
@@ -30,13 +32,13 @@ from . import SessionGen, Contest
 def get_contest_list(session=None):
     """Return all the contest objects available on the database.
 
-    session (Session object): if specified, use such session for
-                              connecting to the database; otherwise,
-                              create a temporary one and discard it
-                              after the operation (this means that no
-                              further expansion of lazy properties of
-                              the returned Contest objects will be
-                              possible).
+    session (Session): if specified, use such session for connecting
+        to the database; otherwise, create a temporary one and discard
+        it after the operation (this means that no further expansion
+        of lazy properties of the returned Contest objects will be
+        possible).
+
+    return ([Contest]): the list of contests in the DB.
 
     """
     if session is None:
@@ -61,8 +63,8 @@ def ask_for_contest(skip=None):
     """Print a greeter that ask the user for a contest, if there is
     not an indication of which contest to use in the command line.
 
-    skip (int/None): how many commandline arguments are already taken
-                     by other usages.
+    skip (int|None): how many commandline arguments are already taken
+        by other usages (None for no arguments already consumed).
 
     return (int): a contest_id.
 
@@ -79,19 +81,19 @@ def ask_for_contest(skip=None):
             matches = {}
             n_contests = len(contests)
             if n_contests == 0:
-                print "No contests in the database."
-                print "You may want to use some of the facilities in " \
-                      "cmscontrib to import a contest."
+                print("No contests in the database.")
+                print("You may want to use some of the facilities in "
+                      "cmscontrib to import a contest.")
                 sys.exit(0)
-            print "Contests available:"
+            print("Contests available:")
             for i, row in enumerate(contests):
-                print "%3d  -  ID: %d  -  Name: %s  -  Description: %s" % \
-                      (i + 1, row.id, row.name, row.description),
+                print("%3d  -  ID: %d  -  Name: %s  -  Description: %s" %
+                      (i + 1, row.id, row.name, row.description), end='')
                 matches[i + 1] = row.id
                 if i == n_contests - 1:
-                    print " (default)"
+                    print(" (default)")
                 else:
-                    print
+                    print()
 
         contest_number = raw_input("Insert the row number next to the contest "
                                    "you want to load (not the id): ")
@@ -100,7 +102,7 @@ def ask_for_contest(skip=None):
         try:
             contest_id = matches[int(contest_number)]
         except (ValueError, KeyError):
-            print "Insert a correct number."
+            print("Insert a correct number.")
             sys.exit(1)
 
     return contest_id

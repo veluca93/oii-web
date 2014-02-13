@@ -58,8 +58,7 @@ class OutputOnly(TaskType):
         "output_eval",
         "",
         {"diff": "Outputs compared with white diff",
-         "comparator": "Outputs are compared by a comparator"},
-        "diff")
+         "comparator": "Outputs are compared by a comparator"})
 
     ACCEPTED_PARAMETERS = [_EVALUATION]
 
@@ -89,6 +88,7 @@ class OutputOnly(TaskType):
         job.success = True
         job.compilation_success = True
         job.text = [N_("No compilation needed")]
+        job.plus = {}
 
     def evaluate(self, job, file_cacher):
         """See TaskType.evaluate."""

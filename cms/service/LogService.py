@@ -31,7 +31,7 @@ from collections import deque
 
 from cms import config, mkdir
 from cms.log import root_logger, shell_handler, FileHandler, CustomFormatter
-from cms.io.GeventLibrary import Service, rpc_method
+from cms.io import Service, rpc_method
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class LogService(Service):
         # Determine location of log file, and make directories.
         log_dir = os.path.join(config.log_dir, "cms")
         if not mkdir(config.log_dir) or \
-               not mkdir(log_dir):
+                not mkdir(log_dir):
             logger.error("Cannot create necessary directories.")
             self.exit()
             return

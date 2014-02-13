@@ -5,6 +5,7 @@
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
+# Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -19,6 +20,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import argparse
 import os
@@ -32,6 +34,7 @@ import yaml
 
 from cms.grading import get_compilation_command
 from cmstaskenv.Test import test_testcases, clean_test_env
+
 
 SOL_DIRNAME = 'sol'
 SOL_FILENAME = 'soluzione'
@@ -89,8 +92,8 @@ def basename2(string, suffixes):
 
 
 def call(base_dir, args, stdin=None, stdout=None, stderr=None, env=None):
-    print >> sys.stderr, "> Executing command %s in dir %s" % \
-        (" ".join(args), base_dir)
+    print("> Executing command %s in dir %s" %
+          (" ".join(args), base_dir), file=sys.stderr)
     if env is None:
         env = {}
     env2 = copy.copy(os.environ)
@@ -98,7 +101,7 @@ def call(base_dir, args, stdin=None, stdout=None, stderr=None, env=None):
     res = subprocess.call(args, stdin=stdin, stdout=stdout, stderr=stderr,
                           cwd=base_dir, env=env2)
     if res != 0:
-        print >> sys.stderr, "Subprocess returned with error"
+        print("Subprocess returned with error", file=sys.stderr)
         sys.exit(1)
 
 
@@ -181,7 +184,8 @@ def build_sols_list(base_dir, task_type, in_out_files, yaml_conf):
                                      GRAD_BASENAME + '.%s' % (lang)))
         srcs.append(src)
 
-        test_deps = [exe_EVAL, os.path.join(TEXT_DIRNAME, TEXT_PDF)] + in_out_files
+        test_deps = \
+            [exe_EVAL, os.path.join(TEXT_DIRNAME, TEXT_PDF)] + in_out_files
         if task_type == ['Batch', 'Comp'] or \
                 task_type == ['Batch', 'GradComp']:
             test_deps.append('cor/correttore')
@@ -222,11 +226,12 @@ def build_sols_list(base_dir, task_type, in_out_files, yaml_conf):
                                 os.path.join(base_dir, exe))
                 shutil.rmtree(tempdir)
 
-        def test_src(exe, assume=None):
-            print "Testing solution %s" % (exe)
+        def test_src(exe, lang, assume=None):
+            print("Testing solution %s" % (exe))
             test_testcases(
                 base_dir,
                 exe,
+                language=lang,
                 assume=assume)
 
         actions.append(
@@ -242,8 +247,7 @@ def build_sols_list(base_dir, task_type, in_out_files, yaml_conf):
 
         test_actions.append((test_deps,
                              ['test_%s' % (os.path.split(exe)[1])],
-                             functools.partial(test_src,
-                                               exe_EVAL),
+                             functools.partial(test_src, exe_EVAL, lang),
                              'test solution (compiled with -DEVAL)'))
 
     return actions + test_actions
@@ -354,7 +358,7 @@ def build_gen_list(base_dir, task_type):
         except OSError:
             pass
         for line in iter_file(os.path.join(base_dir, gen_GEN)):
-            print >> sys.stderr, "Generating input # %d" % (n)
+            print("Generating input # %d" % (n), file=sys.stderr)
             with open(os.path.join(input_dir,
                                    'input%d.txt' % (n)), 'w') as fout:
                 call(base_dir,
@@ -370,7 +374,7 @@ def build_gen_list(base_dir, task_type):
             os.makedirs(output_dir)
         except OSError:
             pass
-        print >> sys.stderr, "Generating output # %d" % (n)
+        print("Generating output # %d" % (n), file=sys.stderr)
         with open(os.path.join(input_dir, 'input%d.txt' % (n))) as fin:
             with open(os.path.join(output_dir,
                                    'output%d.txt' % (n)), 'w') as fout:
@@ -492,7 +496,7 @@ def execute_target(base_dir, exec_tree, target,
                    debug=False, assume=None):
     # Initialization
     if debug:
-        print ">> Target %s is requested" % (target)
+        print(">> Target %s is requested" % (target))
     if already_executed is None:
         already_executed = set()
     if stack is None:
@@ -511,12 +515,13 @@ def execute_target(base_dir, exec_tree, target,
     # nothing to do
     if target in already_executed:
         if debug:
-            print ">> Target %s has already been built, ignoring..." % (target)
+            print(">> Target %s has already been built, ignoring..." %
+                  (target))
         return
 
     # Otherwise, do a step of the DFS to make dependencies
     if debug:
-        print ">> Building dependencies for target %s" % (target)
+        print(">> Building dependencies for target %s" % (target))
     already_executed.add(target)
     stack.add(target)
     for dep in deps:
@@ -524,7 +529,7 @@ def execute_target(base_dir, exec_tree, target,
                        already_executed, stack, assume=assume)
     stack.remove(target)
     if debug:
-        print ">> Dependencies built for target %s" % (target)
+        print(">> Dependencies built for target %s" % (target))
 
     # Check if the action really needs to be done (i.e., there is one
     # dependency more recent than the generated file)
@@ -536,15 +541,16 @@ def execute_target(base_dir, exec_tree, target,
         gen_time = 0
     if gen_time >= dep_times:
         if debug:
-            print ">> Target %s is already new enough, not building" % (target)
+            print(">> Target %s is already new enough, not building" %
+                  (target))
         return
 
     # At last: actually make the so long desired action :-)
     if debug:
-        print ">> Acutally building target %s" % (target)
+        print(">> Acutally building target %s" % (target))
     action(assume=assume)
     if debug:
-        print ">> Target %s finished to build" % (target)
+        print(">> Target %s finished to build" % (target))
 
 
 def execute_multiple_targets(base_dir, exec_tree, targets,
@@ -603,19 +609,19 @@ def main():
         parser.error("Too many commands")
 
     if options.list:
-        print "Task name: %s" % (detect_task_name(base_dir))
-        print "Task type: %s %s" % (task_type[0],  task_type[1])
-        print "Available operations:"
+        print("Task name: %s" % (detect_task_name(base_dir)))
+        print("Task type: %s %s" % (task_type[0], task_type[1]))
+        print("Available operations:")
         for entry in actions:
-            print "  %s: %s -> %s" % (entry[3], ", ".join(entry[0]),
-                                      ", ".join(entry[1]))
+            print("  %s: %s -> %s" %
+                  (entry[3], ", ".join(entry[0]), ", ".join(entry[1])))
 
     elif options.clean:
-        print "Cleaning"
+        print("Cleaning")
         clean(base_dir, generated_list)
 
     elif options.all:
-        print "Making all targets"
+        print("Making all targets")
         try:
             execute_multiple_targets(base_dir, exec_tree,
                                      generated_list, debug=options.debug,

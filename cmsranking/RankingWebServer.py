@@ -19,12 +19,15 @@
 
 from __future__ import unicode_literals
 from __future__ import absolute_import
+from __future__ import print_function
 
 import argparse
 import functools
 import io
 import json
+import logging
 import os
+import pprint
 import re
 import shutil
 import time
@@ -41,9 +44,11 @@ from werkzeug.wsgi import responder, wrap_file, SharedDataMiddleware, \
     DispatcherMiddleware
 from werkzeug.utils import redirect
 
-from cmscommon.EventSource import EventSource
+# Needed for initialization. Do not remove.
+import cmsranking.Logger
+
+from cmscommon.eventsource import EventSource
 from cmsranking.Config import config
-from cmsranking.Logger import logger
 from cmsranking.Entity import InvalidData
 import cmsranking.Contest as Contest
 import cmsranking.Task as Task
@@ -52,6 +57,9 @@ import cmsranking.User as User
 import cmsranking.Submission as Submission
 import cmsranking.Subchange as Subchange
 import cmsranking.Scoring as Scoring
+
+
+logger = logging.getLogger(__name__)
 
 
 class CustomUnauthorized(Unauthorized):
@@ -68,14 +76,14 @@ class StoreHandler(object):
     def __init__(self, store):
         self.store = store
 
-        self.router = Map([
-                Rule("/<key>", methods=["GET"], endpoint="get"),
-                Rule("/", methods=["GET"], endpoint="get_list"),
-                Rule("/<key>", methods=["PUT"], endpoint="put"),
-                Rule("/", methods=["PUT"], endpoint="put_list"),
-                Rule("/<key>", methods=["DELETE"], endpoint="delete"),
-                Rule("/", methods=["DELETE"], endpoint="delete_list"),
-            ], encoding_errors="strict")
+        self.router = Map(
+            [Rule("/<key>", methods=["GET"], endpoint="get"),
+             Rule("/", methods=["GET"], endpoint="get_list"),
+             Rule("/<key>", methods=["PUT"], endpoint="put"),
+             Rule("/", methods=["PUT"], endpoint="put_list"),
+             Rule("/<key>", methods=["DELETE"], endpoint="delete"),
+             Rule("/", methods=["DELETE"], endpoint="delete_list"),
+             ], encoding_errors="strict")
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -172,7 +180,7 @@ class StoreHandler(object):
         except InvalidData:
             logger.warning("Invalid data.", exc_info=True,
                            extra={'location': request.url,
-                                  'details': data})
+                                  'details': pprint.pformat(data)})
             raise BadRequest()
 
         response.status_code = 204
@@ -201,7 +209,7 @@ class StoreHandler(object):
         except InvalidData:
             logger.warning("Invalid data.", exc_info=True,
                            extra={'location': request.url,
-                                  'details': data})
+                                  'details': pprint.pformat(data)})
             raise BadRequest()
 
         response.status_code = 204
@@ -236,9 +244,9 @@ class StoreHandler(object):
 
 class DataWatcher(EventSource):
     """Receive the messages from the entities store and redirect them."""
-    def __init__(self, url):
+    def __init__(self):
         self._CACHE_SIZE = config.buffer_size
-        EventSource.__init__(self, url)
+        EventSource.__init__(self)
 
         Contest.store.add_create_callback(
             functools.partial(self.callback, "contest", "create"))
@@ -334,9 +342,9 @@ class ImageHandler(object):
         self.location = location
         self.fallback = fallback
 
-        self.router = Map([
-                Rule("/<name>", methods=["GET"], endpoint="get"),
-            ], encoding_errors="strict")
+        self.router = Map(
+            [Rule("/<name>", methods=["GET"], endpoint="get"),
+             ], encoding_errors="strict")
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -383,14 +391,14 @@ class ImageHandler(object):
 
 class RoutingHandler(object):
     def __init__(self, event_handler, logo_handler):
-        self.router = Map([
-                Rule("/", methods=["GET"], endpoint="root"),
-                Rule("/sublist/<user_id>", methods=["GET"], endpoint="sublist"),
-                Rule("/history", methods=["GET"], endpoint="history"),
-                Rule("/scores", methods=["GET"], endpoint="scores"),
-                Rule("/events", methods=["GET"], endpoint="events"),
-                Rule("/logo", methods=["GET"], endpoint="logo"),
-            ], encoding_errors="strict")
+        self.router = Map(
+            [Rule("/", methods=["GET"], endpoint="root"),
+             Rule("/sublist/<user_id>", methods=["GET"], endpoint="sublist"),
+             Rule("/history", methods=["GET"], endpoint="history"),
+             Rule("/scores", methods=["GET"], endpoint="scores"),
+             Rule("/events", methods=["GET"], endpoint="events"),
+             Rule("/logo", methods=["GET"], endpoint="logo"),
+             ], encoding_errors="strict")
 
         self.event_handler = event_handler
         self.logo_handler = logo_handler
@@ -429,6 +437,11 @@ class RoutingHandler(object):
 
 
 def main():
+    """Entry point for RWS.
+
+    return (bool): True if executed successfully.
+
+    """
     parser = argparse.ArgumentParser(
         description="Ranking for CMS.")
     parser.add_argument("-d", "--drop",
@@ -437,34 +450,35 @@ def main():
     args = parser.parse_args()
 
     if args.drop:
-        print "Are you sure you want to delete directory %s? [y/N]" % \
-              config.lib_dir,
+        print("Are you sure you want to delete directory %s? [y/N]" %
+              config.lib_dir, end='')
         ans = raw_input().lower()
         if ans in ['y', 'yes']:
-            print "Removing directory %s." % config.lib_dir
+            print("Removing directory %s." % config.lib_dir)
             shutil.rmtree(config.lib_dir)
         else:
-            print "Not removing directory %s." % config.lib_dir
-        return
+            print("Not removing directory %s." % config.lib_dir)
+        return False
 
-    toplevel_handler = RoutingHandler(DataWatcher('/events'), ImageHandler(
+    toplevel_handler = RoutingHandler(DataWatcher(), ImageHandler(
         os.path.join(config.lib_dir, '%(name)s'),
         os.path.join(config.web_dir, 'img', 'logo.png')))
 
-    wsgi_app = SharedDataMiddleware(DispatcherMiddleware(toplevel_handler, {
-            '/contests': StoreHandler(Contest.store),
-            '/tasks': StoreHandler(Task.store),
-            '/teams': StoreHandler(Team.store),
-            '/users': StoreHandler(User.store),
-            '/submissions': StoreHandler(Submission.store),
-            '/subchanges': StoreHandler(Subchange.store),
-            '/faces': ImageHandler(
-                os.path.join(config.lib_dir, 'faces', '%(name)s'),
-                os.path.join(config.web_dir, 'img', 'face.png')),
-            '/flags': ImageHandler(
-                os.path.join(config.lib_dir, 'flags', '%(name)s'),
-                os.path.join(config.web_dir, 'img', 'flag.png')),
-        }), {'/': config.web_dir})
+    wsgi_app = SharedDataMiddleware(DispatcherMiddleware(
+        toplevel_handler,
+        {'/contests': StoreHandler(Contest.store),
+         '/tasks': StoreHandler(Task.store),
+         '/teams': StoreHandler(Team.store),
+         '/users': StoreHandler(User.store),
+         '/submissions': StoreHandler(Submission.store),
+         '/subchanges': StoreHandler(Subchange.store),
+         '/faces': ImageHandler(
+             os.path.join(config.lib_dir, 'faces', '%(name)s'),
+             os.path.join(config.web_dir, 'img', 'face.png')),
+         '/flags': ImageHandler(
+             os.path.join(config.lib_dir, 'flags', '%(name)s'),
+             os.path.join(config.web_dir, 'img', 'flag.png')),
+         }), {'/': config.web_dir})
 
     servers = list()
     if config.http_port is not None:
@@ -483,3 +497,4 @@ def main():
         pass
     finally:
         gevent.joinall(list(gevent.spawn(s.stop) for s in servers))
+    return True

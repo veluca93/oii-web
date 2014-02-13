@@ -32,15 +32,12 @@ represented by JSON objects.
 from tornado.template import Template
 
 
-class ParameterType:
+class ParameterType(object):
     """Base class for parameter types.
 
     """
 
-    _TYPE = None
-    _DEFAULT = None
-
-    def __init__(self, name, short_name, description, default=None):
+    def __init__(self, name, short_name, description):
         """Initialization.
 
         name (string): name of the parameter.
@@ -53,7 +50,6 @@ class ParameterType:
         self.name = name
         self.short_name = short_name
         self.description = description
-        self.default = self._DEFAULT if default is None else default
 
     def parse_string(self, value):
         """Parse the specified string and returns the parsed value.
@@ -80,22 +76,12 @@ class ParameterType:
     def render(self, prefix, previous_value=None):
         raise NotImplementedError("Please subclass this class.")
 
-    def describe(self):
-        return {"_type": self._TYPE,
-                "name": self.name,
-                "description": self.description,
-                "default": self.default}
-
 
 class ParameterTypeString(ParameterType):
-    """String parameter type.
-    """
+    """String parameter type."""
 
     TEMPLATE = "<input type=\"text\" name=\"{{parameter_name}}\" " \
-                        "value=\"{{parameter_value}}\" />"
-
-    _TYPE = "string"
-    _DEFAULT = ""
+        "value=\"{{parameter_value}}\" />"
 
     def parse_string(self, value):
         """Returns the specified string.
@@ -109,14 +95,10 @@ class ParameterTypeString(ParameterType):
 
 
 class ParameterTypeFloat(ParameterType):
-    """Numeric parameter type.
-    """
+    """Numeric parameter type."""
 
     TEMPLATE = "<input type=\"text\" name=\"{{parameter_name}} \"" \
-                       "value=\"{{parameter_value}}\" />"
-
-    _TYPE = "float"
-    _DEFAULT = 0.0
+        "value=\"{{parameter_value}}\" />"
 
     def parse_string(self, value):
         """Attempts to parse the specified string as a float and
@@ -131,14 +113,10 @@ class ParameterTypeFloat(ParameterType):
 
 
 class ParameterTypeInt(ParameterType):
-    """Numeric parameter type.
-    """
+    """Numeric parameter type."""
 
     TEMPLATE = "<input type=\"text\" name=\"{{parameter_name}} \"" \
-                        "value=\"{{parameter_value}}\" />"
-
-    _TYPE = "int"
-    _DEFAULT = 0
+        "value=\"{{parameter_value}}\" />"
 
     def parse_string(self, value):
         """Attempts to parse the specified string as a float and
@@ -157,10 +135,7 @@ class ParameterTypeBoolean(ParameterType):
     """
 
     TEMPLATE = "<input type=\"checkbox\" name=\"{{parameter_name}} \"" \
-                        "{% if checked %}checked{% end %} />"
-
-    _TYPE = "bool"
-    _DEFAULT = False
+        "{% if checked %}checked{% end %} />"
 
     def parse_string(self, value):
         """Returns True if the value is not None.
@@ -170,35 +145,31 @@ class ParameterTypeBoolean(ParameterType):
     def render(self, prefix, previous_value=False):
         return Template(self.TEMPLATE).generate(
             parameter_name=prefix + self.short_name,
-            enabled=(previous_value == True))
+            enabled=(previous_value is True))
 
 
 class ParameterTypeChoice(ParameterType):
-    """Parameter type representing a limited number of choices.
-    """
+    """Parameter type representing a limited number of choices."""
 
     TEMPLATE = "<select name=\"{{parameter_name}}\">" \
-               "{% for choice_value, choice_description "\
-               " in choices.items() %}" \
-               "<option value=\"{{choice_value}}\" " \
-               "{% if choice_value == parameter_value %}" \
-               "selected" \
-               "{% end %}>" \
-               "{{choice_description}}" \
-               "</option>" \
-               "{% end %}" \
-               "</select>"
+        "{% for choice_value, choice_description "\
+        " in choices.items() %}" \
+        "<option value=\"{{choice_value}}\" " \
+        "{% if choice_value == parameter_value %}" \
+        "selected" \
+        "{% end %}>" \
+        "{{choice_description}}" \
+        "</option>" \
+        "{% end %}" \
+        "</select>"
 
-    _TYPE = "enum"
-
-    def __init__(self, name, short_name, description, values, default=None):
+    def __init__(self, name, short_name, description, values):
         """
         values (dict): Short descriptions of the accepted choices,
             indexed by their respective accepted choices.
         """
         ParameterType.__init__(self, name, short_name, description)
         self.values = values
-        self.default = values.keys()[0] if default is None else default
 
     def parse_string(self, value):
         """Tests whether the string is an accepted value.
@@ -208,7 +179,7 @@ class ParameterTypeChoice(ParameterType):
         """
         if value not in self.values:
             raise ValueError("Value %s doesn't match any allowed choice."
-                 % value)
+                             % value)
         return value
 
     def render(self, prefix, previous_value=None):
@@ -216,11 +187,6 @@ class ParameterTypeChoice(ParameterType):
             parameter_name=prefix + self.short_name,
             choices=self.values,
             parameter_value=previous_value)
-
-    def describe(self):
-        res = ParameterType.describe(self)
-        res["values"] = self.values
-        return res
 
 
 class ParameterTypeArray(ParameterType):
@@ -230,18 +196,15 @@ class ParameterTypeArray(ParameterType):
     """
 
     TEMPLATE = "<a href=\"#\">Add element</a>" \
-               "<table>" \
-               "{% for element in elements%}" \
-               "<tr><td>{{element.name}}</td>" \
-               "<td>{% raw element.content %}</td></tr>" \
-               "{% end %}" \
-               "</table>"
+        "<table>" \
+        "{% for element in elements%}" \
+        "<tr><td>{{element.name}}</td>" \
+        "<td>{% raw element.content %}</td></tr>" \
+        "{% end %}" \
+        "</table>"
 
-    _TYPE = "list"
-    _DEFAULT = []
-
-    def __init__(self, name, short_name, description, subparameter, default=None):
-        ParameterType.__init__(self, name, short_name, description, default)
+    def __init__(self, name, short_name, description, subparameter):
+        ParameterType.__init__(self, name, short_name, description)
         self.subparameter = subparameter
 
     def parse_string(self, value):
@@ -265,31 +228,22 @@ class ParameterTypeArray(ParameterType):
             elements.append({
                 "name": self.subparameter.name,
                 "content": self.subparameter.render(new_prefix,
-                    subparam_value)})
+                                                    subparam_value)})
         return Template(self.TEMPLATE).generate(elements=elements)
-
-    def describe(self):
-        res = ParameterType.describe(self)
-        res["subparameter"] = self.subparameter.describe()
-        return res
 
 
 class ParameterTypeCollection(ParameterType):
-    """A fixed-size list of subparameters.
-    """
+    """A fixed-size list of subparameters."""
 
     TEMPLATE = "<table>" \
-               "{% for element in elements %}" \
-               "<tr><td>{{element['name']}}</td>" \
-               "<td>{% raw element['content'] %}</td></tr>" \
-               "{% end %}" \
-               "</table>"
+        "{% for element in elements %}" \
+        "<tr><td>{{element['name']}}</td>" \
+        "<td>{% raw element['content'] %}</td></tr>" \
+        "{% end %}" \
+        "</table>"
 
-    _TYPE = "tuple"
-    _DEFAULT = []
-
-    def __init__(self, name, shortname, description, subparameters, default=None):
-        ParameterType.__init__(self, name, shortname, description, default)
+    def __init__(self, name, shortname, description, subparameters):
+        ParameterType.__init__(self, name, shortname, description)
         self.subparameters = subparameters
 
     def parse_string(self, value):
@@ -314,10 +268,5 @@ class ParameterTypeCollection(ParameterType):
             elements.append({
                 "name": self.subparameters[i].name,
                 "content": self.subparameters[i].render(new_prefix,
-                    subparam_value)})
+                                                        subparam_value)})
         return Template(self.TEMPLATE).generate(elements=elements)
-
-    def describe(self):
-        res = ParameterType.describe(self)
-        res["subparameters"] = list(p.describe() for p in self.subparameters)
-        return res

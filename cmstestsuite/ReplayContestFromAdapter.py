@@ -39,6 +39,8 @@ TODO: currently only works with tasks with one file per submission
 
 """
 
+from __future__ import print_function
+
 import sys
 import time
 
@@ -47,7 +49,7 @@ from mechanize import Browser
 from threading import Thread
 
 from cmstestsuite.web.CWSRequests import \
-     LoginRequest, SubmitRequest, TokenRequest
+    LoginRequest, SubmitRequest, TokenRequest
 
 
 start = None
@@ -82,7 +84,7 @@ def recompute_start(start, speed, old_speed):
 
     """
     if speed != old_speed:
-        start = start + (time.time() - start) * (speed - old_speed) * 1.0 / speed
+        start += (time.time() - start) * (speed - old_speed) * 1.0 / speed
         old_speed = speed
     return start, speed, old_speed
 
@@ -108,9 +110,8 @@ def submit(timestamp, username, t_id, t_short, files, base_url):
     base_url (string): http address of CWS.
 
     """
-    print "\n%s - Submitting for %s on task %s" % (to_time(timestamp),
-                                              username,
-                                              t_short),
+    print("\n%s - Submitting for %s on task %s" %
+          (to_time(timestamp), username, t_short), end='')
     browser = Browser()
     browser.set_handle_robots(False)
     step(LoginRequest(browser, username, "", base_url=base_url))
@@ -131,9 +132,8 @@ def token(timestamp, username, t_id, t_short, submission_num, base_url):
     base_url (string): http address of CWS.
 
     """
-    print "\n%s - Playing token for %s on task %s" % (to_time(timestamp),
-                                                      username,
-                                                      t_short),
+    print("\n%s - Playing token for %s on task %s" %
+          (to_time(timestamp), username, t_short), end='')
     browser = Browser()
     browser.set_handle_robots(False)
     step(LoginRequest(browser, username, "", base_url=base_url))
@@ -211,26 +211,29 @@ def main():
     if args.resume is not None:
         try:
             start_from = int(args.resume[6:8]) + \
-                         int(args.resume[3:5]) * 60 + \
-                         int(args.resume[0:2]) * 3600
+                int(args.resume[3:5]) * 60 + \
+                int(args.resume[0:2]) * 3600
         except:
-            print "Invalid resume time %s, format is %%H:%%M:%%S" % args.resume
+            print("Invalid resume time %s, format is %%H:%%M:%%S" %
+                  args.resume)
 
-    thread = Thread(target=replay, args=(args.address, args.source, start_from))
+    thread = Thread(target=replay,
+                    args=(args.address, args.source, start_from))
     thread.start()
-    print "Wait for data to load..."
+    print("Wait for data to load...")
     while start is None:
         time.sleep(1)
     while thread.isAlive():
         command = raw_input("\nWrite the speed multiplier "
-                            "(time %s, multiplier %s): " % (
-            to_time((time.time() - start) * speed), speed))
+                            "(time %s, multiplier %s): " %
+                            (to_time((time.time() - start) * speed), speed))
         try:
             command = int(command)
         except ValueError:
-            print "Speed multiplier could not be parsed."
+            print("Speed multiplier could not be parsed.")
         else:
-            start, speed, old_speed = recompute_start(start, command, old_speed)
+            start, speed, old_speed = \
+                recompute_start(start, command, old_speed)
     return 0
 
 

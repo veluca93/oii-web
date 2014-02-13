@@ -26,6 +26,7 @@
 """
 
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, \
     UniqueConstraint
@@ -35,7 +36,7 @@ from sqlalchemy.orm import relationship, backref
 from . import Base, User, Task, Dataset, Testcase
 from .smartmappedcollection import smart_mapped_collection
 
-from cmscommon.DateTime import make_datetime
+from cmscommon.datetime import make_datetime
 
 
 class Submission(Base):
@@ -291,8 +292,7 @@ class SubmissionResult(Base):
     # Score as computed by ScoringService. Null means not yet scored.
     score = Column(
         Float,
-        nullable=True,
-        index=True)
+        nullable=True)
 
     # Score details. It's a JSON-encoded string containing information
     # that is given to ScoreType.get_html_details to generate an HTML

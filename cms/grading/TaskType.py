@@ -52,7 +52,7 @@ def create_sandbox(file_cacher):
 
     return (Sandbox): a sandbox.
 
-    raise: JobException
+    raise (JobException): if the sandbox cannot be created.
 
     """
     try:
@@ -79,7 +79,7 @@ def delete_sandbox(sandbox):
             logger.warning("%s\n%s" % (err_msg, traceback.format_exc()))
 
 
-class TaskType:
+class TaskType(object):
     """Base class with common operation that (more or less) all task
     types must do sometimes.
 
@@ -109,12 +109,12 @@ class TaskType:
         """Ensure that the parameters list template agrees with the
         parameters actually passed.
 
-        handler (Class): the Tornado handler with the parameters.
+        handler (type): the Tornado handler with the parameters.
         prefix (string): the prefix of the parameter names in the
-                         handler.
+            handler.
 
         return (list): parameters list correctly formatted, or
-                       ValueError if the parameters are not correct.
+            ValueError if the parameters are not correct.
 
         """
         new_parameters = []
@@ -131,10 +131,9 @@ class TaskType:
         """Instantiate a new TaskType with the given parameters.
 
         parameters (list): a list of data structures that matches the
-                           format described in ACCEPTED_PARAMETERS
-                           (they often come from Dataset.task_type_
-                           _parameters and, in that case, they have to
-                           be already decoded from JSON).
+            format described in ACCEPTED_PARAMETERS (they often come
+            from Dataset.task_type_parameters and, in that case, they
+            have to be already decoded from JSON).
 
         """
         self.parameters = parameters

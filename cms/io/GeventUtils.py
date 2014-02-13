@@ -49,12 +49,7 @@ import sys
 from shutil import copymode, copystat, _samefile, Error, \
     SpecialFileError, _basename, WindowsError, _destinsrc
 
-from contextlib import contextmanager
-
 import gevent
-
-from cms.io.PsycoGevent import make_psycopg_green, \
-    unmake_psycopg_green, is_psycopg_green
 
 
 # XXX Use buffer_size=io.DEFAULT_BUFFER_SIZE?
@@ -185,7 +180,7 @@ def copytree(src, dst, symlinks=False, ignore=None):
         else:
             errors.extend((src, dst, str(why)))
     if errors:
-        raise Error, errors
+        raise Error(errors)
 
 
 def rmtree(path, ignore_errors=False, onerror=None):
@@ -265,36 +260,16 @@ def move(src, dst):
 
         real_dst = os.path.join(dst, _basename(src))
         if os.path.exists(real_dst):
-            raise Error, "Destination path '%s' already exists" % real_dst
+            raise Error("Destination path '%s' already exists" % real_dst)
     try:
         os.rename(src, real_dst)
     except OSError:
         if os.path.isdir(src):
             if _destinsrc(src, dst):
-                raise Error, "Cannot move a directory '%s' " \
-                    "into itself '%s'." % (src, dst)
+                raise Error("Cannot move a directory '%s' "
+                            "into itself '%s'." % (src, dst))
             copytree(src, real_dst, symlinks=True)
             rmtree(src)
         else:
             copy2(src, real_dst)
             os.unlink(src)
-
-
-@contextmanager
-def ungreen_psycopg():
-    """Temporarily disable gevent support in psycopg.
-
-    Inside this context manager you can use psycopg's features that
-    are not compatible with coroutine support, such as large
-    objects. Of course, at the expense of being blocking, so please
-    stay inside the context manager as short as possible.
-
-    """
-    is_green = is_psycopg_green()
-    if is_green:
-        unmake_psycopg_green()
-    try:
-        yield
-    finally:
-        if is_green:
-            make_psycopg_green()

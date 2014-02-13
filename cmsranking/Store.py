@@ -22,15 +22,17 @@ from __future__ import absolute_import
 
 import io
 import json
+import logging
 import os
 import re
 
 from gevent.lock import RLock
 
 from cmsranking.Config import config
-from cmsranking.Logger import logger
-
 from cmsranking.Entity import Entity, InvalidKey, InvalidData
+
+
+logger = logging.getLogger(__name__)
 
 
 # Global shared lock for all Store instances.
@@ -54,7 +56,7 @@ class Store(object):
         The entity definition given as argument will define what kind
         of entities will be stored. It cannot be changed.
 
-        entity (class): the class definition of the entities that will
+        entity (type): the class definition of the entities that will
             be stored
 
         """
@@ -124,22 +126,6 @@ class Store(object):
         """
         self._delete_callbacks.append(callback)
 
-    def _verify_key(self, key, must_be_present=False):
-        """Verify that the key has the correct type.
-
-        key (unicode): the key of the entity we want to interact with.
-        must_be_present (bool): True if we need the key in the store,
-            False if the key must not be in the store.
-
-        raise: InvalidKey if key is not valid.
-
-        """
-        if not isinstance(key, unicode):
-            raise InvalidKey
-        if (key in self._store and not must_be_present) or \
-               (key not in self._store and must_be_present):
-            raise InvalidKey
-
     def create(self, key, data):
         """Create a new entity.
 
@@ -149,13 +135,14 @@ class Store(object):
             accessed
         data (dict): the properties of the entity
 
-        raise: InvalidKey if key isn't a unicode or if an entity with
-            the same key is already present in the store.
-        raise: InvalidData if data cannot be parsed, if it's missing
+        raise (InvalidKey): if key isn't a unicode or if an entity
+            with the same key is already present in the store.
+        raise (InvalidData): if data cannot be parsed, if it's missing
             some properties or if properties are of the wrong type.
 
         """
-        self._verify_key(key)
+        if not isinstance(key, unicode) or key in self._store:
+            raise InvalidKey("Key already in store.")
 
         # create entity
         with LOCK:
@@ -186,13 +173,14 @@ class Store(object):
         key (unicode): the key of the entity that has to be updated
         data (dict): the new properties of the entity
 
-        raise: InvalidKey if key isn't a unicode or if no entity with
-            that key is present in the store.
-        raise: InvalidData if data cannot be parsed, if it's missing
+        raise (InvalidKey): if key isn't a unicode or if no entity
+            with that key is present in the store.
+        raise (InvalidData): if data cannot be parsed, if it's missing
             some properties or if properties are of the wrong type.
 
         """
-        self._verify_key(key, must_be_present=True)
+        if not isinstance(key, unicode) or key not in self._store:
+            raise InvalidKey("Key not in store.")
 
         # update entity
         with LOCK:
@@ -224,7 +212,7 @@ class Store(object):
 
         data_dict (dict): the dictionary of entities
 
-        raise: InvalidData if data cannot be parsed, if an entity is
+        raise (InvalidData) if data cannot be parsed, if an entity is
             missing some properties or if properties are of the wrong
             type.
 
@@ -268,8 +256,9 @@ class Store(object):
                     with io.open(path, 'wb') as rec:
                         json.dump(value.get(), rec, encoding='utf-8')
                 except IOError:
-                    logger.error("I/O error occured while merging entity lists",
-                                 exc_info=True)
+                    logger.error(
+                        "I/O error occured while merging entity lists",
+                        exc_info=True)
 
     def delete(self, key):
         """Delete an entity.
@@ -278,11 +267,12 @@ class Store(object):
 
         key (unicode): the key of the entity that has to be deleted
 
-        raise: InvalidKey if key isn't a unicode or if no entity with
-            that key is present in the store.
+        raise (InvalidKey): if key isn't a unicode or if no entity
+            with that key is present in the store.
 
         """
-        self._verify_key(key, must_be_present=True)
+        if not isinstance(key, unicode) or key not in self._store:
+            raise InvalidKey("Key not in store.")
 
         with LOCK:
             # delete entity
@@ -320,11 +310,12 @@ class Store(object):
 
         key (unicode): the key of the entity that has to be retrieved
 
-        raise: InvalidKey if key isn't a unicode or if no entity with
-            that key is present in the store.
+        raise (InvalidKey): if key isn't a unicode or if no entity
+            with that key is present in the store.
 
         """
-        self._verify_key(key, must_be_present=True)
+        if not isinstance(key, unicode) or key not in self._store:
+            raise InvalidKey("Key not in store.")
 
         # retrieve entity
         return self._store[key].get()

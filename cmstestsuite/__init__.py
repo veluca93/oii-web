@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import atexit
 import errno
 import json
@@ -64,7 +66,7 @@ class FrameworkException(Exception):
     pass
 
 
-class RemoteService:
+class RemoteService(object):
     """Class which implements the RPC protocol used by CMS.
 
     This is deliberately a re-implementation in order to catch or
@@ -82,6 +84,7 @@ class RemoteService:
     def call(self, function_name, data):
         """Perform a synchronous RPC call."""
         s = json.dumps({
+            "__id": "foo",
             "__method": function_name,
             "__data": data,
         })
@@ -125,7 +128,7 @@ def sh(cmdline, ignore_failure=False):
 
     """
     if CONFIG["VERBOSITY"] >= 1:
-        print '$', cmdline
+        print('$', cmdline)
     if CONFIG["VERBOSITY"] >= 3:
         cmdline += ' > /dev/null 2>&1'
     if isinstance(cmdline, list):
@@ -134,8 +137,8 @@ def sh(cmdline, ignore_failure=False):
         ret = os.system(cmdline)
     if not ignore_failure and ret != 0:
         raise FrameworkException(
-            "Execution failed with %d/%d. Tried to execute:\n%s\n" % (
-            ret & 0xff, ret >> 8, cmdline))
+            "Execution failed with %d/%d. Tried to execute:\n%s\n" %
+            (ret & 0xff, ret >> 8, cmdline))
 
 
 def spawn(cmdline):
@@ -148,7 +151,7 @@ def spawn(cmdline):
             pass
 
     if CONFIG["VERBOSITY"] >= 1:
-        print '$', ' '.join(cmdline)
+        print('$', ' '.join(cmdline))
 
     if CONFIG["TEST_DIR"] is not None:
         cmdline = ['python-coverage', 'run', '-p', '--source=cms'] + \
@@ -166,7 +169,7 @@ def spawn(cmdline):
 
 
 def info(s):
-    print '==>', s
+    print('==>', s)
 
 
 def configure_cms(options):
@@ -195,8 +198,8 @@ def configure_cms(options):
     out_file.close()
 
     if unset:
-        print "These configuration items were not set:"
-        print "  " + ", ".join(sorted(list(unset)))
+        print("These configuration items were not set:")
+        print("  " + ", ".join(sorted(list(unset))))
 
     # Load the config database.
     read_cms_config()
@@ -237,7 +240,7 @@ def start_servicer(service_name, check, shard=0, contest=None):
             else:
                 return prog
         except Exception:
-            print "Unexpected exception while waiting for the service:"
+            print("Unexpected exception while waiting for the service:")
             raise
 
     # If we arrive here, it means the service was not fired up.
@@ -409,9 +412,9 @@ def add_contest(**kwargs):
 
 
 def add_task(contest_id, **kwargs):
-    # We need to specify token_initial. Why this and no others?
-    if 'token_initial' not in kwargs:
-        kwargs['token_initial'] = '0'
+    # We need to specify token_mode. Why this and no others?
+    if 'token_mode' not in kwargs:
+        kwargs['token_mode'] = 'disabled'
 
     r = admin_req('/add_task/%d' % contest_id,
                   multipart_post=True,

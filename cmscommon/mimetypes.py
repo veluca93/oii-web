@@ -17,12 +17,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
 import os.path
 import fnmatch
 import mimetypes
 from xml import sax
 from xml.sax.handler import ContentHandler
 from xml.dom import XML_NAMESPACE as _XML_NS
+
+
+__all__ = [
+    "get_icon_for_type", "get_name_for_type",
+    "get_type_for_file_name",
+    ]
+
 
 _XDG_NS = "http://www.freedesktop.org/standards/shared-mime-info"
 
@@ -61,7 +70,9 @@ class _get_comment (ContentHandler):
         self.result = None
 
     def startElementNS(self, name, qname, attrs):
-        if name == (_XDG_NS, "comment") and ((_XML_NS, "lang") not in attrs or attrs[(_XML_NS, "lang")] in ["en", "en_US"]):
+        if name == (_XDG_NS, "comment") and \
+                ((_XML_NS, "lang") not in attrs or
+                 attrs[(_XML_NS, "lang")] in ["en", "en_US"]):
             self.inside = True
             self.result = ''
 
@@ -94,7 +105,7 @@ def get_name_for_type(name):
         try:
             media, subtype = name.split('/')
             path = os.path.join(config.shared_mime_info_prefix,
-                               'share', 'mime', media, "%s.xml" % subtype)
+                                'share', 'mime', media, "%s.xml" % subtype)
 
             handler = _get_comment()
             parser = sax.make_parser()

@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # This file was taken from
-# https://bitbucket.org/zzzeek/green_sqla/src/2732bb7ea9d06b9d4a61e8cd587a95148ce2599b/green_sqla/psyco_gevent.py?at=default
+# https://bitbucket.org/zzzeek/green_sqla/src/2732bb7ea9d06b9d4a61e8c \
+# d587a95148ce2599b/green_sqla/psyco_gevent.py?at=default
 
 """A wait callback to allow psycopg2 cooperation with gevent.
 
 Use `make_psycopg_green()` to enable gevent support in Psycopg.
+
 """
 
 # Copyright (C) 2010 Daniele Varrazzo <daniele.varrazzo@gmail.com>
@@ -30,6 +32,8 @@ Use `make_psycopg_green()` to enable gevent support in Psycopg.
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+
+from contextlib import contextmanager
 
 import psycopg2
 from psycopg2 import extensions
@@ -80,3 +84,23 @@ def gevent_wait_callback(conn, timeout=None):
         else:
             raise psycopg2.OperationalError(
                 "Bad result from poll: %r" % state)
+
+
+@contextmanager
+def ungreen_psycopg():
+    """Temporarily disable gevent support in psycopg.
+
+    Inside this context manager you can use psycopg's features that
+    are not compatible with coroutine support, such as large
+    objects. Of course, at the expense of being blocking, so please
+    stay inside the context manager as short as possible.
+
+    """
+    is_green = is_psycopg_green()
+    if is_green:
+        unmake_psycopg_green()
+    try:
+        yield
+    finally:
+        if is_green:
+            make_psycopg_green()

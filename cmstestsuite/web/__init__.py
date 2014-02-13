@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import sys
 import time
 import urllib
@@ -29,6 +31,7 @@ import codecs
 import os
 
 from mechanize import HTMLForm
+
 
 utf8_decoder = codecs.getdecoder('utf-8')
 
@@ -57,13 +60,20 @@ def browser_do_request(browser, url, data=None, files=None):
                                 method='POST',
                                 enctype='multipart/form-data')
         for key in sorted(data.keys()):
-            browser.form.new_control('hidden', key, {'value': data[key]})
+            # If the passed value is a list, we assume it is a list of
+            # names of checkboxes that are checked.
+            if isinstance(data[key], list):
+                for value in data[key]:
+                    browser.form.new_control(
+                        'checkbox', key, {'value': value, 'checked': True})
+            else:
+                browser.form.new_control('hidden', key, {'value': data[key]})
 
         for field_name, file_path in files:
             browser.form.new_control('file', field_name, {'id': field_name})
             filename = os.path.basename(file_path)
             browser.form.add_file(open(file_path), 'text/plain', filename,
-                id=field_name)
+                                  id=field_name)
 
         browser.form.set_all_readonly(False)
         browser.form.fixup()
@@ -71,7 +81,7 @@ def browser_do_request(browser, url, data=None, files=None):
     return response
 
 
-class TestRequest:
+class TestRequest(object):
     """Docstring TODO.
 
     """
@@ -126,29 +136,30 @@ class TestRequest:
             # Could not decide on the evaluation
             if success is None:
                 if debug:
-                    print >> sys.stderr, "Could not determine " \
-                        "status for request '%s'" % (description)
+                    print("Could not determine status for request '%s'" %
+                          (description), file=sys.stderr)
                 self.outcome = TestRequest.OUTCOME_UNDECIDED
 
             # Success
             elif success:
                 if debug:
-                    print >> sys.stderr, "Request '%s' successfully " \
-                        "completed" % (description)
+                    print("Request '%s' successfully completed" %
+                          (description), file=sys.stderr)
                 self.outcome = TestRequest.OUTCOME_SUCCESS
 
             # Failure
             elif not success:
                 if debug:
-                    print >> sys.stderr, "Request '%s' failed" % (description)
+                    print("Request '%s' failed" % (description),
+                          file=sys.stderr)
                     if self.exception_data is not None:
-                        print >> sys.stderr, self.exception_data
+                        print(self.exception_data, file=sys.stderr)
                 self.outcome = TestRequest.OUTCOME_FAILURE
 
         # Otherwise report the exception
         else:
-            print >> sys.stderr, "Request '%s' terminated " \
-                "with an exception: %s" % (description, repr(exc))
+            print("Request '%s' terminated with an exception: %s" %
+                  (description, repr(exc)), file=sys.stderr)
 
     def describe(self):
         raise NotImplementedError("Please subclass this class "
@@ -168,19 +179,19 @@ class TestRequest:
         pass
 
     def store_to_file(self, fd):
-        print >> fd, "Test type: %s" % (self.__class__.__name__)
-        print >> fd, "Execution start time: %s" % (
-            datetime.datetime.fromtimestamp(self.start_time).\
-            strftime("%d/%m/%Y %H:%M:%S.%f"))
-        print >> fd, "Execution stop time: %s" % (
-            datetime.datetime.fromtimestamp(self.stop_time).\
-            strftime("%d/%m/%Y %H:%M:%S.%f"))
-        print >> fd, "Duration: %f seconds" % (self.duration)
-        print >> fd, "Outcome: %s" % (self.outcome)
+        print("Test type: %s" % (self.__class__.__name__), file=fd)
+        print("Execution start time: %s" %
+              (datetime.datetime.fromtimestamp(self.start_time).
+               strftime("%d/%m/%Y %H:%M:%S.%f")), file=fd)
+        print("Execution stop time: %s" %
+              (datetime.datetime.fromtimestamp(self.stop_time).
+               strftime("%d/%m/%Y %H:%M:%S.%f")), file=fd)
+        print("Duration: %f seconds" % (self.duration), file=fd)
+        print("Outcome: %s" % (self.outcome), file=fd)
         fd.write(self.specific_info())
         if self.exception_data is not None:
-            print >> fd
-            print >> fd, "EXCEPTION CASTED"
+            print(file=fd)
+            print("EXCEPTION CASTED", file=fd)
             fd.write(self.exception_data)
 
     def specific_info(self):

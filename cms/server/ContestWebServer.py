@@ -37,6 +37,7 @@
 
 import base64
 import gettext
+import glob
 import io
 import json
 import logging
@@ -44,6 +45,8 @@ import os
 import pickle
 import pkg_resources
 import re
+import socket
+import struct
 import tempfile
 import traceback
 from datetime import timedelta
@@ -53,10 +56,11 @@ import tornado.web
 
 from sqlalchemy import func
 
-from cms import SOURCE_EXT_TO_LANGUAGE_MAP, config
-from cms.log import initialize_logging
-from cms.io.WebGeventLibrary import WebService
-from cms.io import ServiceCoord
+from werkzeug.http import parse_accept_header
+from werkzeug.datastructures import LanguageAccept
+
+from cms import SOURCE_EXT_TO_LANGUAGE_MAP, config, ServiceCoord
+from cms.io import WebService
 from cms.db import Session, Contest, User, Task, Question, Submission, Token, \
     File, UserTest, UserTestFile, UserTestManager
 from cms.db.filecacher import FileCacher
@@ -65,13 +69,33 @@ from cms.grading.scoretypes import get_score_type
 from cms.server import file_handler_gen, extract_archive, \
     actual_phase_required, get_url_root, filter_ascii, \
     CommonRequestHandler, format_size
-from cmscommon import ISOCodes
-from cmscommon.Cryptographics import encrypt_number
-from cmscommon.DateTime import make_datetime, make_timestamp, get_timezone
-from cmscommon.MimeTypes import get_type_for_file_name
+from cmscommon.isocodes import is_language_code, translate_language_code, \
+    is_country_code, translate_country_code, \
+    is_language_country_code, translate_language_country_code
+from cmscommon.crypto import encrypt_number
+from cmscommon.datetime import make_datetime, make_timestamp, get_timezone
+from cmscommon.mimetypes import get_type_for_file_name
 
 
 logger = logging.getLogger(__name__)
+
+
+def check_ip(client, wanted):
+    """Return if client IP belongs to the wanted subnet.
+
+    client (string): IP address to verify.
+    wanted (string): IP address or subnet to check against.
+
+    return (bool): whether client equals wanted (if the latter is an IP
+        address) or client belongs to wanted (if it's a subnet).
+
+    """
+    wanted, sep, subnet = wanted.partition('/')
+    subnet = 32 if sep == "" else int(subnet)
+    snmask = 2**32 - 2**(32 - subnet)
+    wanted = struct.unpack(">I", socket.inet_aton(wanted))[0]
+    client = struct.unpack(">I", socket.inet_aton(client))[0]
+    return (wanted & snmask) == (client & snmask)
 
 
 class BaseHandler(CommonRequestHandler):
@@ -139,7 +163,7 @@ class BaseHandler(CommonRequestHandler):
             self.clear_cookie("login")
             return None
         if config.ip_lock and user.ip is not None \
-                and user.ip != self.request.remote_ip:
+                and not check_ip(self.request.remote_ip, user.ip):
             self.clear_cookie("login")
             return None
         if config.block_hidden_users and user.hidden:
@@ -162,47 +186,37 @@ class BaseHandler(CommonRequestHandler):
         else:
             localization_dir = os.path.join(os.path.dirname(__file__), "mo")
 
-        # Copied (and modified) from Tornado's get_browser_locale
-        locales = list()
-        if "Accept-Language" in self.request.headers:
-            languages = self.request.headers["Accept-Language"].split(",")
-            scores = dict()
-            for language in languages:
-                parts = language.strip().split(";")
-                if len(parts) > 1 and parts[1].startswith("q="):
-                    try:
-                        score = float(parts[1][2:])
-                    except (ValueError, TypeError):
-                        score = 0.0
-                else:
-                    score = 1.0
-                scores[parts[0]] = score
-                locales.append(parts[0])
-            locales.sort(key=lambda l: scores[l], reverse=True)
-        if not locales:
-            locales.append("en_US")
-        # End of copied code
+        # Retrieve the available translations.
+        langs = ["en-US"] + [
+            path.split("/")[-3].replace("_", "-") for path in glob.glob(
+                os.path.join(localization_dir, "*", "LC_MESSAGES", "cms.mo"))]
+        # Select the one the user likes most.
+        lang = parse_accept_header(
+            self.request.headers.get("Accept-Language", ""),
+            LanguageAccept).best_match(langs, "en-US")
+        self.set_header("Content-Language", lang)
+        lang = lang.replace("-", "_")
 
         iso_639_locale = gettext.translation(
             "iso_639",
             os.path.join(config.iso_codes_prefix, "share", "locale"),
-            locales,
+            [lang],
             fallback=True)
         iso_3166_locale = gettext.translation(
             "iso_3166",
             os.path.join(config.iso_codes_prefix, "share", "locale"),
-            locales,
+            [lang],
             fallback=True)
         shared_mime_info_locale = gettext.translation(
             "shared-mime-info",
             os.path.join(
                 config.shared_mime_info_prefix, "share", "locale"),
-            locales,
+            [lang],
             fallback=True)
         cms_locale = gettext.translation(
             "cms",
             localization_dir,
-            locales,
+            [lang],
             fallback=True)
         cms_locale.add_fallback(iso_639_locale)
         cms_locale.add_fallback(iso_3166_locale)
@@ -228,12 +242,14 @@ class BaseHandler(CommonRequestHandler):
                       (enabled/infinite).
 
         """
-        if obj.token_initial is None:
+        if obj.token_mode == "disabled":
             return 0
-        elif obj.token_gen_number and not obj.token_gen_time:
+        elif obj.token_mode == "finite":
+            return 1
+        elif obj.token_mode == "infinite":
             return 2
         else:
-            return 1
+            raise RuntimeError("Unknown token_mode value.")
 
     def render_params(self):
         """Return the default render params used by almost all handlers.
@@ -320,8 +336,6 @@ class BaseHandler(CommonRequestHandler):
 
         # some information about token configuration
         ret["tokens_contest"] = self._get_token_status(self.contest)
-        if ret["tokens_contest"] == 2 and not self.contest.token_min_interval:
-            ret["tokens_contest"] = 3  # infinite and no min_interval
 
         t_tokens = sum(self._get_token_status(t) for t in self.contest.tasks)
         if t_tokens == 0:
@@ -330,10 +344,6 @@ class BaseHandler(CommonRequestHandler):
             ret["tokens_tasks"] = 2  # all infinite
         else:
             ret["tokens_tasks"] = 1  # all finite or mixed
-        if ret["tokens_tasks"] == 2 and \
-            all(t.token_min_interval <= self.contest.token_min_interval
-                for t in self.contest.tasks):
-            ret["tokens_tasks"] = 3  # all infinite and no min_intervals
 
         return ret
 
@@ -387,7 +397,23 @@ class ContestWebServer(WebService):
 
     """
     def __init__(self, shard, contest):
-        initialize_logging("ContestWebServer", shard)
+        parameters = {
+            "login_url": "/",
+            "template_path": pkg_resources.resource_filename(
+                "cms.server", "templates/contest"),
+            "static_path": pkg_resources.resource_filename(
+                "cms.server", "static"),
+            "cookie_secret": base64.b64encode(config.secret_key),
+            "debug": config.tornado_debug,
+            "is_proxy_used": config.is_proxy_used,
+        }
+        super(ContestWebServer, self).__init__(
+            config.contest_listen_port[shard],
+            _cws_handlers,
+            parameters,
+            shard=shard,
+            listen_address=config.contest_listen_address[shard])
+
         self.contest = contest
 
         # This is a dictionary (indexed by username) of pending
@@ -397,24 +423,6 @@ class ContestWebServer(WebService):
         # of tuples (timestamp, subject, text).
         self.notifications = {}
 
-        parameters = {
-            "login_url": "/",
-            "template_path":
-                pkg_resources.resource_filename("cms.server",
-                                                "templates/contest"),
-            "static_path":
-                pkg_resources.resource_filename("cms.server", "static"),
-            "cookie_secret": base64.b64encode(config.secret_key),
-            "debug": config.tornado_debug,
-        }
-        parameters["is_proxy_used"] = config.is_proxy_used
-        WebService.__init__(
-            self,
-            config.contest_listen_port[shard],
-            _cws_handlers,
-            parameters,
-            shard=shard,
-            listen_address=config.contest_listen_address[shard])
         self.file_cacher = FileCacher(self)
         self.evaluation_service = self.connect_to(
             ServiceCoord("EvaluationService", 0))
@@ -422,20 +430,6 @@ class ContestWebServer(WebService):
             ServiceCoord("ScoringService", 0))
         self.proxy_service = self.connect_to(
             ServiceCoord("ProxyService", 0))
-
-    @staticmethod
-    def authorized_rpc(service, method, arguments):
-        """Used by WebService to check if the browser can call a
-        certain RPC method.
-
-        service (ServiceCoord): the service called by the browser.
-        method (string): the name of the method called.
-        arguments (dict): the arguments of the call.
-        return (bool): True if ok, False if not authorized.
-
-        """
-        # Default fallback: don't authorize.
-        return False
 
     NOTIFICATION_ERROR = "error"
     NOTIFICATION_WARNING = "warning"
@@ -446,7 +440,7 @@ class ContestWebServer(WebService):
         opportunity (i.e., at the first request fot db notifications).
 
         username (string): the user to notify.
-        timestamp (int): the time of the notification.
+        timestamp (datetime): the time of the notification.
         subject (string): subject of the notification.
         text (string): body of the notification.
         level (string): one of NOTIFICATION_* (defined above)
@@ -495,7 +489,7 @@ class LoginHandler(BaseHandler):
             self.redirect("/?login_error=true")
             return
         if config.ip_lock and user.ip is not None \
-                and user.ip != self.request.remote_ip:
+                and not check_ip(self.request.remote_ip, user.ip):
             logger.info("Unexpected IP: user=%s pass=%s remote_ip=%s." %
                         (filtered_user, filtered_pass, self.request.remote_ip))
             self.redirect("/?login_error=true")
@@ -563,16 +557,15 @@ class TaskDescriptionHandler(BaseHandler):
 
         for statement in task.statements.itervalues():
             lang_code = statement.language
-            if ISOCodes.is_language_country_code(lang_code):
+            if is_language_country_code(lang_code):
                 statement.language_name = \
-                    ISOCodes.translate_language_country_code(lang_code,
-                                                             self.locale)
-            elif ISOCodes.is_language_code(lang_code):
+                    translate_language_country_code(lang_code, self.locale)
+            elif is_language_code(lang_code):
                 statement.language_name = \
-                    ISOCodes.translate_language_code(lang_code, self.locale)
-            elif ISOCodes.is_country_code(lang_code):
+                    translate_language_code(lang_code, self.locale)
+            elif is_country_code(lang_code):
                 statement.language_name = \
-                    ISOCodes.translate_country_code(lang_code, self.locale)
+                    translate_country_code(lang_code, self.locale)
             else:
                 statement.language_name = lang_code
 
@@ -994,9 +987,9 @@ class SubmitHandler(BaseHandler):
                     retrieved += 1
 
         # We need to ensure that everytime we have a .%l in our
-        # filenames, the user has one amongst ".cpp", ".c", or ".pas,
-        # and that all these are the same (i.e., no mixed-language
-        # submissions).
+        # filenames, the user has the extension of an allowed
+        # language, and that all these are the same (i.e., no
+        # mixed-language submissions).
         def which_language(user_filename):
             """Determine the language of user_filename from its
             extension.
@@ -1022,6 +1015,10 @@ class SubmitHandler(BaseHandler):
                 elif submission_lang is not None and \
                         submission_lang != lang:
                     error = self._("All sources must be in the same language.")
+                    break
+                elif lang not in contest.languages:
+                    error = self._(
+                        "Language %s not allowed in this contest." % lang)
                     break
                 else:
                     submission_lang = lang
@@ -1678,19 +1675,20 @@ class UserTestStatusHandler(BaseHandler):
         data = dict()
         if ur is None or not ur.compiled():
             data["status"] = 1
-            data["status_text"] = "Compiling..."
+            data["status_text"] = self._("Compiling...")
         elif ur.compilation_failed():
             data["status"] = 2
-            data["status_text"] = "Compilation failed " + \
-                                  "<a class=\"details\">details</a>"
+            data["status_text"] = "%s <a class=\"details\">%s</a>" % (
+                self._("Compilation failed"), self._("details"))
         elif not ur.evaluated():
             data["status"] = 3
-            data["status_text"] = "Executing..."
+            data["status_text"] = self._("Executing...")
         else:
             data["status"] = 4
-            data["status_text"] = "Executed <a class=\"details\">details</a>"
+            data["status_text"] = "%s <a class=\"details\">%s</a>" % (
+                self._("Executed"), self._("details"))
             if ur.execution_time is not None:
-                data["time"] = "%(seconds)0.3f s" % {
+                data["time"] = self._("%(seconds)0.3f s") % {
                     'seconds': ur.execution_time}
             else:
                 data["time"] = None
@@ -1826,10 +1824,10 @@ class StaticFileGzHandler(tornado.web.StaticFileHandler):
 
 
 _cws_handlers = [
-    (r"/",       MainHandler),
-    (r"/login",  LoginHandler),
+    (r"/", MainHandler),
+    (r"/login", LoginHandler),
     (r"/logout", LogoutHandler),
-    (r"/start",  StartHandler),
+    (r"/start", StartHandler),
     (r"/tasks/(.*)/description", TaskDescriptionHandler),
     (r"/tasks/(.*)/submissions", TaskSubmissionsHandler),
     (r"/tasks/(.*)/statements/(.*)", TaskStatementViewHandler),

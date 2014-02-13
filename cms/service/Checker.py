@@ -26,9 +26,8 @@
 import logging
 import time
 
-from cms import config
-from cms.io import ServiceCoord
-from cms.io.GeventLibrary import Service, rpc_callback
+from cms import config, ServiceCoord
+from cms.io import Service
 
 
 logger = logging.getLogger(__name__)
@@ -43,7 +42,7 @@ class Checker(Service):
         Service.__init__(self, shard)
         for service in config.async.core_services:
             self.connect_to(service)
-        self.add_timeout(self.check, None, 90, immediately=True)
+        self.add_timeout(self.check, None, 90.0, immediately=True)
 
         self.waiting_for = {}
 
@@ -62,12 +61,11 @@ class Checker(Service):
                 now = time.time()
                 self.waiting_for[coordinates] = now
                 service.echo(string="%s %5.3lf" % (coordinates, now),
-                             callback=Checker.echo_callback)
+                             callback=self.echo_callback)
             else:
                 logger.info("Service %s not connected." % str(coordinates))
         return True
 
-    @rpc_callback
     def echo_callback(self, data, error=None):
         """Callback for check.
 
@@ -84,7 +82,7 @@ class Checker(Service):
             service = ServiceCoord(name, shard)
             if service not in self.waiting_for or current - time_ > 10:
                 logger.warning("Got late reply (%5.3lf s) from %s."
-                            % (current - time_, service))
+                               % (current - time_, service))
             else:
                 if time_ - self.waiting_for[service] > 0.001:
                     logger.warning("Someone cheated on the timestamp?!")

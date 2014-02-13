@@ -44,7 +44,10 @@ function update_queue_status(response)
 
     var l = response['data'].length;
     if (l == 0)
+    {
         table.html('<tr><td colspan="100">Queue empty.</td></tr>');
+        return;
+    }
 
     var strings = [];
     for (var i = 0; i < l; i++)
@@ -72,7 +75,10 @@ function update_workers_status(response)
 
     var l = response['data'].length;
     if (l == 0)
+    {
         table.html('<tr><td colspan="100">No workers found.</td>');
+        return;
+    }
 
     var strings = [];
     for (var i in response['data'])
@@ -109,7 +115,10 @@ function update_logs(response)
 
     var l = response['data'].length;
     if (l == 0)
+    {
         table.html('<tr><td colspan="100">No log entries.</td>');
+        return;
+    }
 
     var strings = [];
     response['data'] = response['data'].reverse()
@@ -135,20 +144,20 @@ function update_statuses()
 {
 
     {% if contest is not None %}
-    cmsrpc.request("EvaluationService", 0,
+    cmsrpc_request("EvaluationService", 0,
                    "submissions_status",
                    {},
                    update_submissions_status);
     {% end %}
-    cmsrpc.request("EvaluationService", 0,
+    cmsrpc_request("EvaluationService", 0,
                    "queue_status",
                    {},
                    update_queue_status);
-    cmsrpc.request("EvaluationService", 0,
+    cmsrpc_request("EvaluationService", 0,
                    "workers_status",
                    {},
                    update_workers_status);
-    cmsrpc.request("LogService", 0,
+    cmsrpc_request("LogService", 0,
                    "last_messages",
                    {},
                    update_logs);

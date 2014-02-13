@@ -5,7 +5,7 @@
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
-# Copyright © 2012 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2012-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -37,7 +37,7 @@ import tornado.locale
 import gevent
 
 from cms.db.filecacher import FileCacher
-from cmscommon.DateTime import make_datetime, utc
+from cmscommon.datetime import make_datetime, utc
 
 
 logger = logging.getLogger(__name__)
@@ -133,7 +133,7 @@ def format_date(dt, timezone, locale=None):
     """Return the date of dt formatted according to the given locale
 
     dt (datetime): a datetime object
-    timezone (subclass of tzinfo): the timezone the output should be in
+    timezone (tzinfo): the timezone the output should be in
     return (str): the date of dt, formatted using the given locale
 
     """
@@ -152,7 +152,7 @@ def format_time(dt, timezone, locale=None):
     """Return the time of dt formatted according to the given locale
 
     dt (datetime): a datetime object
-    timezone (subclass of tzinfo): the timezone the output should be in
+    timezone (tzinfo): the timezone the output should be in
     return (str): the time of dt, formatted using the given locale
 
     """
@@ -171,7 +171,7 @@ def format_datetime(dt, timezone, locale=None):
     """Return the date and time of dt formatted according to the given locale
 
     dt (datetime): a datetime object
-    timezone (subclass of tzinfo): the timezone the output should be in
+    timezone (tzinfo): the timezone the output should be in
     return (str): the date and time of dt, formatted using the given locale
 
     """
@@ -190,7 +190,7 @@ def format_datetime_smart(dt, timezone, locale=None):
     """Return dt formatted as 'date & time' or, if date is today, just 'time'
 
     dt (datetime): a datetime object
-    timezone (subclass of tzinfo): the timezone the output should be in
+    timezone (tzinfo): the timezone the output should be in
     return (str): the [date and] time of dt, formatted using the given locale
 
     """
@@ -229,6 +229,10 @@ def get_score_class(score, max_score):
 def N_(*args, **kwargs):
     pass
 
+# This is a string in task_submissions.html and test_interface.html
+# that for some reason doesn't get included in messages.pot.
+N_("loading...")
+
 N_("%d second", "%d seconds", 0)
 N_("%d minute", "%d minutes", 0)
 N_("%d hour", "%d hours", 0)
@@ -245,7 +249,7 @@ def format_amount_of_time(seconds, precision=2, locale=None):
 
     seconds (int): the length of the amount of time in seconds.
     precision (int): see above
-    locale (tornado.locale.Locale): the locale to be used.
+    locale (Locale): the locale to be used.
 
     return (string): seconds formatted as above.
 
@@ -298,7 +302,7 @@ def format_token_rules(tokens, t_type=None, locale=None):
     t_type (str): the type of tokens the string should refer to (can be
                   "contest" to mean contest-tokens, "task" to mean
                   task-tokens, any other value to mean normal tokens).
-    locale (tornado.locale.Locale): the locale to be used.
+    locale (Locale|NullTranslation): the locale to be used.
 
     return (string): localized string describing the rules.
 
@@ -319,47 +323,42 @@ def format_token_rules(tokens, t_type=None, locale=None):
         tokens["type_pl"] = _("tokens")
 
     tokens["min_interval"] = tokens["min_interval"].total_seconds()
-    tokens["gen_time"] = tokens["gen_time"].total_seconds() / 60
+    tokens["gen_interval"] = tokens["gen_interval"].total_seconds() / 60
 
     result = ""
 
-    if tokens['initial'] is None:
-        # note: we are sure that this text will only be displayed in task
-        # pages because if tokens are disabled for the whole contest they
-        # don't appear anywhere in CWS
-        result += _("You don't have %(type_pl)s available for this task.") % tokens
-    elif tokens['gen_time'] == 0 and tokens['gen_number'] > 0:
-        result += _("You have infinite %(type_pl)s.") % tokens
-
-        result += " "
-
-        if tokens['min_interval'] > 0:
-            result += _("You can use a %(type_s)s every second.",
-                        "You can use a %(type_s)s every %(min_interval)g seconds.",
-                        tokens['min_interval']) % tokens
-        else:
-            result += _("You have no limitations on how you use them.") % tokens
+    if tokens["mode"] == "disabled":
+        # This message will only be shown on tasks in case of a mixed
+        # modes scenario.
+        result += \
+            _("You don't have %(type_pl)s available for this task.") % tokens
+    elif tokens["mode"] == "infinite":
+        # This message will only be shown on tasks in case of a mixed
+        # modes scenario.
+        result += \
+            _("You have infinite an infinite number of %(type_pl)s "
+              "for this task.") % tokens
     else:
-        if tokens['initial'] == 0:
+        if tokens['gen_initial'] == 0:
             result += _("You start with no %(type_pl)s.") % tokens
         else:
             result += _("You start with one %(type_s)s.",
-                        "You start with %(initial)d %(type_pl)s.",
-                        tokens['initial'] == 1) % tokens
+                        "You start with %(gen_initial)d %(type_pl)s.",
+                        tokens['gen_initial'] == 1) % tokens
 
         result += " "
 
-        if tokens['gen_time'] > 0 and tokens['gen_number'] > 0:
+        if tokens['gen_number'] > 0:
             result += _("Every minute ",
-                        "Every %(gen_time)g minutes ",
-                        tokens['gen_time']) % tokens
-            if tokens['max'] is not None:
+                        "Every %(gen_interval)g minutes ",
+                        tokens['gen_interval']) % tokens
+            if tokens['gen_max'] is not None:
                 result += _("you get another %(type_s)s, ",
                             "you get %(gen_number)d other %(type_pl)s, ",
                             tokens['gen_number']) % tokens
                 result += _("up to a maximum of one %(type_s)s.",
-                            "up to a maximum of %(max)d %(type_pl)s.",
-                            tokens['max']) % tokens
+                            "up to a maximum of %(gen_max)d %(type_pl)s.",
+                            tokens['gen_max']) % tokens
             else:
                 result += _("you get another %(type_s)s.",
                             "you get %(gen_number)d other %(type_pl)s.",
@@ -369,23 +368,28 @@ def format_token_rules(tokens, t_type=None, locale=None):
 
         result += " "
 
-        if tokens['min_interval'] > 0 and tokens['total'] is not None:
+        if tokens['min_interval'] > 0 and tokens['max_number'] is not None:
             result += _("You can use a %(type_s)s every second ",
-                        "You can use a %(type_s)s every %(min_interval)g seconds ",
+                        "You can use a %(type_s)s every %(min_interval)g "
+                        "seconds ",
                         tokens['min_interval']) % tokens
             result += _("and no more than one %(type_s)s in total.",
-                        "and no more than %(total)d %(type_pl)s in total.",
-                        tokens['total']) % tokens
+                        "and no more than %(max_number)d %(type_pl)s in "
+                        "total.",
+                        tokens['max_number']) % tokens
         elif tokens['min_interval'] > 0:
             result += _("You can use a %(type_s)s every second.",
-                        "You can use a %(type_s)s every %(min_interval)g seconds.",
+                        "You can use a %(type_s)s every %(min_interval)g "
+                        "seconds.",
                         tokens['min_interval']) % tokens
-        elif tokens['total'] is not None:
+        elif tokens['max_number'] is not None:
             result += _("You can use no more than one %(type_s)s in total.",
-                        "You can use no more than %(total)d %(type_pl)s in total.",
-                        tokens['total']) % tokens
+                        "You can use no more than %(max_number)d %(type_pl)s "
+                        "in total.",
+                        tokens['max_number']) % tokens
         else:
-            result += _("You have no limitations on how you use them.") % tokens
+            result += \
+                _("You have no limitations on how you use them.") % tokens
 
     return result
 
@@ -438,9 +442,9 @@ def file_handler_gen(BaseClass):
     the class FileHandler is exactly the same (in AWS and CWS) but
     they inherits from different BaseHandler.
 
-    BaseClass (class): the BaseHandler of our server.
+    BaseClass (type): the BaseHandler of our server.
 
-    return (class): a FileHandler extending BaseClass.
+    return (type): a FileHandler extending BaseClass.
 
     """
     class FileHandler(BaseClass):

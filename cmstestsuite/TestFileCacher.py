@@ -29,13 +29,12 @@ import random
 from StringIO import StringIO
 import hashlib
 
-from cms import default_argument_parser, config, logger
-from cms.io import ServiceCoord
-from cms.io.TestService import TestService
+from cms import default_argument_parser, config, logger, ServiceCoord
 from cms.db.filecacher import FileCacher
+from cmstestsuite.TestService import TestService
 
 
-class RandomFile:
+class RandomFile(object):
     """Simulate a random file with dim bytes, calculating its
     SHA1 hash.
 
@@ -79,7 +78,7 @@ class RandomFile:
         return self.hasher.hexdigest()
 
 
-class HashingFile:
+class HashingFile(object):
     """Hashes the content written to this files.
 
     """
@@ -163,8 +162,7 @@ class TestFileCacher(TestService):
             self.test_end(False, "Error received: %r." % error)
             return
 
-        if not os.path.exists(
-            os.path.join(self.cache_base_path, data)):
+        if not os.path.exists(os.path.join(self.cache_base_path, data)):
             self.test_end(False, "File not stored in local cache.")
         elif open(os.path.join(self.cache_base_path, data), "rb").read() != \
                 self.content:
@@ -304,8 +302,7 @@ class TestFileCacher(TestService):
             self.test_end(False, "Error received: %r." % error)
             return
 
-        if not os.path.exists(
-            os.path.join(self.cache_base_path, data)):
+        if not os.path.exists(os.path.join(self.cache_base_path, data)):
             self.test_end(False, "File not stored in local cache.")
         elif open(os.path.join(self.cache_base_path, data),
                   "rb").read() != self.content:
@@ -361,8 +358,7 @@ class TestFileCacher(TestService):
         my_digest = rand_file.digest
         rand_file.close()
 
-        if not os.path.exists(
-            os.path.join(self.cache_base_path, data)):
+        if not os.path.exists(os.path.join(self.cache_base_path, data)):
             self.test_end(False, "File not stored in local cache.")
         elif my_digest != data:
             self.test_end(False, "File received with wrong hash.")

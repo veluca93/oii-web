@@ -54,7 +54,7 @@ def _is_rel(prp, attr):
     return prp.parent.class_ == attr.class_ and prp.key == attr.key
 
 
-class Reimporter:
+class Reimporter(object):
 
     """This script reimports a contest from disk using the specified
     loader.
@@ -284,6 +284,10 @@ class Reimporter:
                         self._update_object(old_task, new_task)
                     else:
                         logger.info("Task %s has not changed" % task)
+                        # Even unchanged tasks should use a temporary number
+                        # to avoid duplicate numbers when we fix them.
+                        old_task.num = current_num
+                        current_num += 1
                 else:
                     # Delete an existing task.
                     if self.force:

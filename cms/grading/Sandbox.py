@@ -34,7 +34,7 @@ from gevent import subprocess
 
 from cms import config
 from cms.io.GeventUtils import copyfileobj, rmtree
-from cmscommon.DateTime import monotonic_time
+from cmscommon.datetime import monotonic_time
 
 
 logger = logging.getLogger(__name__)
@@ -58,6 +58,21 @@ def with_log(func):
         return func(self, *args, **kwargs)
 
     return newfunc
+
+
+def pretty_print_cmdline(cmdline):
+    """Pretty print a command line.
+
+    Take a command line suitable to be passed to a Popen-like call and
+    returns a string that represents it in a way that preserves the
+    structure of arguments and can be passed to bash as is.
+
+    More precisely, delimitate every item of the command line with
+    single apstrophes and join all the arguments separating them with
+    spaces.
+
+    """
+    return " ".join(["'%s'" % (x) for x in cmdline])
 
 
 def wait_without_std(procs):
@@ -122,7 +137,7 @@ def my_truncate(ff, size):
     ff.seek(0, os.SEEK_SET)
 
 
-class SandboxBase:
+class SandboxBase(object):
     """A base class for all sandboxes, meant to contain common
     resources.
 
@@ -136,13 +151,11 @@ class SandboxBase:
     EXIT_SYSCALL = 'syscall'
     EXIT_NONZERO_RETURN = 'nonzero return'
 
-    def __init__(self, file_cacher=None, temp_dir=None):
+    def __init__(self, file_cacher=None):
         """Initialization.
 
         file_cacher (FileCacher): an instance of the FileCacher class
-                                  (to interact with FS).
-        temp_dir (string): the directory where to put the sandbox
-                           (which is itself a directory).
+            (to interact with FS).
 
         """
         self.file_cacher = file_cacher
@@ -166,6 +179,40 @@ class SandboxBase:
             mem_str = "(memory usage unknown)"
         return "[%s - %s]" % (time_str, mem_str)
 
+    def get_root_path(self):
+        """Return the toplevel path of the sandbox.
+
+        return (string): the root path.
+
+        raise (NotImplementedError): if the subclass does not
+            implement this method.
+
+        """
+        raise NotImplementedError("Subclasses must implement get_root_path.")
+
+    def get_execution_time(self):
+        """Return the time spent in the sandbox.
+
+        return (float): time spent in the sandbox.
+
+        raise (NotImplementedError): if the subclass does not
+            implement this method.
+
+        """
+        raise NotImplementedError(
+            "Subclasses must implement get_execution_time.")
+
+    def get_memory_used(self):
+        """Return the memory used by the sandbox.
+
+        return (int): memory used by the sandbox (in bytes).
+
+        raise (NotImplementedError): if the subclass does not
+            implement this method.
+
+        """
+        raise NotImplementedError("Subclasses must implement get_memory_used.")
+
     def relative_path(self, path):
         """Translate from a relative path inside the sandbox to a
         system path.
@@ -174,7 +221,7 @@ class SandboxBase:
         return (string): the absolute path.
 
         """
-        return os.path.join(self.path, path)
+        return os.path.join(self.get_root_path(), path)
 
     # TODO - Rewrite it as context manager
     def create_file(self, path, executable=False):
@@ -336,7 +383,7 @@ class StupidSandbox(SandboxBase):
         For arguments documentation, see SandboxBase.__init__.
 
         """
-        SandboxBase.__init__(self, file_cacher, temp_dir)
+        SandboxBase.__init__(self, file_cacher)
 
         # Make box directory
         if temp_dir is None:
@@ -407,7 +454,7 @@ class StupidSandbox(SandboxBase):
     def get_memory_used(self):
         """Return the memory used by the sandbox.
 
-        return (float): memory used by the sandbox (in bytes).
+        return (int): memory used by the sandbox (in bytes).
 
         """
         return None
@@ -468,8 +515,8 @@ class StupidSandbox(SandboxBase):
         subprocess.Popen, assigning the corresponding standard file
         descriptors.
 
-        command (list): executable filename and arguments of the
-                        command.
+        command ([string]): executable filename and arguments of the
+            command.
         stdin (file): a file descriptor/object or None.
         stdout (file): a file descriptor/object or None.
         stderr (file): a file descriptor/object or None.
@@ -485,7 +532,7 @@ class StupidSandbox(SandboxBase):
         logger.debug("Executing program in sandbox with command: %s" %
                      " ".join(command))
         with open(self.relative_path(self.cmd_file), 'a') as commands:
-            commands.write("%s\n" % (" ".join(command)))
+            commands.write("%s\n" % (pretty_print_cmdline(command)))
         try:
             p = subprocess.Popen(command,
                                  stdin=stdin, stdout=stdout, stderr=stderr,
@@ -506,10 +553,11 @@ class StupidSandbox(SandboxBase):
         read until the end, in a way that prevents the execution from
         being blocked because of insufficient buffering.
 
-        command (list): executable filename and arguments of the
-                        command.
+        command ([string]): executable filename and arguments of the
+            command.
+
         return (bool): True if the sandbox didn't report errors
-                       (caused by the sandbox itself), False otherwise
+            (caused by the sandbox itself), False otherwise
 
         """
         def preexec_fn(self):
@@ -651,7 +699,7 @@ class IsolateSandbox(SandboxBase):
         For arguments documentation, see SandboxBase.__init__.
 
         """
-        SandboxBase.__init__(self, file_cacher, temp_dir)
+        SandboxBase.__init__(self, file_cacher)
 
         # Get our shard number, to use as a unique identifier for the
         # sandbox on this machine. FIXME This is the only use of
@@ -710,11 +758,20 @@ class IsolateSandbox(SandboxBase):
 
         # Tell isolate to get the sandbox ready.
         box_cmd = [self.box_exec] + (["--cg"] if self.cgroup else []) \
-            + ["-b", str(self.box_id)]
-        ret = subprocess.call(box_cmd + ["--init"])
+            + ["-b", str(self.box_id)] + ["--init"]
+        ret = subprocess.call(box_cmd)
         if ret != 0:
             raise SandboxInterfaceException(
-                "Failed to initialize sandbox (error %d)" % ret)
+                "Failed to initialize sandbox with command: %s "
+                "(error %d)" % (pretty_print_cmdline(box_cmd), ret))
+
+    def get_root_path(self):
+        """Return the toplevel path of the sandbox.
+
+        return (string): the root path.
+
+        """
+        return self.path
 
     def detect_box_executable(self):
         """Try to find an isolate executable. It first looks in
@@ -747,7 +804,7 @@ class IsolateSandbox(SandboxBase):
         """Translate the options defined in the instance to a string
         that can be postponed to mo-box as an arguments list.
 
-        return (string): the arguments list as a string.
+        return ([string]): the arguments list as strings.
 
         """
         res = list()
@@ -848,7 +905,7 @@ class IsolateSandbox(SandboxBase):
         """Return the memory used by the sandbox, reading the logs if
         necessary.
 
-        return (float): memory used by the sandbox (in bytes).
+        return (int): memory used by the sandbox (in bytes).
 
         """
         if 'cg-mem' in self.log:
@@ -872,7 +929,7 @@ class IsolateSandbox(SandboxBase):
         """Return the exit code of the sandboxed process, reading the
         logs if necessary.
 
-        return (float): exitcode, or 0.
+        return (int): exitcode, or 0.
 
         """
         if 'exitcode' in self.log:
@@ -1007,9 +1064,9 @@ class IsolateSandbox(SandboxBase):
         self.log = None
         args = [self.box_exec] + self.build_box_options() + ["--"] + command
         logger.debug("Executing program in sandbox with command: %s" %
-                     " ".join(args))
+                     pretty_print_cmdline(args))
         with open(self.relative_path(self.cmd_file), 'a') as commands:
-            commands.write("%s\n" % (" ".join(args)))
+            commands.write("%s\n" % (pretty_print_cmdline(args)))
         return self.translate_box_exitcode(subprocess.call(args))
 
     def _popen(self, command,
@@ -1019,22 +1076,23 @@ class IsolateSandbox(SandboxBase):
         subprocess.Popen, assigning the corresponding standard file
         descriptors.
 
-        command (list): executable filename and arguments of the
-                        command.
-        stdin (file): a file descriptor/object or None.
-        stdout (file): a file descriptor/object or None.
-        stderr (file): a file descriptor/object or None.
+        command ([string]): executable filename and arguments of the
+            command.
+        stdin (int|None): a file descriptor.
+        stdout (int|None): a file descriptor.
+        stderr (int|None): a file descriptor.
         close_fds (bool): close all file descriptor before executing.
-        return (object): popen object.
+
+        return (Popen): popen object.
 
         """
         self.exec_num += 1
         self.log = None
         args = [self.box_exec] + self.build_box_options() + ["--"] + command
         logger.debug("Executing program in sandbox with command: %s" %
-                     " ".join(args))
+                     pretty_print_cmdline(args))
         with open(self.relative_path(self.cmd_file), 'a') as commands:
-            commands.write("%s\n" % (" ".join(args)))
+            commands.write("%s\n" % (pretty_print_cmdline(args)))
         try:
             p = subprocess.Popen(args,
                                  stdin=stdin, stdout=stdout, stderr=stderr,
@@ -1042,7 +1100,7 @@ class IsolateSandbox(SandboxBase):
         except OSError:
             logger.critical("Failed to execute program in sandbox "
                             "with command: %s" %
-                            " ".join(args), exc_info=True)
+                            pretty_print_cmdline(args), exc_info=True)
             raise
 
         return p
@@ -1055,10 +1113,14 @@ class IsolateSandbox(SandboxBase):
         read until the end, in a way that prevents the execution from
         being blocked because of insufficient buffering.
 
-        command (list): executable filename and arguments of the
-                        command.
-        return (bool): True if the sandbox didn't report errors
-                       (caused by the sandbox itself), False otherwise
+        command ([string]): executable filename and arguments of the
+            command.
+        wait (bool): True if this call is blocking, False otherwise
+
+        return (bool|Popen): if the call is blocking, then return True
+            if the sandbox didn't report errors (caused by the sandbox
+            itself), False otherwise; if the call is not blocking,
+            return the Popen object from subprocess.
 
         """
         popen = self._popen(command, stdin=subprocess.PIPE,
@@ -1110,4 +1172,4 @@ class IsolateSandbox(SandboxBase):
 Sandbox = {
     'stupid': StupidSandbox,
     'isolate': IsolateSandbox,
-}[config.sandbox_implementation]
+    }[config.sandbox_implementation]

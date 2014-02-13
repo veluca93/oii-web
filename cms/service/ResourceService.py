@@ -35,9 +35,8 @@ import psutil
 from gevent import subprocess
 #import gevent_subprocess as subprocess
 
-from cms import config
-from cms.io import ServiceCoord
-from cms.io.GeventLibrary import Service, rpc_method, RemoteService
+from cms import config, ServiceCoord
+from cms.io import Service, rpc_method, RemoteServiceClient
 
 
 logger = logging.getLogger(__name__)
@@ -75,17 +74,17 @@ class ResourceService(Service):
                                   for service in self._local_services)
         # Found process associate to the ServiceCoord.
         self._procs = dict((service, None)
-            for service in self._local_services)
+                           for service in self._local_services)
         # Previous cpu time for each service.
-        self._services_prev_cpu_times = dict((service, (0.0, 0.0))
-            for service in self._local_services)
+        self._services_prev_cpu_times = \
+            dict((service, (0.0, 0.0)) for service in self._local_services)
         # Start finding processes and their cputimes.
         self._store_resources(store=False)
 
-        self.add_timeout(self._store_resources, None, 5)
+        self.add_timeout(self._store_resources, None, 5.0)
         if self.contest_id is not None:
             self._launched_processes = set([])
-            self.add_timeout(self._restart_services, None, 5,
+            self.add_timeout(self._restart_services, None, 5.0,
                              immediately=True)
 
     def _restart_services(self):
@@ -108,7 +107,7 @@ class ResourceService(Service):
         for service in self._local_services:
             # We let the user start logservice and resourceservice.
             if service.name == "LogService" or \
-                   service.name == "ResourceService":
+                    service.name == "ResourceService":
                 continue
 
             # If the user specified not to restart some service, we
@@ -185,14 +184,11 @@ class ResourceService(Service):
 
         """
         logger.debug("ResourceService._find_proc")
-        cmdline = config.process_cmdline[:]
-        length = len(cmdline)
-        for i in range(length):
-            cmdline[i] = cmdline[i].replace("%s", service.name)
-            cmdline[i] = cmdline[i].replace("%d", str(service.shard))
         for proc in psutil.get_process_list():
             try:
-                if proc.cmdline[:length] == cmdline:
+                if len(proc.cmdline) >= 3 and "python" in proc.cmdline[0] and \
+                        proc.cmdline[1].endswith("cms%s" % service.name) and \
+                        proc.cmdline[2] == "%d" % service.shard:
                     self._services_prev_cpu_times[service] = \
                         proc.get_cpu_times()
                     return proc
@@ -238,7 +234,7 @@ class ResourceService(Service):
         data["cpu"] = dict((x, int(round((cpu_times[x] -
                                           self._prev_cpu_times[x])
                                    / delta * 100.0)))
-                            for x in cpu_times)
+                           for x in cpu_times)
         data["cpu"]["num_cpu"] = psutil.NUM_CPUS
         self._prev_cpu_times = cpu_times
 
@@ -290,7 +286,7 @@ class ResourceService(Service):
             try:
                 dic["since"] = self._last_saved_time - proc.create_time
                 dic["resident"], dic["virtual"] = \
-                    (x / 1048576  for x in proc.get_memory_info())
+                    (x / 1048576 for x in proc.get_memory_info())
                 cpu_times = proc.get_cpu_times()
                 dic["user"] = int(
                     round((cpu_times[0] -
@@ -321,12 +317,12 @@ class ResourceService(Service):
         return True
 
     @rpc_method
-    def get_resources(self, last_time=0):
+    def get_resources(self, last_time=0.0):
         """Returns the resurce usage information from last_time to
         now.
 
-        last_time (int): timestamp of the last time the caller called
-                         this method.
+        last_time (float): timestamp of the last time the caller
+            called this method.
 
         """
         logger.debug("ResourceService._get_resources")
@@ -353,7 +349,7 @@ class ResourceService(Service):
         except ValueError:
             logger.error("Unable to decode service shard.")
 
-        remote_service = RemoteService(self, ServiceCoord(name, shard))
+        remote_service = RemoteServiceClient(ServiceCoord(name, shard))
         remote_service.quit(reason="Asked by ResourceService")
 
     @rpc_method

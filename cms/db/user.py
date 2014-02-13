@@ -25,10 +25,11 @@
 """
 
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 from datetime import timedelta
 
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, Unicode, DateTime, \
     Interval
 from sqlalchemy.orm import relationship, backref
@@ -90,7 +91,7 @@ class User(Base):
         Unicode,
         nullable=True)
 
-    # User can log in CWS only from this ip.
+    # User can log in CWS only from this IP address or subnet.
     ip = Column(
         Unicode,
         nullable=True)

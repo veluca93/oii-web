@@ -5,6 +5,7 @@
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2013 Luca Versari <veluca93@gmail.com>
 # Copyright © 2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
+# Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -19,18 +20,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os
+from __future__ import print_function
 
-from subprocess import call
-from tempfile import TemporaryFile
+import json
+import os
+import sys
+
 from cmscontrib.YamlLoader import YamlLoader
-from cms.db import Executable, File
+from cms.db import Executable
 from cms.db.filecacher import FileCacher
 from cms.grading import format_status_text
 from cms.grading.Job import EvaluationJob
 from cms.grading.tasktypes import get_task_type
-import json
+
 
 # TODO - Use a context object instead of global variables
 task = None
@@ -38,12 +40,13 @@ file_cacher = None
 
 
 def usage():
-    print """%s base_dir executable [assume]"
+    print("""%s base_dir executable [assume]"
 base_dir:   directory of the task
 executable: solution to test (relative to the task's directory)
+language:   programming language the solution is written in
 assume:     if it's y, answer yes to every question
             if it's n, answer no to every question
-""" % sys.argv[0]
+""" % sys.argv[0])
 
 
 def mem_human(mem):
@@ -58,7 +61,7 @@ def mem_human(mem):
     return "%4d" % mem
 
 
-def test_testcases(base_dir, soluzione, assume=None):
+def test_testcases(base_dir, soluzione, language, assume=None):
     global task, file_cacher
 
     # Use a FileCacher with a NullBackend in order to avoid to fill
@@ -89,6 +92,7 @@ def test_testcases(base_dir, soluzione, assume=None):
         executables = {task.name: Executable(filename=task.name,
                                              digest=digest)}
         jobs = [(t, EvaluationJob(
+            language=language,
             task_type=dataset.task_type,
             task_type_parameters=json.loads(dataset.task_type_parameters),
             managers=dict(dataset.managers),
@@ -99,12 +103,12 @@ def test_testcases(base_dir, soluzione, assume=None):
             memory_limit=dataset.memory_limit)) for t in dataset.testcases]
         tasktype = get_task_type(dataset=dataset)
     else:
-        print "Generating outputs...",
+        print("Generating outputs...", end='')
         files = {}
         for t in sorted(dataset.testcases.keys()):
             with file_cacher.get_file(dataset.testcases[t].input) as fin:
                 with TemporaryFile() as fout:
-                    print "%s" % t,
+                    print("%s" % t, end='')
                     call(soluzione, stdin=fin, stdout=fout, cwd=base_dir)
                     fout.seek(0)
                     digest = file_cacher.put_file_from_fobj(fout)
@@ -122,7 +126,7 @@ def test_testcases(base_dir, soluzione, assume=None):
         for k, job in jobs:
             job._key = k
         tasktype = get_task_type(dataset=dataset)
-        print
+        print()
 
     ask_again = True
     last_status = "ok"
@@ -133,7 +137,7 @@ def test_testcases(base_dir, soluzione, assume=None):
     comments = []
     tcnames = []
     for jobinfo in sorted(jobs):
-        print jobinfo[0],
+        print(jobinfo[0], end='')
         sys.stdout.flush()
         job = jobinfo[1]
         # Skip the testcase if we decide to consider everything to
@@ -163,10 +167,11 @@ def test_testcases(base_dir, soluzione, assume=None):
         # If we saw two consecutive timeouts, ask wether we want to
         # consider everything to timeout
         if ask_again and status == "timeout" and last_status == "timeout":
-            print
-            print "Want to stop and consider everything to timeout? [y/N]",
+            print()
+            print("Want to stop and consider everything to timeout? [y/N]",
+                  end='')
             if assume is not None:
-                print assume
+                print(assume)
                 tmp = assume
             else:
                 tmp = raw_input().lower()
@@ -176,11 +181,11 @@ def test_testcases(base_dir, soluzione, assume=None):
                 ask_again = False
 
     # Result pretty printing
-    print
+    print()
     clen = max(len(c) for c in comments)
     ilen = max(len(i) for i in info)
     for (i, p, c, b) in zip(tcnames, points, comments, info):
-        print "%s) %5.2lf --- %s [%s]" % (i, p, c.ljust(clen), b.center(ilen))
+        print("%s) %5.2lf --- %s [%s]" % (i, p, c.ljust(clen), b.center(ilen)))
 
     return zip(points, comments, info)
 
@@ -198,10 +203,10 @@ def clean_test_env():
         task = None
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         usage()
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 4:
         assume = None
     else:
-        assume = sys.argv[3]
-    test_testcases(sys.argv[1], sys.argv[2], assume)
+        assume = sys.argv[4]
+    test_testcases(sys.argv[1], sys.argv[2], sys.argv[3], assume=assume)

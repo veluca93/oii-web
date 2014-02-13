@@ -5,7 +5,7 @@
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
-# Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2013-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -20,6 +20,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import io
 import logging
 import os
@@ -29,7 +32,7 @@ import yaml
 from datetime import timedelta
 
 from cms import LANGUAGES
-from cmscommon.DateTime import make_datetime
+from cmscommon.datetime import make_datetime
 from cms.db import Contest, User, Task, Statement, Attachment, \
     SubmissionFormatElement, Dataset, Manager, Testcase
 from cmscontrib.BaseLoader import Loader
@@ -37,6 +40,14 @@ from cmscontrib import touch
 
 
 logger = logging.getLogger(__name__)
+
+
+# Patch PyYAML to make it load all strings as unicode instead of str
+# (see http://stackoverflow.com/questions/2890146).
+def construct_yaml_str(self, node):
+    return self.construct_scalar(node)
+yaml.Loader.add_constructor("tag:yaml.org,2002:str", construct_yaml_str)
+yaml.SafeLoader.add_constructor("tag:yaml.org,2002:str", construct_yaml_str)
 
 
 def load(src, dst, src_name, dst_name=None, conv=lambda i: i):
@@ -136,12 +147,46 @@ class YamlLoader(Loader):
 
         assert name == args["name"]
 
-        load(conf, args, "token_initial")
-        load(conf, args, "token_max")
-        load(conf, args, "token_total")
-        load(conf, args, "token_min_interval", conv=make_timedelta)
-        load(conf, args, "token_gen_time", conv=make_timedelta)
-        load(conf, args, "token_gen_number")
+        # Use the new token settings format if detected.
+        if "token_mode" in conf:
+            load(conf, args, "token_mode")
+            load(conf, args, "token_max_number")
+            load(conf, args, "token_min_interval", conv=make_timedelta)
+            load(conf, args, "token_gen_initial")
+            load(conf, args, "token_gen_number")
+            load(conf, args, "token_gen_interval", conv=make_timedelta)
+            load(conf, args, "token_gen_max")
+        # Otherwise fall back on the old one.
+        else:
+            logger.warning(
+                "contest.yaml uses a deprecated format for token settings "
+                "which will soon stop being supported, you're advised to "
+                "update it.")
+            # Determine the mode.
+            if conf.get("token_initial", None) is None:
+                args["token_mode"] = "disabled"
+            elif conf.get("token_gen_number", 0) > 0 and \
+                    conf.get("token_gen_time", 0) == 0:
+                args["token_mode"] = "infinite"
+            else:
+                args["token_mode"] = "finite"
+            # Set the old default values.
+            args["token_gen_initial"] = 0
+            args["token_gen_number"] = 0
+            args["token_gen_interval"] = timedelta()
+            # Copy the parameters to their new names.
+            load(conf, args, "token_total", "token_max_number")
+            load(conf, args, "token_min_interval", conv=make_timedelta)
+            load(conf, args, "token_initial", "token_gen_initial")
+            load(conf, args, "token_gen_number")
+            load(conf, args, "token_gen_time", "token_gen_interval",
+                 conv=make_timedelta)
+            load(conf, args, "token_max", "token_gen_max")
+            # Remove some corner cases.
+            if args["token_gen_initial"] is None:
+                args["token_gen_initial"] = 0
+            if args["token_gen_interval"].total_seconds() == 0:
+                args["token_gen_interval"] = timedelta(minutes=1)
 
         load(conf, args, ["start", "inizio"], conv=make_datetime)
         load(conf, args, ["stop", "fine"], conv=make_datetime)
@@ -168,6 +213,9 @@ class YamlLoader(Loader):
 
         """
 
+        conf = yaml.safe_load(
+            io.open(os.path.join(self.path, name + ".yaml"),
+                    "rt", encoding="utf-8"))
         path = os.path.realpath(os.path.join(self.path, name))
 
         # If there is no .itime file, we assume that the task has changed
@@ -204,12 +252,13 @@ class YamlLoader(Loader):
         files.append(os.path.join(path, "cor", "correttore"))
         files.append(os.path.join(path, "check", "manager"))
         files.append(os.path.join(path, "cor", "manager"))
-        for lang in LANGUAGES:
-            files.append(os.path.join(path, "sol", "grader.%s" % lang))
-        for other_filename in os.listdir(os.path.join(path, "sol")):
-            if other_filename.endswith('.h') or \
-                    other_filename.endswith('lib.pas'):
-                files.append(os.path.join(path, "sol", other_filename))
+        if not conf.get('output_only', False):
+            for lang in LANGUAGES:
+                files.append(os.path.join(path, "sol", "grader.%s" % lang))
+            for other_filename in os.listdir(os.path.join(path, "sol")):
+                if other_filename.endswith('.h') or \
+                        other_filename.endswith('lib.pas'):
+                    files.append(os.path.join(path, "sol", other_filename))
 
         # Yaml
         files.append(os.path.join(self.path, name + ".yaml"))
@@ -248,7 +297,8 @@ class YamlLoader(Loader):
         if "last_name" not in args:
             args["last_name"] = args["username"]
 
-        load(conf, args, ["hidden", "fake"], conv=lambda a: a == "True")
+        load(conf, args, ["hidden", "fake"],
+             conv=lambda a: a is True or a == "True")
 
         logger.info("User parameters loaded.")
 
@@ -304,7 +354,7 @@ class YamlLoader(Loader):
                                                           primary_language))
                 break
         else:
-            logger.error("Couldn't find any task statement, aborting...")
+            logger.critical("Couldn't find any task statement, aborting...")
             sys.exit(1)
         args["statements"] = [Statement(primary_language, digest)]
 
@@ -315,12 +365,46 @@ class YamlLoader(Loader):
         args["submission_format"] = [
             SubmissionFormatElement("%s.%%l" % name)]
 
-        load(conf, args, "token_initial")
-        load(conf, args, "token_max")
-        load(conf, args, "token_total")
-        load(conf, args, "token_min_interval", conv=make_timedelta)
-        load(conf, args, "token_gen_time", conv=make_timedelta)
-        load(conf, args, "token_gen_number")
+        # Use the new token settings format if detected.
+        if "token_mode" in conf:
+            load(conf, args, "token_mode")
+            load(conf, args, "token_max_number")
+            load(conf, args, "token_min_interval", conv=make_timedelta)
+            load(conf, args, "token_gen_initial")
+            load(conf, args, "token_gen_number")
+            load(conf, args, "token_gen_interval", conv=make_timedelta)
+            load(conf, args, "token_gen_max")
+        # Otherwise fall back on the old one.
+        else:
+            logger.warning(
+                "%s.yaml uses a deprecated format for token settings which "
+                "will soon stop being supported, you're advised to update it.",
+                name)
+            # Determine the mode.
+            if conf.get("token_initial", None) is None:
+                args["token_mode"] = "disabled"
+            elif conf.get("token_gen_number", 0) > 0 and \
+                    conf.get("token_gen_time", 0) == 0:
+                args["token_mode"] = "infinite"
+            else:
+                args["token_mode"] = "finite"
+            # Set the old default values.
+            args["token_gen_initial"] = 0
+            args["token_gen_number"] = 0
+            args["token_gen_interval"] = timedelta()
+            # Copy the parameters to their new names.
+            load(conf, args, "token_total", "token_max_number")
+            load(conf, args, "token_min_interval", conv=make_timedelta)
+            load(conf, args, "token_initial", "token_gen_initial")
+            load(conf, args, "token_gen_number")
+            load(conf, args, "token_gen_time", "token_gen_interval",
+                 conv=make_timedelta)
+            load(conf, args, "token_max", "token_gen_max")
+            # Remove some corner cases.
+            if args["token_gen_initial"] is None:
+                args["token_gen_initial"] = 0
+            if args["token_gen_interval"].total_seconds() == 0:
+                args["token_gen_interval"] = timedelta(minutes=1)
 
         load(conf, args, "max_submission_number")
         load(conf, args, "max_user_test_number")
@@ -372,7 +456,7 @@ class YamlLoader(Loader):
                     args["managers"] += [
                         Manager("grader.%s" % lang, digest)]
                 else:
-                    logger.error("Grader for language %s not found " % lang)
+                    logger.warning("Grader for language %s not found " % lang)
             # Read managers with other known file extensions
             for other_filename in os.listdir(os.path.join(task_path, "sol")):
                 if other_filename.endswith('.h') or \
@@ -516,8 +600,8 @@ class YamlLoader(Loader):
                             args["managers"] += [
                                 Manager("stub.%s" % lang, digest)]
                         else:
-                            logger.error("Stub for language %s not "
-                                         "found." % lang)
+                            logger.warning("Stub for language %s not "
+                                           "found." % lang)
                     break
 
             # Otherwise, the task type is Batch

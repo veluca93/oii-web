@@ -33,6 +33,8 @@ the dimensions of the testcases.
 
 """
 
+from __future__ import print_function
+
 import argparse
 import imp
 import numpy
@@ -57,7 +59,7 @@ def ijk_to_func(i, j, k):
     return lambda x: (x ** i) * (numpy.log2(x) ** j) * ((2 ** x) ** k)
 
 
-class FileLengther:
+class FileLengther(object):
     """A simple file-like object to count the bytes written to the
     file.
 
@@ -88,9 +90,8 @@ def file_length(digest, file_cacher=None, file_lengther=None):
 
     digest (string): the digest of the file.
     file_cacher (FileCacher): the cacher to use, or None.
-    file_lengther (class): a File-like object that tell the dimension
-                           of the input (see example above for how to
-                           write one).
+    file_lengther (type): a File-like object that tell the dimension
+        of the input (see example above for how to write one).
 
     return (int): the length of the tile.
 
@@ -142,7 +143,7 @@ def extract_meaningful_points(testcases_lengths, submission):
     for idx, length in enumerate(testcases_lengths):
         evaluation = submission.evaluations[idx]
         if float(evaluation.outcome) == 1.0 and \
-               evaluation.execution_time is not None:
+                evaluation.execution_time is not None:
             if length == last_length:
                 points_y[-1] = max(points_y[-1], evaluation.execution_time)
             else:
@@ -174,7 +175,7 @@ def extract_complexity_submission(testcases_lengths, submission):
 
     points_x, points_y = extract_meaningful_points(testcases_lengths,
                                                    submission)
-    print submission.user.username, len(points_x)
+    print(submission.user.username, len(points_x))
     if len(points_x) <= 6:
         return result
 
@@ -218,11 +219,10 @@ def extract_complexity_submission(testcases_lengths, submission):
         for i in xrange(MAXP + 1):
             for j in xrange(MAXL + 1):
                 for k in xrange(MAXE + 1):
-                    info.write("%+20.13lf x^%d log^%d(x) (2^x)^%d  "
-                               "-->  %+20.13lf\n" % (
-                        res[ijk_to_idx(i, j, k)],
-                        i, j, k,
-                        residues[ijk_to_idx(i, j, k)]))
+                    info.write(
+                        "%+20.13lf x^%d log^%d(x) (2^x)^%d  -->  %+20.13lf\n" %
+                        (res[ijk_to_idx(i, j, k)], i, j, k,
+                         residues[ijk_to_idx(i, j, k)]))
         info.write("Complexity: %s\n" % complexity_to_string(best_idxs))
         if sbest_residue != 0.0:
             confidence = (100.0 * (1.0 - best_residue / sbest_residue))
@@ -244,7 +244,7 @@ def extract_complexity_submission(testcases_lengths, submission):
             dat.write("%15.8lf %+15.8lf %+15.8lf\n" % (point_x * x_scale,
                                                        point_y * y_scale,
                                                        computed_y * y_scale))
-    print submission.user.username, result
+    print(submission.user.username, result)
     return result
 
 
@@ -253,9 +253,8 @@ def extract_complexity(task_id, file_lengther=None):
     results are stored in a file task_<id>.info
 
     task_id (int): the id of the task we are interested in.
-    file_lengther (class): a File-like object that tell the dimension
-                           of the input (see example above for how to
-                           write one).
+    file_lengther (type): a File-like object that tell the dimension
+        of the input (see example above for how to write one).
 
     return (int): 0 if operation was successful.
 
@@ -276,8 +275,8 @@ def extract_complexity(task_id, file_lengther=None):
         with open("task_%s.info" % task_id, "wt") as info:
             for submission in task.contest.get_submissions():
                 if submission.task_id == task_id and \
-                       submission.evaluated():
-                    print submission.user.username
+                        submission.evaluated():
+                    print(submission.user.username)
                     result = extract_complexity_submission(testcases_lengths,
                                                            submission)
                     if result[1] is None:
@@ -319,11 +318,11 @@ def main():
                                      file_, file_name, description)
             file_lengther = module.FileLengther
         except ImportError as error:
-            print "Unable to import module %s.\n%r" % (args.lengther, error)
+            print("Unable to import module %s.\n%r" % (args.lengther, error))
             return -1
         except AttributeError:
-            print "Module %s must have a class named FileLengther." % \
-                  args.lengther
+            print("Module %s must have a class named FileLengther." %
+                  args.lengther)
 
     return extract_complexity(int(args.task_id), file_lengther=file_lengther)
 

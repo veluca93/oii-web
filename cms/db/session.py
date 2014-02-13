@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import psycopg2
 
@@ -39,7 +40,7 @@ ScopedSession = scoped_session(Session)
 #Session = sessionmaker(db, twophase=True)
 
 
-class SessionGen:
+class SessionGen(object):
     """This allows us to create handy local sessions simply with:
 
     with SessionGen() as session:
@@ -76,8 +77,8 @@ def custom_psycopg2_connection(**kwargs):
 
     return (connection): a new, shiny connection object.
 
-    raise: AssertionError if CMS (actually SQLAlchemy) isn't configured
-        to use psycopg2 as the DB-API driver.
+    raise (AssertionError): if CMS (actually SQLAlchemy) isn't
+        configured to use psycopg2 as the DB-API driver.
 
     """
     database_url = make_url(config.database)

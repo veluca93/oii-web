@@ -32,8 +32,13 @@ from gevent.queue import Queue, Empty
 from gevent.pywsgi import WSGIHandler
 
 from werkzeug.wrappers import Request
-from werkzeug.routing import Map, Rule
-from werkzeug.exceptions import HTTPException, NotAcceptable
+from werkzeug.exceptions import NotAcceptable
+
+
+__all__ = [
+    "format_event",
+    "Publisher", "Subscriber", "EventSource",
+    ]
 
 
 def format_event(id_, event, data):
@@ -51,8 +56,8 @@ def format_event(id_, event, data):
 
     return (bytes): the value to write on the stream.
 
-    raise: TypeError if any parameter isn't unicode.
-    raise: ValueError if event contains illegal characters.
+    raise (TypeError): if any parameter isn't unicode.
+    raise (ValueError): if event contains illegal characters.
 
     """
     if not isinstance(id_, six.text_type):
@@ -179,7 +184,7 @@ class Subscriber(object):
         return ([objects]): the items put in the publisher, in order
             (actually, returns a generator, not a list).
 
-        raise: OutdatedError if some of the messages it's supposed to
+        raise (OutdatedError) if some of the messages it's supposed to
             retrieve have already been removed from the cache.
 
         """
@@ -214,16 +219,10 @@ class EventSource(object):
 
     _CACHE_SIZE = 250
 
-    def __init__(self, url):
-        """Create an event source on the given URL.
-
-        All requests for other URLs will be dropped with a 404.
-
-        url (string): the one and only URL this application handles.
+    def __init__(self):
+        """Create an event source.
 
         """
-        self._router = Map([Rule(url, methods=["GET"], endpoint="get")],
-                           encoding_errors="strict")
         self._pub = Publisher(self._CACHE_SIZE)
 
     def send(self, event, data):
@@ -254,14 +253,6 @@ class EventSource(object):
         __call__ and wsgi_app eases the insertion of middlewares.
 
         """
-        route = self._router.bind_to_environ(environ)
-        try:
-            endpoint, args = route.match()
-        except HTTPException as exc:
-            return exc(environ, start_response)
-
-        assert endpoint == "get"
-
         request = Request(environ)
         request.encoding_errors = "strict"
 

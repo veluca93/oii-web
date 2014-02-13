@@ -26,6 +26,7 @@
 """
 
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import logging
 
@@ -41,11 +42,13 @@ logger = logging.getLogger(__name__)
 # Define what this package will provide.
 
 __all__ = [
-    "version", "engine", "sa_entities",
+    "version", "engine",
     # session
     "Session", "ScopedSession", "SessionGen", "custom_psycopg2_connection",
     # base
     "metadata", "Base",
+    # types
+    "RepeatedUnicode",
     # contest
     "Contest", "Announcement",
     # location
@@ -67,8 +70,6 @@ __all__ = [
     "init_db",
     # drop
     "drop_db",
-    # watcher
-    "Watcher",
     # util
     "get_contest_list", "is_contest_id", "ask_for_contest",
     # test
@@ -80,7 +81,7 @@ __all__ = [
 
 # Instantiate or import these objects.
 
-version = 6
+version = 8
 
 
 engine = create_engine(config.database, echo=config.database_debug,
@@ -90,6 +91,7 @@ engine = create_engine(config.database, echo=config.database_debug,
 from .session import Session, ScopedSession, SessionGen, \
     custom_psycopg2_connection
 
+from .types import RepeatedUnicode
 from .base import metadata, Base
 from .contest import Contest, Announcement
 from .location import Region, Province, City, Institute
@@ -100,36 +102,12 @@ from .submission import Submission, File, Token, SubmissionResult, \
     Executable, Evaluation
 from .usertest import UserTest, UserTestFile, UserTestManager, \
     UserTestResult, UserTestExecutable
-from .fsobject import FSObject
 from .test import Test, TestQuestion, QuestionFile, TestScore
 from .forum import PrivateMessage, Forum, Topic, Post
-
-
-sa_entities = [
-    # contest
-    Contest, Announcement,
-    # user
-    User, Message, Question,
-    # location
-    Region, Province, City, Institute,
-    # task
-    Task, Statement, Attachment, SubmissionFormatElement, Dataset, Manager,
-    Testcase, Tag, TaskScore,
-    # submission
-    Submission, File, Token, SubmissionResult, Executable, Evaluation,
-    # usertest
-    UserTest, UserTestManager, UserTestResult, UserTestExecutable,
-    UserTestFile,
-    # test
-    Test, TestQuestion, QuestionFile, TestScore,
-    # forum
-    PrivateMessage, Post, Topic, Forum
-    ]
-
+from .fsobject import FSObject
 
 from .init import init_db
 from .drop import drop_db
-from .watcher import Watcher
 
 from .util import get_contest_list, is_contest_id, ask_for_contest
 

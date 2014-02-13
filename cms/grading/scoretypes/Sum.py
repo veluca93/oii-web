@@ -66,7 +66,7 @@ class Sum(ScoreTypeAlone):
             <td>{{ format_status_text(tc["text"], _) }}</td>
             <td>
             {% if tc["time"] is not None %}
-                {{ "%(seconds)0.3f s" % {'seconds': tc["time"]} }}
+                {{ _("%(seconds)0.3f s") % {'seconds': tc["time"]} }}
             {% else %}
                 {{ _("N/A") }}
             {% end %}
@@ -140,8 +140,8 @@ class Sum(ScoreTypeAlone):
                 public_testcases.append({"idx": idx})
 
         return score, json.dumps(testcases), \
-               public_score, json.dumps(public_testcases), \
-               json.dumps([])
+            public_score, json.dumps(public_testcases), \
+            json.dumps([])
 
     def get_public_outcome(self, outcome):
         """Return a public outcome from an outcome.

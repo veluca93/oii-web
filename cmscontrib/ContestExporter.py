@@ -40,16 +40,17 @@ import tarfile
 import tempfile
 
 from sqlalchemy.types import \
-    Boolean, Integer, Float, String, Unicode, DateTime, Interval
+    Boolean, Integer, Float, String, Unicode, DateTime, Interval, Enum
 
 from cms.db import version as model_version
 from cms.db import SessionGen, Contest, ask_for_contest, \
-    Submission, UserTest, SubmissionResult, UserTestResult
+    Submission, UserTest, SubmissionResult, UserTestResult, \
+    RepeatedUnicode
 from cms.db.filecacher import FileCacher
 from cms.io.GeventUtils import rmtree
 
 from cmscontrib import sha1sum
-from cmscommon.DateTime import make_timestamp
+from cmscommon.datetime import make_timestamp
 
 
 logger = logging.getLogger(__name__)
@@ -98,7 +99,7 @@ def get_archive_info(file_name):
     return ret
 
 
-class ContestExporter:
+class ContestExporter(object):
 
     """This service exports every data about the contest that CMS
     knows. The process of exporting and importing again should be
@@ -185,7 +186,8 @@ class ContestExporter:
                 data = dict()
                 while len(self.queue) > 0:
                     obj = self.queue.pop(0)
-                    data[self.ids[obj.sa_identity_key]] = self.export_object(obj)
+                    data[self.ids[obj.sa_identity_key]] = \
+                        self.export_object(obj)
 
                 # Specify the "root" of the data graph
                 data["_objects"] = ["0"]
@@ -253,7 +255,8 @@ class ContestExporter:
             col_type = type(col.type)
 
             val = getattr(obj, prp.key)
-            if col_type in [Boolean, Integer, Float, Unicode]:
+            if col_type in \
+                    [Boolean, Integer, Float, Unicode, RepeatedUnicode, Enum]:
                 data[prp.key] = val
             elif col_type is String:
                 data[prp.key] = \

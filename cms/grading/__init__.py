@@ -3,7 +3,7 @@
 
 # Programming contest management system
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2013 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -24,10 +24,13 @@
 import codecs
 import json
 import logging
+import os
+
 from collections import namedtuple
 
 from sqlalchemy.orm import joinedload
 
+from cms import LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_PHP, LANG_JAVA
 from cms.db import Submission
 from cms.grading.Sandbox import Sandbox
 
@@ -35,7 +38,8 @@ from cms.grading.Sandbox import Sandbox
 logger = logging.getLogger(__name__)
 
 
-SubmissionScoreDelta = namedtuple('SubmissionScoreDelta',
+SubmissionScoreDelta = namedtuple(
+    'SubmissionScoreDelta',
     ['submission', 'old_score', 'new_score',
      'old_public_score', 'new_public_score',
      'old_ranking_score_details', 'new_ranking_score_details'])
@@ -62,8 +66,10 @@ class JobException(Exception):
 
 def get_compilation_command(language, source_filenames, executable_filename,
                             for_evaluation=True):
-    """Returns the compilation command for the specified language,
-    source filenames and executable filename. The command is a list of
+    """Return the compilation command.
+
+    The compilation command is for the specified language, source
+    filenames and executable filename. The command is a list of
     strings, suitable to be passed to the methods in subprocess
     package.
 
@@ -78,34 +84,84 @@ def get_compilation_command(language, source_filenames, executable_filename,
     executable_filename (string): the output file.
     for_evaluation (bool): if True, define EVAL during the compilation;
                            defaults to True.
+
     return (list): a list of string to be passed to subprocess.
 
     """
-    # For compiling in 32-bit mode under 64-bit OS: add "-march=i686",
-    # "-m32" for gcc/g++. Don't know about Pascal. Anyway, this will
-    # require some better support from the evaluation environment
-    # (particularly the sandbox, which has to be compiled in a
-    # different way depending on whether it will execute 32- or 64-bit
-    # programs).
-    if language == "c":
+    if language == LANG_C:
         command = ["/usr/bin/gcc"]
         if for_evaluation:
             command += ["-DEVAL"]
         command += ["-static", "-O2", "-o", executable_filename]
         command += source_filenames
         command += ["-lm"]
-    elif language == "cpp":
+    elif language == LANG_CPP:
         command = ["/usr/bin/g++"]
         if for_evaluation:
             command += ["-DEVAL"]
         command += ["-static", "-O2", "-o", executable_filename]
         command += source_filenames
-    elif language == "pas":
+    elif language == LANG_PASCAL:
         command = ["/usr/bin/fpc"]
         if for_evaluation:
             command += ["-dEVAL"]
         command += ["-XS", "-O2", "-o%s" % executable_filename]
         command += [source_filenames[0]]
+    elif language == LANG_PYTHON:
+        # The executable name is fixed, and there is no way to specify
+        # the name of the pyc, so we need to bundle together two
+        # commands (compilation and rename).
+        command = ["/bin/sh", "-c"]
+        # Change the raw string to:
+        # "/usr/bin/python3 -m py_compile %s;mv __pycache__/%s.*.pyc %s"
+        # in order to use Python 3.
+        command += ["/usr/bin/python2 -m py_compile %s;mv %s.pyc %s" % (
+            source_filenames[0],
+            os.path.splitext(os.path.basename(source_filenames[0]))[0],
+            executable_filename,
+            )]
+    elif language == LANG_PHP:
+        command = ["/bin/sh", "-c"]
+        command += ["cp %s %s" % (source_filenames[0], executable_filename)]
+    elif language == LANG_JAVA:
+        class_name = "Task"  # Submitted java class must be called Task.
+        command = ["/bin/sh", "-c"]
+        command += ["/bin/mv %(source)s %(class)s.java; "
+                    "/usr/bin/gcj --main=%(class)s -O3 -o %(exec)s "
+                    "%(class)s.java" % {
+                        "source": source_filenames[0],
+                        "exec": executable_filename,
+                        "class": class_name
+                        }]
+    else:
+        raise ValueError("Unknown language %s." % language)
+    return command
+
+
+def get_evaluation_command(language, executable_filename):
+    """Return the evaluation command.
+
+    The evaluation command is for the given language and executable
+    filename. The command is a list of strings, suitable to be passed
+    to the methods in subprocess package.
+
+    language (string): one of the recognized languages.
+    executable_filename (string): the name of the executable.
+
+    return (list): a list of string to be passed to subprocess.
+
+    """
+    if language in (LANG_C, LANG_CPP, LANG_PASCAL, LANG_JAVA):
+        command = [os.path.join(".", executable_filename)]
+    elif language == LANG_PYTHON:
+        command = ["/bin/sh", "-c"]
+        # Change "python2" to "python3" to use Python 3.
+        command += ["HOME=./ /usr/bin/python2 %s" % executable_filename]
+    elif language == LANG_PHP:
+        command = ["/bin/sh", "-c"]
+        command += ["/usr/bin/php5 %s" % executable_filename]
+    else:
+        raise ValueError("Unknown language %s." % language)
     return command
 
 
@@ -121,8 +177,8 @@ def format_status_text(status, translator=None):
     the identity function, if not given), completed with the data and
     returned.
 
-    status (list or bytes): a status, as described above.
-    translator (callable): a function expecting a string and returning
+    status ([unicode]|unicode): a status, as described above.
+    translator (function): a function expecting a string and returning
         that same string translated in some language.
 
     """
@@ -151,7 +207,7 @@ def compilation_step(sandbox, command):
     Note: this needs a sandbox already created.
 
     sandbox (Sandbox): the sandbox we consider.
-    command (string): the actual compilation line.
+    command ([string]): the actual compilation line.
 
     """
     # Set sandbox parameters suitable for compilation.
@@ -160,7 +216,7 @@ def compilation_step(sandbox, command):
     sandbox.max_processes = None
     sandbox.timeout = 10
     sandbox.wallclock_timeout = 20
-    sandbox.address_space = 256 * 1024
+    sandbox.address_space = 512 * 1024
     sandbox.stdout_file = "compiler_stdout.txt"
     sandbox.stderr_file = "compiler_stderr.txt"
 
@@ -207,7 +263,7 @@ def compilation_step(sandbox, command):
 
     # Error in compilation: returning the error to the user.
     elif (exit_status == Sandbox.EXIT_OK and exit_code != 0) or \
-             exit_status == Sandbox.EXIT_NONZERO_RETURN:
+            exit_status == Sandbox.EXIT_NONZERO_RETURN:
         logger.debug("Compilation failed.")
         success = True
         compilation_success = False
@@ -229,7 +285,7 @@ def compilation_step(sandbox, command):
         compilation_success = False
         plus["signal"] = signal
         text = [N_("Compilation killed with signal %d (could be triggered "
-                  "by violating memory limits)"), signal]
+                   "by violating memory limits)"), signal]
 
     # Sandbox error: this isn't a user error, the administrator needs
     # to check the environment
@@ -259,7 +315,7 @@ def compilation_step(sandbox, command):
 
 
 def evaluation_step(sandbox, command,
-                    time_limit=0, memory_limit=0,
+                    time_limit=0.0, memory_limit=0,
                     allow_dirs=None,
                     stdin_redirect=None, stdout_redirect=None):
     """Execute an evaluation command in the sandbox. Note that in some
@@ -267,12 +323,12 @@ def evaluation_step(sandbox, command,
     testcase) (in others there can be none, of course).
 
     sandbox (Sandbox): the sandbox we consider.
-    command (string): the actual evaluation line.
+    command ([string]): the actual evaluation line.
     time_limit (float): time limit in seconds.
     memory_limit (int): memory limit in MB.
 
-    return (bool, dict): True if the evaluation was successful, or
-                         False; and additional data.
+    return ((bool, dict)): True if the evaluation was successful, or
+        False; and additional data.
 
     """
     success = evaluation_step_before_run(
@@ -290,10 +346,10 @@ def evaluation_step(sandbox, command,
 
 
 def evaluation_step_before_run(sandbox, command,
-                              time_limit=0, memory_limit=0,
-                              allow_dirs=None,
-                              stdin_redirect=None, stdout_redirect=None,
-                              wait=False):
+                               time_limit=0, memory_limit=0,
+                               allow_dirs=None,
+                               stdin_redirect=None, stdout_redirect=None,
+                               wait=False):
     """First part of an evaluation step, until the running.
 
     return: exit code already translated if wait is True, the
@@ -414,7 +470,7 @@ def human_evaluation_message(plus):
         return [N_("Execution timed out")]
     elif exit_status == Sandbox.EXIT_SIGNAL:
         return [N_("Execution killed with signal %d (could be triggered by "
-                  "violating memory limits)"), plus['signal']]
+                   "violating memory limits)"), plus['signal']]
     elif exit_status == Sandbox.EXIT_SANDBOX_ERROR:
         return None
     elif exit_status == Sandbox.EXIT_SYSCALL:
@@ -463,8 +519,9 @@ def extract_outcome_and_text(sandbox):
     stdout (Sandbox): the sandbox whose last execution was a
                       comparator.
 
-    return (float, string): outcome and text.
-    raise: ValueError if cannot decode the data.
+    return (float, [string]): outcome and text.
+
+    raise (ValueError): if cannot decode the data.
 
     """
     stdout = sandbox.relative_path(sandbox.stdout_file)
@@ -571,35 +628,34 @@ def white_diff(output, res):
 
 def white_diff_step(sandbox, output_filename,
                     correct_output_filename):
-        """Assess the correctedness of a solution by doing a simple
-        white diff against the reference solution. It gives an outcome
-        1.0 if the output and the reference output are identical (or
-        differ just by white spaces) and 0.0 if they don't (or if the
-        output doesn't exist).
+    """Assess the correctedness of a solution by doing a simple white
+    diff against the reference solution. It gives an outcome 1.0 if
+    the output and the reference output are identical (or differ just
+    by white spaces) and 0.0 if they don't (or if the output doesn't
+    exist).
 
-        sandbox (Sandbox): the sandbox we consider.
-        output_filename (string): the filename of user's output in the
-                                  sandbox.
-        correct_output_filename (string): the same with reference
-                                          output.
+    sandbox (Sandbox): the sandbox we consider.
+    output_filename (string): the filename of user's output in the
+        sandbox.
+    correct_output_filename (string): the same with reference output.
 
-        return (float, string): the outcome as above and a description
-                                text.
+    return ((float, [str])): the outcome as above and a description
+        text.
 
-        """
-        if sandbox.file_exists(output_filename):
-            out_file = sandbox.get_file(output_filename)
-            res_file = sandbox.get_file("res.txt")
-            if white_diff(out_file, res_file):
-                outcome = 1.0
-                text = [N_("Output is correct")]
-            else:
-                outcome = 0.0
-                text = [N_("Output isn't correct")]
+    """
+    if sandbox.file_exists(output_filename):
+        out_file = sandbox.get_file(output_filename)
+        res_file = sandbox.get_file("res.txt")
+        if white_diff(out_file, res_file):
+            outcome = 1.0
+            text = [N_("Output is correct")]
         else:
             outcome = 0.0
-            text = [N_("Evaluation didn't produce file %s"), output_filename]
-        return outcome, text
+            text = [N_("Output isn't correct")]
+    else:
+        outcome = 0.0
+        text = [N_("Evaluation didn't produce file %s"), output_filename]
+    return outcome, text
 
 
 def compute_changes_for_dataset(old_dataset, new_dataset):
@@ -609,14 +665,15 @@ def compute_changes_for_dataset(old_dataset, new_dataset):
     old_dataset (Dataset): the original dataset, typically the active one.
     new_dataset (Dataset): the dataset to compare against.
 
-    returns (list): a list of tuples of SubmissionScoreDelta tuples where they
-    differ. Those entries that do not differ will have None in the pair of
-    respective tuple entries.
+    returns (list): a list of tuples of SubmissionScoreDelta tuples
+        where they differ. Those entries that do not differ will have
+        None in the pair of respective tuple entries.
 
     """
     # If we are switching tasks, something has gone seriously wrong.
     if old_dataset.task is not new_dataset.task:
-        raise ValueError("Cannot compare datasets referring to different tasks.")
+        raise ValueError(
+            "Cannot compare datasets referring to different tasks.")
 
     task = old_dataset.task
 
@@ -663,9 +720,8 @@ def task_score(user, task):
     user (User): the user for which to compute the score.
     task (Task): the task for which to compute the score.
 
-    return (float, bool): the score of user on task, and True if the
-                          score could change because of a submission
-                          yet to score.
+    return ((float, bool)): the score of user on task, and True if the
+        score could change because of a submission yet to score.
 
     """
     # As this function is primarily used when generating a rankings table

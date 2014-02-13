@@ -24,6 +24,7 @@
 
 """
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
@@ -133,8 +134,8 @@ class LargeObject(io.RawIOBase):
         parameters (dict): the parameters to fill in the operation.
         message (unicode): a description to tell humans what we were
             doing in case something went wrong.
-        cursor (psycopg2.cursor): the cursor to use to execute the
-            statement (create and use a temporary one if not given).
+        cursor (cursor): the cursor to use to execute the statement
+            (create and use a temporary one if not given).
 
         """
         if cursor is None:
@@ -255,7 +256,9 @@ class LargeObject(io.RawIOBase):
             raise io.UnsupportedOperation("Large object is closed.")
 
         pos = self._execute("SELECT lo_lseek(%(fd)s, %(offset)s, %(whence)s);",
-                            {'fd': self._fd, 'offset': offset, 'whence': whence},
+                            {'fd': self._fd,
+                             'offset': offset,
+                             'whence': whence},
                             "Couldn't seek large object.")
         return pos
 
