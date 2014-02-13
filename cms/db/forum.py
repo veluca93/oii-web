@@ -26,6 +26,46 @@ from . import Base
 from . import User
 
 
+class Talk(Base):
+    __tablename__ = "talks"
+
+    id = Column(Integer, primary_key=True)
+
+    timestamp = Column(DateTime, nullable=False)
+
+    sender_id = Column(
+        Integer,
+        ForeignKey(User.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    sender = relationship(
+        User,
+        foreign_keys=[sender_id],
+        backref=backref(
+            'talks_created',
+            order_by="Talk.timestamp.desc()",
+            cascade="all, delete-orphan",
+            passive_deletes=True))
+
+    read = Column(Boolean)
+
+    receiver_id = Column(
+        Integer,
+        ForeignKey(User.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    receiver = relationship(
+        User,
+        foreign_keys=[sender_id],
+        backref=backref(
+            'talks_received',
+            order_by="Talk.timestamp.desc()",
+            cascade="all, delete-orphan",
+            passive_deletes=True))
+
+
 class PrivateMessage(Base):
     __tablename__ = "privatemessages"
 
@@ -35,9 +75,20 @@ class PrivateMessage(Base):
 
     text = Column(Unicode, nullable=False)
 
-    title = Column(Unicode, nullable=False)
-
-    read = Column(Boolean, nullable=False)
+    talk_id = Column(
+        Integer,
+        ForeignKey(Talk.id,
+                   onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True)
+    talk = relationship(
+        Talk,
+        foreign_keys=[talk_id],
+        backref=backref(
+            'pms',
+            order_by="PrivateMessage.timestamp.desc()",
+            cascade="all, delete-orphan",
+            passive_deletes=True))
 
     sender_id = Column(
         Integer,
@@ -54,20 +105,14 @@ class PrivateMessage(Base):
             cascade="all, delete-orphan",
             passive_deletes=True))
 
-    receiver_id = Column(
-        Integer,
-        ForeignKey(User.id,
-                   onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False,
-        index=True)
-    receiver = relationship(
-        User,
-        foreign_keys=[receiver_id],
-        backref=backref(
-            'pm_received',
-            order_by="PrivateMessage.timestamp.desc()",
-            cascade="all, delete-orphan",
-            passive_deletes=True))
+
+Talk.last_pm_id = Column(
+    Integer,
+    ForeignKey(PrivateMessage.id,
+               onupdate="CASCADE", ondelete="CASCADE"),
+    index=True)
+
+Talk.last_pm = relationship(PrivateMessage, foreign_keys=[Talk.last_pm_id])
 
 
 class Forum(Base):

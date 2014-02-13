@@ -58,7 +58,7 @@ __all__ = [
     "User", "Message", "Question",
     # task
     "Task", "Statement", "Attachment", "SubmissionFormatElement", "Dataset",
-    "Manager", "Testcase", "TaskScore",
+    "Manager", "Testcase", "TaskScore", "Tag",
     # submission
     "Submission", "File", "Token", "SubmissionResult", "Executable",
     "Evaluation",
@@ -79,8 +79,8 @@ __all__ = [
     # test
     "Test", "TestQuestion", "QuestionFile", "TestScore",
     # forum
-    "PrivateMessage", "Post", "Topic", "Forum"
-    ]
+    "PrivateMessage", "Post", "Topic", "Forum", "Talk"
+]
 
 
 # Instantiate or import these objects.
@@ -106,10 +106,10 @@ from .submission import Submission, File, Token, SubmissionResult, \
     Executable, Evaluation
 from .usertest import UserTest, UserTestFile, UserTestManager, \
     UserTestResult, UserTestExecutable
+from .test import Test, TestQuestion, QuestionFile, TestScore
+from .forum import PrivateMessage, Talk, Forum, Topic, Post
 from .printjob import PrintJob
 from .fsobject import FSObject
-from .test import Test, TestQuestion, QuestionFile, TestScore
-from .forum import PrivateMessage, Forum, Topic, Post
 
 from .init import init_db
 from .drop import drop_db
