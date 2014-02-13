@@ -3,11 +3,24 @@
     <h3 class="panel-title">{{'Submit a solution' | l10n}}</h3>
   </div>
   <div class="panel-body">
-    <form class="form-horizontal" ng-submit="loadFiles()" id="submitform">
+    <form class="form-horizontal" ng-submit="loadFiles('submitform')" id="submitform">
       <div class="form-group" ng-repeat="file in task.submission_format">
         <label class="control-label col-lg-3" for="{{file}}">{{file | repext}}</label>
         <div class="col-lg-9">
           <input type="file" id="{{file}}" name="{{file}}"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-lg-offset-3 col-lg-9">
+          <button type="submit" class="btn btn-success">{{'Submit' | l10n}}</button>
+        </div>
+      </div>
+    </form>
+    <form class="form-horizontal" ng-submit="loadFiles('zipform')" id="zipform" class="pull-right" ng-if="task.submission_format.length > 1">
+      <div class="form-group">
+        <label class="control-label col-lg-3" for="zipfile">{{'.zip file' | l10n}}</label>
+        <div class="col-lg-9">
+          <input type="file" id="zipfile" name="submission"/>
         </div>
       </div>
       <div class="form-group">

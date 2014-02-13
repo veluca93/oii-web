@@ -23,10 +23,12 @@ import re
 import json
 import logging
 import hashlib
+import tempfile
 import mimetypes
 import traceback
 import pkg_resources
 
+from base64 import b64decode
 from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
@@ -41,6 +43,7 @@ from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
     Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
     TaskScore, PrivateMessage
 from cmscommon.DateTime import make_timestamp, make_datetime
+from cms.server import extract_archive
 
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, wrap_file, responder
@@ -740,7 +743,6 @@ class APIHandler(object):
                make_datetime() - lastsub.timestamp < timedelta(seconds=20):
                 return 'submission.short_interval'
 
-            # TODO: implement archives and (?) partial submissions
             try:
                 task = local.session.query(Task)\
                     .filter(Task.name == local.data['task_name'])\
@@ -748,15 +750,42 @@ class APIHandler(object):
             except KeyError:
                 return 'connection.notfound'
 
+            def decode_file(f):
+                f['data'] = f['data'].split(',')[-1]
+                f['body'] = b64decode(f['data'])
+                del f['data']
+                return f
+
+            if len(local.data['files']) == 1 and \
+               'submission' in local.data['files']:
+                archive_data = decode_file(local.data['files']['submission'])
+                del local.data['files']['submission']
+                temp_archive_file, temp_archive_filename = \
+                    tempfile.mkstemp(dir=config.temp_dir)
+                with os.fdopen(temp_archive_file, "w") as temp_archive_file:
+                    temp_archive_file.write(archive_data['body'])
+                archive_contents = extract_archive(temp_archive_filename,
+                                                   archive_data['filename'])
+                if archive_contents is None:
+                    return 'Invalid archive!'
+                files_sent = dict([(i['filename'], i)
+                                   for i in archive_contents])
+            else:
+                files_sent = \
+                    dict([(k, decode_file(v))
+                          for k, v in local.data['files'].iteritems()])
+
+            # TODO: implement partial submissions (?)
+
             # Detect language
             files = []
             sub_lang = None
             for sfe in task.submission_format:
-                f = local.data['files'].get(sfe.filename)
+                f = files_sent.get(sfe.filename)
                 if f is None:
-                    return 'submission.files_missing'
-                if len(f['data']) > config.max_submission_length:
-                    return 'submission.files_too_big'
+                    return 'Some files are missing!'
+                if len(f['body']) > config.max_submission_length:
+                    return 'The files you sent are too big!'
                 f['name'] = sfe.filename
                 files.append(f)
                 if sfe.filename.endswith('.%l'):
@@ -765,9 +794,10 @@ class APIHandler(object):
                         if f['filename'].endswith(ext):
                             language = l
                     if language is None:
-                        return 'submission.language_unknown'
+                        return 'The language of the files you sent is not ' + \
+                               'recognized!'
                     elif sub_lang is not None and sub_lang != language:
-                        return 'submission.language_different'
+                        return 'The files you sent are in different languages!'
                     else:
                         sub_lang = language
 
@@ -779,7 +809,7 @@ class APIHandler(object):
                                     task=task)
             for f in files:
                 digest = self.file_cacher.put_file_content(
-                    f['data'].encode('utf-8'),
+                    f['body'],
                     'Submission file %s sent by %s at %d.' % (
                         f['name'], local.user.username,
                         make_timestamp(timestamp)))
