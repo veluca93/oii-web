@@ -34,6 +34,7 @@ angular.module('pws.task', [])
   })
   .controller('TaskbarCtrl', function($scope, $stateParams, $http,
         $rootScope, $timeout, userManager, notificationHub, taskbarManager) {
+    delete $rootScope.task;
     $timeout(function() {
       $(".my-popover").popover(); // enable popovers
     });
