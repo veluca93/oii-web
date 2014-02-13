@@ -95,52 +95,29 @@ angular.module('pws.task', [])
       return $rootScope.submissions[name] !== undefined
           && $rootScope.submissions[name].length > 0;
     };
-    $scope.prepareInput = function() {
-      if(!$scope.task) {
-        $timeout($scope.prepareInput, 200);
-        return;
-      }
-      $scope.fileInputs = [];
-      for(var idx in $scope.task.submission_format) {
-        var fname = $scope.task.submission_format[idx];
-        var finput = new mOxie.FileInput(fname);
-        finput.name = fname;
-        finput.container = document.getElementById(fname).parentNode;
-        finput.onchange = function(e) {
-          this.container.children[0].innerHTML = this.files[0].name;
-        };
-        finput.init();
-        $scope.fileInputs.push(finput);
-      }
-    }
     $scope.loadFiles = function() {
+      var input = $("#submitform input");
       $scope.files = {};
-      var reader = new mOxie.FileReader();
+      var reader = new FileReader();
       function readFile(i) {
-        if (i==$scope.fileInputs.length) {
+        if (i==input.length) {
           $scope.submitFiles();
           return;
         }
-        if ($scope.fileInputs[i].files == null) {
+        if (input[i].files.length < 1) {
           readFile(i+1);
           return;
         }
-        reader.filename = $scope.fileInputs[i].files[0].name;
-        reader.inputname = $scope.fileInputs[i].name;
-        reader.number = i;
-        reader.already_done = false;
+        reader.filename = input[i].files[0].name
+        reader.inputname = input[i].name
         reader.onloadend = function(){
-          if(reader.already_done) {
-            return;
-          }
-          reader.already_done = true;
           $scope.files[reader.inputname] = {
             'filename': reader.filename,
             'data': reader.result
           };
-          readFile(reader.number+1);
+          readFile(i+1);
         };
-        reader.readAsBinaryString($scope.fileInputs[i].files[0]);
+        reader.readAsText(input[i].files[0]);
       }
       readFile(0);
     };
@@ -156,9 +133,9 @@ angular.module('pws.task', [])
         .success(function(data, status, headers, config) {
           if (data['success']) {
             subsDatabase.addSub($scope.taskName, data);
-            for(var i in $scope.fileInputs) {
-              $scope.fileInputs[i].container.children[0].innerHTML = '';
-            }
+            $("#submitform").each(function() {
+              this.reset();
+            });
           }
           else
             notificationHub.createAlert('danger', data['error'], 2);
@@ -169,5 +146,4 @@ angular.module('pws.task', [])
     $scope.showDetails = function(id) {
       subsDatabase.subDetails(id);
     };
-    $timeout($scope.prepareInput, 200);
   });

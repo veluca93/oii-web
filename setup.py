@@ -75,7 +75,6 @@ def do_setup():
             os.path.join("assets", "css", "*.*"),
             os.path.join("assets", "ico", "*.*"),
             os.path.join("assets", "js", "*.*"),
-            os.path.join("assets", "flash", "*.*"),
             os.path.join("assets", "fonts", "*.*"),
             os.path.join("assets", "pdfjs", "build", "*.*"),
             os.path.join("assets", "pdfjs", "web", "*.*"),
