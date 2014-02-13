@@ -41,7 +41,7 @@ from cms import ServiceCoord
 from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
     Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
-    TaskScore, PrivateMessage
+    TaskScore, PrivateMessage, Talk
 from cmscommon.DateTime import make_timestamp, make_datetime
 from cms.server import extract_archive
 
@@ -1037,78 +1037,85 @@ class APIHandler(object):
         else:
             return 'Bad request'
 
-    def pm_handler(self):
-        if local.data['action'] == 'list_users':
-            if local.user is None:
-                return 'Unauthorized'
-            query = local.session.query(User)\
-                .join(User.pm_sent)\
-                .join(User.pm_received)\
+    def talk_handler(self):
+        if local.data['action'] == 'list':
+            query = local.session.query(Talk)\
                 .filter(or_(
-                    PrivateMessage.sender_id == local.user.id,
-                    PrivateMessage.receiver_id == local.user.id))\
-                .order_by(PrivateMessage.timestamp)
-            users, local.resp['num'] = self.sliced_query(query)
-            local.resp['users'] = []
-            for u in users:
-                user = self.get_user_info(u)
-                user['sent'] = make_timestamp(u.pm_sent[0].timestamp)
-                user['received'] = make_timestamp(u.pm_received[0].timestamp)
-                local.resp['users'].append(user)
-        elif local.data['action'] == 'get':
-            if local.user is None:
-                return 'Unauthorized'
-            other = local.session.query(User)\
-                .filter(User.username == local.data['username']).first()
-            if other is None:
-                return 'Not found'
-            query = local.session.query(PrivateMessage)\
-                .filter(or_(
-                    and_(
-                        PrivateMessage.receiver_id == local.user.id,
-                        PrivateMessage.sender_id == other.id),
-                    and_(
-                        PrivateMessage.sender_id == local.user.id,
-                        PrivateMessage.receiver_id == other.id)))\
-                .order_by(PrivateMessage.timestamp)
-            pms, local.resp['num'] = self.sliced_query(query)
-            local.resp['users'] = dict()
-            local.resp['pms'] = []
-            local.resp['users'][pms[0].sender.username] = \
-                self.get_user_info(pms[0].sender)
-            local.resp['users'][pms[0].receiver.username] = \
-                self.get_user_info(pms[0].receiver)
-            for p in pms:
-                pm = dict()
-                pm['title'] = p.title
-                pm['sender'] = p.sender.username
-                pm['receiver'] = p.receiver.username
-                pm['timestamp'] = make_timestamp(p.timestamp)
-                pm['read'] = p.read
-                pm['text'] = p.text
-                local.resp['pms'].append(pm)
-                if pm.receiver_id == local.user.id:
-                    p.read = True
-            local.session.commit()
+                    Talk.sender_id == local.user.id,
+                    Talk.receiver_id == local.user.id))\
+                .order_by(desc(Talk.timestamp))
+            talks, local.resp['num'] = self.sliced_query(query)
+            local.resp['talks'] = list()
+            for t in talks:
+                talk = dict()
+                talk['sender'] = self.get_user_info(t.sender)
+                talk['receiver'] = self.get_user_info(t.receiver)
+                talk['id'] = talk.id
+                talk['timestamp'] = make_timestamp(t.timestamp)
+                talk['read'] = t.read
+                if t.last_pm is not None:
+                    talk['last_pm_sender'] = t.last_pm.sender
+                    txt = t.last_pm.text
+                    if len(txt) > 100:
+                        txt = txt[:97] + '...'
+                    talk['last_pm_text'] = txt
+                local.resp['talks'].append(talk)
         elif local.data['action'] == 'new':
             if local.user is None:
                 return 'Unauthorized'
-            if local.user.id == local.data['receiver_id']:
-                return 'pm.self'
-            pm = PrivateMessage(text=local.data['text'],
-                                title=local.data['title'],
-                                timestamp=make_datetime())
-            pm.sender_id = local.user.id
-            pm.receiver_id = local.data['receiver_id']
-            pm.read = False
-            local.session.add(pm)
-            local.session.commit()
-        elif local.data['action'] == 'get_unread':
+            other = local.session.query(User)\
+                .filter(User.username == local.data['other']).first()
+            talk = local.session.query(Talk)\
+                .filter(or_(
+                    and_(
+                        Talk.sender_id == local.user.id,
+                        Talk.receiver_id == other.id),
+                    and_(
+                        Talk.sender_id == other.id,
+                        Talk.receiver_id == local.user.id))).first()
+            if talk is None:
+                talk = Talk(sender_id=local.user.id,
+                            receiver_id=other.id,
+                            timestamp=make_datetime())
+                local.session.add(talk)
+                local.session.commit()
+            local.resp['id'] = talk.id
+        else:
+            return 'Bad request'
+
+    def pm_handler(self):
+        if local.data['action'] == 'list':
+            query = local.session.query(PrivateMessage)\
+                .filter(PrivateMessage.conversation_id == local.data['id'])\
+                .order_by(desc(Post.timestamp))
+            pms, local.resp['num'] = self.sliced_query(query)
+            talk = local.session.query(Talk)\
+                .filter(Talk.id == local.data['id']).first()
+            if local.data['first'] == 0 and local.user != talk.last_pm.sender:
+                talk.read = True
+            local.resp['pms'] = list()
+            for p in pms:
+                pm = dict()
+                pm['timestamp'] = make_timestamp(p.timestamp)
+                pm['sender'] = self.get_user_info(p.sender)
+                pm['text'] = p.text
+                local.resp['pms'].append(pm)
+        elif local.data['action'] == 'new':
             if local.user is None:
                 return 'Unauthorized'
-            local.resp['num'] = local.session.query(PrivateMessage)\
-                .filter(PrivateMessage.receiver_id == local.user.id)\
-                .filter(PrivateMessage.read == False).count()
+            talk = local.session.query(Talk)\
+                .filter(Talk.id == local.data['id']).first()
+            if talk is None:
+                return 'Not found'
+            pm = PrivateMessage(text=local.data['text'],
+                                timestamp=make_datetime())
+            pm.sender_id = local.user.id
+            pm.talk = talk
+            talk.timestamp = pm.timestamp
+            talk.last_pm = pm
+            talk.read = False
+            local.session.add(pm)
+            local.session.commit()
         else:
             return 'Bad request'
 
