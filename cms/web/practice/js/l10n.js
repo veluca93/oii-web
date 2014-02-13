@@ -1,5 +1,6 @@
 /* Contest Management System
  * Copyright © 2013 William Di Luigi <williamdiluigi@gmail.com>
+ * Copyright © 2014 Luca Chiodini <luca@chiodini.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -245,6 +246,32 @@ angular.module('pws.l10n', [])
     {it: 'Devi specificare una città'},
     'You must specify an institute':
     {it: 'Devi specificare un istituto'},
+
+    // Notifications
+    'Welcome back':
+    {it: 'Bentornato'},
+    'Sign in error':
+    {it: 'Login errato'},
+    'Internal error during login: make sure your internet connection is working well and, if this error occurs again, contact an administrator.':
+    {it: 'Errore interno in fase di login: assicurati che la tua connessione a internet sia funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.'},
+    'Goodbye':
+    {it: 'Arrivederci'},
+    'User doesn\'t exist':
+    {it: 'Utente non esistente'},
+    'Internal error. Make sure your internet connection is working well and, if this error occurs again, contact an administrator.':
+    {it: 'Errore interno. Assicurati che la tua connessione a internet sia funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.'},
+    'Internal error':
+    {it: 'Errore interno'},
+    'Topic created':
+    {it: 'Argomento creato'},
+    'Reply sent':
+    {it: 'Risposta inviata'},
+    'Edit saved':
+    {it: 'Modifica salvata'},
+    'Delete completed':
+    {it: 'Eliminazione completata'},
+    'Connection error':
+    {it: 'Errore di connessione'},
 
     // Forum
     'Forums':

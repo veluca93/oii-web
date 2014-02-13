@@ -1,6 +1,7 @@
 /* Contest Management System
  * Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
  * Copyright © 2013 William Di Luigi <williamdiluigi@gmail.com>
+ * Copyright © 2014 Luca Chiodini <luca@chiodini.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -88,7 +89,7 @@ angular.module('pws.user', [])
     };
   })
   .controller('SignCtrl', function($scope, $http, userManager,
-        notificationHub) {
+        notificationHub, l10n) {
     $scope.user = {'username': '', 'password': ''};
     $scope.isLogged = userManager.isLogged;
     $scope.signin = function() {
@@ -102,26 +103,26 @@ angular.module('pws.user', [])
         })
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
-            userManager.signin(data.token, $scope.user.username, data.access_level);
-            notificationHub.createAlert('success', 'Bentornato, ' +
-              userManager.getUsername(), 2);
+            userManager.signin(data.token, $scope.user.username,
+              data.access_level);
+            notificationHub.createAlert('success', l10n.get('Welcome back') +
+              ', ' + userManager.getUsername(), 2);
           } else if (data.success == 0) {
-            notificationHub.createAlert('danger', 'Sign in error', 3);
+            notificationHub.createAlert('danger', l10n.get('Sign in error'), 3);
           }
         }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno in fase' +
-            ' di login: assicurati che la tua connessione a internet sia'+
-            ' funzionante e, se l\'errore dovesse ripetersi, contatta un'+
-            ' amministratore.', 5);
+          notificationHub.createAlert('danger', l10n.get('Internal error ' +
+            'during login: make sure your internet connection is working well' +
+            ' and, if this error occurs again, contact an administrator.'), 5);
         });
     };
     $scope.signout = function() {
       userManager.signout();
-      notificationHub.createAlert('success', 'Arrivederci', 1);
+      notificationHub.createAlert('success', l10n.get('Goodbye'), 1);
     };
   })
   .controller('UserpageCtrl', function($scope, $http, notificationHub,
-      $stateParams, $location, $timeout, userbarManager) {
+      $stateParams, $location, $timeout, userbarManager, l10n) {
     userbarManager.setActiveTab(1);
     $timeout(function() {
       $('.my-tooltip').tooltip(); // enable tooltips
@@ -132,7 +133,8 @@ angular.module('pws.user', [])
     }).success(function(data, status, headers, config) {
         $scope.user = data;
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Utente non esistente', 3);
+        notificationHub.createAlert('danger', l10n.get('User doesn\'t exist'),
+          3);
         $location.path('overview'); // FIXME: torna a home?
       });
   })
@@ -175,10 +177,9 @@ angular.module('pws.user', [])
               notificationHub.createAlert('danger', l10n.get(data.error), 3);
           }
         }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno.' +
-            ' Assicurati che la tua connessione a internet sia'+
-            ' funzionante e, se l\'errore dovesse ripetersi, contatta un'+
-            ' amministratore.', 5);
+          notificationHub.createAlert('danger', l10n.get('Internal error. Make'+
+            ' sure your internet connection is working well and, if this error'+
+            ' occurs again, contact an administrator.'), 5);
         });
     };
   })

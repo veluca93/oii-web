@@ -33,7 +33,8 @@ angular.module('pws.task', [])
     };
   })
   .controller('TaskbarCtrl', function($scope, $stateParams, $http,
-        $rootScope, $timeout, userManager, notificationHub, taskbarManager) {
+        $rootScope, $timeout, userManager, notificationHub, taskbarManager,
+        l10n) {
     delete $rootScope.task;
     $timeout(function() {
       $(".my-popover").popover(); // enable popovers
@@ -50,7 +51,7 @@ angular.module('pws.task', [])
       .success(function(data, status, headers, config) {
         $rootScope.task = data;
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore di connessione', 2);
+        notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
     });
   })
   .controller('StatementCtrl', function($scope, $window, taskbarManager) {
@@ -67,7 +68,7 @@ angular.module('pws.task', [])
     taskbarManager.setActiveTab(2);
   })
   .controller('StatsCtrl', function($scope, $stateParams, $http,
-      notificationHub, userManager, taskbarManager) {
+      notificationHub, userManager, taskbarManager, l10n) {
     taskbarManager.setActiveTab(3);
     $scope.getStats = function() {
       $http.post('task', {
@@ -82,14 +83,14 @@ angular.module('pws.task', [])
         $scope.nuserscorrect = data.nuserscorrect;
         $scope.best = data.best;
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore di connessione', 2);
+        notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
       });
     }
     $scope.getStats();
   })
   .controller('SubmissionsCtrl', function($scope, $stateParams, $location,
       $http, $timeout, $rootScope, userManager, notificationHub,
-      subsDatabase, taskbarManager) {
+      subsDatabase, taskbarManager, l10n) {
     taskbarManager.setActiveTab(4);
     subsDatabase.load($stateParams.taskName);
     $scope.areThereSubs = function(name) {
@@ -141,7 +142,7 @@ angular.module('pws.task', [])
           else
             notificationHub.createAlert('danger', data['error'], 2);
       }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore di connessione', 2);
+          notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
       });
     };
     $scope.showDetails = function(id) {
