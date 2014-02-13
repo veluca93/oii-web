@@ -162,7 +162,8 @@ angular.module('pws.tasks', ['pws.pagination'])
     };
   })
   .controller('TasklistPage', function($scope, $stateParams, $state, $http,
-      notificationHub, userManager) {
+      $rootScope, notificationHub, userManager) {
+    delete $rootScope.task;
     $scope.pagination.current = +$stateParams.pageNum;
     $scope.getTasks = function() {
       var data = {
