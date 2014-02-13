@@ -1,6 +1,7 @@
 /* Contest Management System
  * Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
  * Copyright © 2013 William Di Luigi <williamdiluigi@gmail.com>
+ * Copyright © 2014 Luca Chiodini <luca@chiodini.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,7 +22,7 @@
 
 angular.module('pws.forum', ['pws.pagination', 'textAngular'])
   .controller('ForumsCtrl', function ($scope, $http, userManager,
-        notificationHub, navbarManager) {
+        notificationHub, navbarManager, l10n) {
     navbarManager.setActiveTab(2);
     $http.post('forum', {
       'action':   'list',
@@ -31,7 +32,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
     .success(function(data, status, headers, config) {
       $scope.forums = data.forums;
     }).error(function(data, status, headers, config) {
-      notificationHub.createAlert('danger', 'Errore interno', 2);
+      notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
     });
     $scope.lastPage = function(posts) {
       // FIXME: se si modifica 'pagination.perPage' in TopicCtrl si deve modificare anche qui!
@@ -53,7 +54,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
     $scope.post = {};
   })
   .controller('ForumCtrl', function($scope, $http, $stateParams, $state,
-      userManager, navbarManager, notificationHub) {
+      userManager, navbarManager, notificationHub, l10n) {
     // FIXME: avendo aggiunto la pagination, dobbiamo aggiustare questa funzionalità
     //~ $scope.onlyUnans = function() {
       //~ $location.search('na', 1);
@@ -90,7 +91,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         $scope.breadcrumb.forumTitle = data.title;
         $scope.breadcrumb.forumDesc = data.description;
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
+        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
       });
     };
     $scope.newTopic = function() {
@@ -104,14 +105,14 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       })
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
-          notificationHub.createAlert('info', 'Topic creato', 1);
+          notificationHub.createAlert('info', l10n.get('Topic created'), 1);
           $scope.getTopics();
         } else {
           notificationHub.createAlert('danger', data.error, 2);
         }
         //~ $state.go(); // TODO: redirect al topic creato?
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
+        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
       });
     };
     $scope.getTopics();
@@ -166,14 +167,14 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         })
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
-            notificationHub.createAlert('info', 'Risposta inviata', 1);
+            notificationHub.createAlert('info', l10n.get('Reply sent'), 1);
             $scope.getPosts();
             // TODO: redirect al post creato?
           } else {
             notificationHub.createAlert('danger', data.error, 2);
           }
         }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore interno', 2);
+          notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
         });
     };
     $scope.post.edit = function() {
@@ -186,13 +187,13 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       })
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
-          notificationHub.createAlert('info', 'Modifica registrata', 1);
+          notificationHub.createAlert('info', l10n.get('Edit saved'), 1);
           $scope.getPosts();
         } else {
           notificationHub.createAlert('danger', data.error, 2);
         }
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
+        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
       });
     };
     $scope.deletePost = function(id) {
@@ -206,7 +207,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       })
       .success(function(data, status, headers, config) {
         if (data.success) {
-          notificationHub.createAlert('info', 'Eliminazione completata', 1);
+          notificationHub.createAlert('info', l10n.get('Delete completed'), 1);
           if (data.success == 1)
             $scope.getPosts();
           else
@@ -215,7 +216,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
           notificationHub.createAlert('danger', data.error, 2);
         }
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
+        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
       });
     };
     $scope.getPosts();
