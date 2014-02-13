@@ -96,8 +96,8 @@ angular.module('pws.task', [])
       return $rootScope.submissions[name] !== undefined
           && $rootScope.submissions[name].length > 0;
     };
-    $scope.loadFiles = function() {
-      var input = $("#submitform input");
+    $scope.loadFiles = function(formid) {
+      var input = $("#" + formid + " input");
       $scope.files = {};
       var reader = new FileReader();
       function readFile(i) {
@@ -118,7 +118,7 @@ angular.module('pws.task', [])
           };
           readFile(i+1);
         };
-        reader.readAsText(input[i].files[0]);
+        reader.readAsDataURL(input[i].files[0]);
       }
       readFile(0);
     };
