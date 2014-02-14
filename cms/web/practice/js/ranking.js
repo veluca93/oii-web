@@ -26,7 +26,7 @@ angular.module('pws.ranking', ['pws.pagination'])
     $scope.pagination = {perPage: 20};
   })
   .controller('RankingCtrl', function($scope, $stateParams, $state,
-      $http, userManager, notificationHub) {
+      $http, userManager, notificationHub, l10n) {
     $scope.pagination.current = +$stateParams.pageNum;
     $scope.getUsers = function() {
       var data = {
@@ -41,7 +41,7 @@ angular.module('pws.ranking', ['pws.pagination'])
           $scope.users = data['users'];
           $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
         }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore di connessione', 2);
+          notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
         });
     };
     $scope.getUsers();

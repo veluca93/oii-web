@@ -22,7 +22,7 @@
 
 angular.module('pws.tasks', ['pws.pagination'])
   .service('subsDatabase', function($http, $rootScope, $timeout,
-      notificationHub, userManager) {
+      notificationHub, userManager, l10n) {
     $rootScope.submissions = {};
     var updInterval = {};
     var updAttempts = {};
@@ -39,7 +39,7 @@ angular.module('pws.tasks', ['pws.pagination'])
           for (var i=data['submissions'].length; i>0; i--)
             addSub(name, data['submissions'][i-1]);
         }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore di connessione', 2);
+          notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
       });
       $timeout.cancel(timeout);
       updSubs();
@@ -118,7 +118,7 @@ angular.module('pws.tasks', ['pws.pagination'])
         $rootScope.curSub = id;
         $rootScope.actualCurSub = data;
       }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore di connessione', 2);
+        notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
       });
     }
     function updSubs() {
@@ -139,7 +139,7 @@ angular.module('pws.tasks', ['pws.pagination'])
             .success(function(data, status, headers, config) {
               replaceSub(data["id"], data);
             }).error(function(data, status, headers, config) {
-              notificationHub.createAlert('danger', 'Errore di connessione', 2);
+              notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
             });
           }
         }
@@ -162,7 +162,7 @@ angular.module('pws.tasks', ['pws.pagination'])
     };
   })
   .controller('TasklistPage', function($scope, $stateParams, $state, $http,
-      notificationHub, userManager) {
+      notificationHub, userManager, l10n) {
     $scope.pagination.current = +$stateParams.pageNum;
     $scope.getTasks = function() {
       var data = {
@@ -181,7 +181,7 @@ angular.module('pws.tasks', ['pws.pagination'])
           $scope.tasks = data['tasks'];
           $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
         }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', 'Errore di connessione', 2);
+          notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
         });
     };
     $scope.$on('getTasks', function(e) {
