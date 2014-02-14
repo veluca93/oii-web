@@ -1050,12 +1050,12 @@ class APIHandler(object):
                 talk = dict()
                 talk['sender'] = self.get_user_info(t.sender)
                 talk['receiver'] = self.get_user_info(t.receiver)
-                talk['id'] = talk.id
+                talk['id'] = t.id
                 talk['timestamp'] = make_timestamp(t.timestamp)
                 talk['read'] = t.read
-                if t.last_pm is not None:
-                    talk['last_pm_sender'] = t.last_pm.sender
-                    txt = t.last_pm.text
+                if len(t.pms) > 0:
+                    talk['last_pm_sender'] = t.pms[0].sender.username
+                    txt = t.pms[0].text
                     if len(txt) > 100:
                         txt = txt[:97] + '...'
                     talk['last_pm_text'] = txt
@@ -1091,7 +1091,7 @@ class APIHandler(object):
             pms, local.resp['num'] = self.sliced_query(query)
             talk = local.session.query(Talk)\
                 .filter(Talk.id == local.data['id']).first()
-            if local.data['first'] == 0 and local.user != talk.last_pm.sender:
+            if local.data['first'] == 0 and local.user != talk.pms[0].sender:
                 talk.read = True
             local.resp['pms'] = list()
             for p in pms:
@@ -1112,7 +1112,6 @@ class APIHandler(object):
             pm.sender_id = local.user.id
             pm.talk = talk
             talk.timestamp = pm.timestamp
-            talk.last_pm = pm
             talk.read = False
             local.session.add(pm)
             local.session.commit()

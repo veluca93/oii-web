@@ -106,15 +106,6 @@ class PrivateMessage(Base):
             passive_deletes=True))
 
 
-Talk.last_pm_id = Column(
-    Integer,
-    ForeignKey(PrivateMessage.id,
-               onupdate="CASCADE", ondelete="CASCADE"),
-    index=True)
-
-Talk.last_pm = relationship(PrivateMessage, foreign_keys=[Talk.last_pm_id])
-
-
 class Forum(Base):
     __tablename__ = "forums"
 
