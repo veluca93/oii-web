@@ -58,7 +58,7 @@ class Talk(Base):
         index=True)
     receiver = relationship(
         User,
-        foreign_keys=[sender_id],
+        foreign_keys=[receiver_id],
         backref=backref(
             'talks_received',
             order_by="Talk.timestamp.desc()",

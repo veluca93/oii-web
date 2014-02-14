@@ -13,12 +13,14 @@
       <br />
     </div>
     <div class="col-xs-6">
-      <a ng-if="isMe()" class="pull-right well well-lg" href="http://gravatar.com/emails/" target="_blank">
-        <img class="my-tooltip avatar img-thumbnail"
-             data-toggle="tooltip" data-placement="bottom"
-             title="{{'Change your avatar at gravatar.com' | l10n}}"
-             src="http://gravatar.com/avatar/{{user.mail_hash}}?d=identicon&s=200"/>
-      </a>
+      <div ng-if="isMe()" class="pull-right well well-lg">
+        <a href="http://gravatar.com/emails/" target="_blank">
+          <img class="my-tooltip avatar img-thumbnail"
+               data-toggle="tooltip" data-placement="bottom"
+               title="{{'Change your avatar at gravatar.com' | l10n}}"
+               src="http://gravatar.com/avatar/{{user.mail_hash}}?d=identicon&s=200"/>
+        </a>
+      </div>
       <span ng-if="!isMe()" class="pull-right well well-lg">
         <img class="my-tooltip avatar img-thumbnail"
              src="http://gravatar.com/avatar/{{user.mail_hash}}?d=identicon&s=200"/>
