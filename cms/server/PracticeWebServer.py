@@ -154,8 +154,8 @@ class APIHandler(object):
             try:
                 local.data = data
                 local.resp = dict()
-                local.resp['success'] = 1
                 ans = getattr(self, args['target'] + '_handler')()
+                local.resp['success'] = 1
             except AttributeError:
                 logger.error('Endpoint %s not implemented yet!' % endpoint)
                 logger.error(traceback.format_exc())
