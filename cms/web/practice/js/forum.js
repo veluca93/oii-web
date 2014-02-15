@@ -44,7 +44,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
     navbarManager.setActiveTab(0);
     $scope.user = {
       isLogged: userManager.isLogged,
-      toolbar:  userManager.getForumToolbar()
+      toolbar:  userManager.getForumToolbar(userManager.getUser())
     };
     $scope.breadcrumb = {};
     $scope.pagination = {perPage: 15};
