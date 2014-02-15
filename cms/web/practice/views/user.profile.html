@@ -9,7 +9,9 @@
         <small class="label label-default">{{user.access_level | levelClass}}</small>
       </h3>
       <br />
-      <i class="fa fa-home fa-lg"></i> {{user.institute.name}} ({{user.institute.province}})
+      <span ng-if="user.institute.name">
+        <i class="fa fa-home fa-lg"></i> {{user.institute.name}} ({{user.institute.province}})
+      </span>
       <br />
       <span ng-if="!isMe()">
         <i class="fa fa-comment fa-lg"></i> <a ui-sref="talkRedirect({userId: myName(), recipientName: user.username})">{{'Send message' | l10n}}</a>
