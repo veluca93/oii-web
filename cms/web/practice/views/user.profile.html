@@ -9,7 +9,9 @@
         <small class="label label-default">{{user.access_level | levelClass}}</small>
       </h3>
       <br />
-      <i class="fa fa-home fa-lg"></i> {{user.institute.name}} ({{user.institute.province}})
+      <span ng-if="user.institute.name">
+        <i class="fa fa-home fa-lg"></i> {{user.institute.name}} ({{user.institute.province}})
+      </span>
       <br />
     </div>
     <div class="col-xs-6">
