@@ -125,6 +125,36 @@ angular.module('pws.resources', [])
     $scope.title = 'Videolezioni C';
     $scope.videolezioni = [
       {
+        title: 'Corso di programmazione in C - Lezione 1 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'QW7A7efKzoY',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 2 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'XrIYg7Er3OM',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 3 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'VRdS2z5eso0',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 4 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'ZQwIQLmxcfc',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 5 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'UbpQ0rEqNcM',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 6 - Prof. Romeo Rizzi - UNIVR',
+        youtube: '_C9vsqgOpCM',
+        files: []
+      },
+      {
         title: 'Come inviare correttamente un file sorgente C alla piattaforma',
         youtube: 'YAmpEiGJFVs',
         files: []
