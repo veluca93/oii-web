@@ -21,58 +21,275 @@
 /* Resources page */
 
 angular.module('pws.resources', [])
+  .factory('ytFixer', function($sce) {
+    return {
+      'fix': function(lezioni) {
+        for (var i in lezioni) {
+          lezioni[i].youtube = $sce.trustAsResourceUrl('//www.youtube.com/embed/' + lezioni[i].youtube);
+          for (var j in lezioni[i].files) {
+            lezioni[i].files[j] = {'title': lezioni[i].files[j]};
+            lezioni[i].files[j].url = $sce.trustAsUrl('resources/' + lezioni[i].files[j].title);
+          }
+        }
+        return lezioni;
+      }
+    };
+  })
   .controller('ResourcesCtrl', function($scope, navbarManager) {
     navbarManager.setActiveTab(0);
   })
-  .controller('VideoPas', function($scope, $sce, navbarManager) {
+  .controller('VideoPas', function($scope, navbarManager, ytFixer) {
     navbarManager.setActiveTab(0);
+    $scope.title = 'Videolezioni Pascal';
     $scope.videolezioni = [
       {
-        title: 'Introduzione all\'ambiente di programmazione Web e scrittura del primo programma in Pascal',
+        title: '1. Introduzione all\'ambiente di programmazione Web e scrittura del primo programma in Pascal',
         youtube: 'DYy2IbteC2U',
         files: ['lez1.pas']
       },
       {
-        title: 'Utilizzo di variabili',
+        title: '2. Utilizzo di variabili',
         youtube: 'YZKX5n3Qz-g',
         files: ['somma.pas']
       },
       {
-        title: 'Generazione di numeri casuali',
+        title: '3. Generazione di numeri casuali',
         youtube: '2-xkcCs7-3M',
         files: ['dado.pas']
       },
       {
-        title: 'Introduzione alle istruzioni di controllo condizionate',
+        title: '4. Introduzione alle istruzioni di controllo condizionate',
         youtube: 'S9RjxdKbWF0',
         files: ['moneta.pas']
       },
       {
-        title: 'Introduzione ai cicli definiti',
+        title: '5. Introduzione ai cicli definiti',
         youtube: 'wxf2tOPLZxo',
         files: []
       },
       {
-        title: 'Cicli a conteggio',
+        title: '6. Cicli a conteggio',
         youtube: 'xCpl-Er4gEU',
         files: ['stream_di_int.pas']
       },
       {
-        title: 'Introduzione ai vettori di variabili (array)',
+        title: '7. Introduzione ai vettori di variabili (array)',
         youtube: 'O4PNXMLpiBE',
         files: []
       },
       {
-        title: 'Esercitazione sull\'uso di vettori di variabili',
+        title: '8. Esercitazione sull\'uso di vettori di variabili',
         youtube: '41nWMbLKmAE',
         files: ['verifyCoin.pas']
       },
+      {
+        title: 'Lezione 09',
+        youtube: '4eccGbRKavQ',
+        files: []
+      },
+      {
+        title: 'Lezione 10',
+        youtube: 'xHWo9mC5Qac',
+        files: []
+      },
+      {
+        title: 'Lezione 11',
+        youtube: 'viXj9zyMAlk',
+        files: []
+      },
+      //~ {
+        //~ title: 'Lezione 12',
+        //~ youtube: '##todo##',
+        //~ files: []
+      //~ },
+      {
+        title: 'Lezione 13',
+        youtube: 'CgCKVC_tDMM',
+        files: []
+      },
+      {
+        title: 'Lezione 14',
+        youtube: 'fmQwZl-7jBA',
+        files: []
+      },
+      {
+        title: 'Come inviare correttamente un file sorgente Pascal alla piattaforma',
+        youtube: 'S954uarh-z0',
+        files: []
+      },
     ];
-    for (var i in $scope.videolezioni) {
-      $scope.videolezioni[i].youtube = $sce.trustAsResourceUrl('//www.youtube.com/embed/' + $scope.videolezioni[i].youtube);
-      for (var j in $scope.videolezioni[i].files) {
-        $scope.videolezioni[i].files[j] = {'title': $scope.videolezioni[i].files[j]};
-        $scope.videolezioni[i].files[j].url = $sce.trustAsUrl('resources/' + $scope.videolezioni[i].files[j].title);
-      }
-    }
+    $scope.videolezioni = ytFixer.fix($scope.videolezioni);
+  })
+  .controller('VideoCpp', function($scope, navbarManager, ytFixer) {
+    navbarManager.setActiveTab(0);
+    $scope.title = 'Videolezioni C';
+    $scope.videolezioni = [
+      {
+        title: 'Come inviare correttamente un file sorgente C alla piattaforma',
+        youtube: 'YAmpEiGJFVs',
+        files: []
+      },
+    ];
+    $scope.videolezioni = ytFixer.fix($scope.videolezioni);
+  })
+  .controller('VideoDos', function($scope, navbarManager, ytFixer) {
+    navbarManager.setActiveTab(0);
+    $scope.title = 'Videolezioni prompt dei comandi';
+    $scope.videolezioni = [
+      {
+        title: 'Lezione 1',
+        youtube: '0ZiZZKuOAYw',
+        files: []
+      },
+      {
+        title: 'Lezione 2',
+        youtube: 'ObP826EJcG4',
+        files: []
+      },
+      {
+        title: 'Lezione 3',
+        youtube: 'GdWviy-0BjY',
+        files: []
+      },
+      {
+        title: 'Lezione 4',
+        youtube: 'lgygmdZ0Zxo',
+        files: []
+      },
+      {
+        title: 'Lezione 5',
+        youtube: 'L_Fgi0uLRYY',
+        files: []
+      },
+      {
+        title: 'Lezione 6',
+        youtube: 'inlXwdMp8Ic',
+        files: []
+      },
+      {
+        title: 'Lezione 7',
+        youtube: 'LgOAyxN5j8Q',
+        files: []
+      },
+      {
+        title: 'Lezione 8',
+        youtube: 'aen2V5Y14vk',
+        files: []
+      },
+    ];
+    $scope.videolezioni = ytFixer.fix($scope.videolezioni);
+  })
+  .controller('VideoAlg', function($scope, navbarManager, ytFixer) {
+    navbarManager.setActiveTab(0);
+    $scope.title = 'Videolezioni Algoritmi e Strutture Dati';
+    $scope.videolezioni = [
+      {
+        title: '00 Introduzione ai dizionari',
+        youtube: 'eB_AREwL4dI',
+        files: []
+      },
+      {
+        title: '01 Dizionario mediante Liste 1: definizione',
+        youtube: 'fb-JsPB2CYA',
+        files: []
+      },
+      {
+        title: '01 Dizionario mediante Liste 2: inserimento',
+        youtube: 'j4eZAp6a63k',
+        files: []
+      },
+      {
+        title: '01 Dizionario mediante Liste 3: cancellazione',
+        youtube: 'pCvG_hX958g',
+        files: []
+      },
+      {
+        title: '01 Dizionario mediante Liste 4: ricerca',
+        youtube: 'Pr14Vbhc2d0',
+        files: []
+      },
+      {
+        title: '02 Dizionario mediante Array Dinamici 1: dimensione fissa',
+        youtube: 'rFE8x7naGOw',
+        files: []
+      },
+      {
+        title: '02 Dizionario mediante Array Dinamici 2: dimensione variabile',
+        youtube: '_4rASmNwVho',
+        files: []
+      },
+      {
+        title: '03 Dizionario mediante Array Ordinati: ricerca binaria',
+        youtube: 'MPiE3OIeJN8',
+        files: []
+      },
+      {
+        title: '04 Tabella riassuntiva 1',
+        youtube: '-Pil1cE0APY',
+        files: []
+      },
+      {
+        title: '05 Dizionario mediante Tabelle Hash 1: liste concatenate',
+        youtube: '0O8O6Rt8Kes',
+        files: []
+      },
+      {
+        title: '05 Dizionario mediante Tabelle Hash 2: indirizzamento aperto',
+        youtube: 'hadAU6vw1xQ',
+        files: []
+      },
+      {
+        title: '06 Dizionario mediante Alberi Binari di Ricerca 1: definizione',
+        youtube: 'o_H-2N1E6EI',
+        files: []
+      },
+      {
+        title: '06 Dizionario mediante Alberi Binari di Ricerca 2: ricerca e inserimento',
+        youtube: 'dLWeE0cGoCM',
+        files: []
+      },
+      {
+        title: '06 Dizionario mediante Alberi Binari di Ricerca 3: cancellazione',
+        youtube: 'xsDdLepnIqw',
+        files: []
+      },
+      {
+        title: '07 Tabella riassuntiva 2',
+        youtube: 'VsUVndAQii4',
+        files: []
+      },
+    ];
+    $scope.videolezioni = ytFixer.fix($scope.videolezioni);
+  })
+  .controller('VideoSel', function($scope, navbarManager, ytFixer) {
+    navbarManager.setActiveTab(0);
+    $scope.title = 'Soluzioni commentate a esercizi di selezioni scolastiche';
+    $scope.videolezioni = [
+      {
+        title: 'Soluzione commentata esercizio 2 Selezioni Scolastiche 2012',
+        youtube: 'hMzcSlgdDUU',
+        files: []
+      },
+      {
+        title: 'Soluzione commentata esercizio 6 Selezioni Scolastiche 2012 - Pascal',
+        youtube: '7pLgkIyV0pI',
+        files: []
+      },
+      {
+        title: 'Soluzione commentata esercizio 11 Selezioni Scolastiche 2012 - Pascal',
+        youtube: 'ASUfHRo6w4I',
+        files: []
+      },
+      {
+        title: 'Soluzione commentata esercizio 16 Selezioni Scolastiche 2012',
+        youtube: 'Zy3ZHlKRvdc',
+        files: []
+      },
+      {
+        title: 'Soluzione commentata esercizio 18 Selezioni Scolastiche 2012',
+        youtube: 'jxx_GGp7vAA',
+        files: []
+      },
+    ];
+    $scope.videolezioni = ytFixer.fix($scope.videolezioni);
   });

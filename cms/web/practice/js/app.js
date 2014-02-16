@@ -171,14 +171,29 @@ angular.module('pws', [
       })
       .state('video_pas', {
         url: '/resources/pascal',
-        templateUrl: 'views/resources.pascal.html',
+        templateUrl: 'views/resources.videos.html',
         controller: 'VideoPas'
-      });
-      /*.state('video_cpp', {
+      })
+      .state('video_cpp', {
         url: '/resources/cpp',
-        templateUrl: 'views/resources.pascal.html',
+        templateUrl: 'views/resources.videos.html',
         controller: 'VideoCpp'
-      })*/
+      })
+      .state('video_dos', {
+        url: '/resources/dos',
+        templateUrl: 'views/resources.videos.html',
+        controller: 'VideoDos'
+      })
+      .state('video_alg', {
+        url: '/resources/algoritmi',
+        templateUrl: 'views/resources.videos.html',
+        controller: 'VideoAlg'
+      })
+      .state('video_sel', {
+        url: '/resources/scolastiche',
+        templateUrl: 'views/resources.videos.html',
+        controller: 'VideoSel'
+      })
   })
   .controller('HomepageCtrl', function($scope, navbarManager, userManager) {
     $scope.me = userManager;
