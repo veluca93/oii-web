@@ -1,0 +1,14 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">{{'Talks' | l10n}}</h3>
+  </div>
+  <div class="panel-body">
+    <div class="list-group">
+      <a class="list-group-item" ng-repeat="t in talks" ui-sref="talk({talkId: t.id})">
+        <img ng-cloak src="http://gravatar.com/avatar/{{getRecipient(t).mail_hash}}?d=identicon&s=80" />
+        <span style="color:red">{{t.last_pm_text}}</span>
+        {{t | json}}
+      </a>
+    </div>
+  </div>
+</div>

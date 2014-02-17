@@ -169,6 +169,16 @@ ul.nav-tabs > li > a {
   color: #414141;
 }
 
+/* PMs */
+
+.talkpage .sidebar, .talkpage .mainbar {
+  border-bottom: 1px solid #DDD;
+}
+
+.talkpage .editor-forum {
+  min-height: 120px;
+}
+
 /* Submissions */
 
 #submission_detail .modal-body {

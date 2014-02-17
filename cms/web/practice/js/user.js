@@ -36,11 +36,12 @@ angular.module('pws.user', [])
         $rootScope, userManager, notificationHub, userbarManager) {
     $scope.isActiveTab = userbarManager.isActiveTab;
     $scope.isLogged = userManager.isLogged;
+    $scope.myName = userManager.getUsername;
     $scope.isMe = function() {
       return $stateParams.userId === userManager.getUsername();
     };
   })
-  .factory('userManager', function($http, notificationHub) {
+  .factory('userManager', function($http, $sce, notificationHub) {
     return {
       isLogged: function() {
         return localStorage.getItem('token') !== null &&
@@ -54,6 +55,9 @@ angular.module('pws.user', [])
       },
       getAccessLevel: function() {
         return localStorage.getItem('access_level');
+      },
+      getGravatar: function(size) {
+        return $sce.trustAsUrl('http://gravatar.com/avatar/'+localStorage.getItem('mail_hash')+'?d=identicon&amp;s='+size);
       },
       getForumToolbar: function() {
         var al = localStorage.getItem('access_level');
@@ -76,15 +80,17 @@ angular.module('pws.user', [])
         }
         return ret;
       },
-      signin: function(token, username, access_level) {
+      signin: function(token, username, access_level, mail_hash) {
         localStorage.setItem('token', token);
         localStorage.setItem('username', username);
         localStorage.setItem('access_level', access_level);
+        localStorage.setItem('mail_hash', mail_hash);
       },
       signout: function() {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
         localStorage.removeItem('access_level');
+        localStorage.removeItem('mail_hash');
       }
     };
   })
@@ -103,10 +109,11 @@ angular.module('pws.user', [])
         })
         .success(function(data, status, headers, config) {
           if (data.success == 1) {
-            userManager.signin(data.token, $scope.user.username,
-              data.access_level);
+            //~ console.log(JSON.stringify(data));
+            userManager.signin(data.token, data.user.username,
+                data.user.access_level, data.user.mail_hash);
             notificationHub.createAlert('success', l10n.get('Welcome back') +
-              ', ' + userManager.getUsername(), 2);
+                ', ' + userManager.getUsername(), 2);
           } else if (data.success == 0) {
             notificationHub.createAlert('danger', l10n.get('Sign in error'), 3);
           }
@@ -130,19 +137,171 @@ angular.module('pws.user', [])
     $http.post('user', {
       'action':   'get',
       'username': $stateParams.userId
-    }).success(function(data, status, headers, config) {
+    })
+    .success(function(data, status, headers, config) {
+      if (data.success === 1) {
         $scope.user = data;
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', l10n.get('User doesn\'t exist'),
-          3);
-        $location.path('overview'); // FIXME: torna a home?
+      } else {
+        notificationHub.createAlert('danger', l10n.get('User doesn\'t exist'), 3);
+        $state.go('overview');
+      }
+    })
+    .error(function(data, status, headers, config) {
+      notificationHub.createAlert('danger', 'Server error: ' + status, 3);
+    });
+  })
+  .controller('UsertalksCtrl', function($scope, $http, notificationHub,
+      $stateParams, $location, $timeout, userbarManager, userManager) {
+    userbarManager.setActiveTab(2);
+    $http.post('talk', {
+      'action':   'list',
+      'username': userManager.getUsername(),
+      'token':    userManager.getToken(),
+      'first':    1,
+      'last':     1000
+    })
+    .success(function(data, status, headers, config) {
+      if (data.success === 1) {
+        $scope.talks = data.talks;
+      }
+    });
+    $scope.getRecipient = function(talk) {
+      if (talk.sender.username == userManager.getUsername()) {
+        return talk.receiver;
+      } else {
+        return talk.sender;
+      }
+    };
+  })
+  .controller('TalkRedirectCtrl', function($scope, $state, $stateParams,
+      $http, userbarManager, userManager, notificationHub, l10n) {
+    $http.post('talk', {
+      'action':   'get',
+      'username': userManager.getUsername(),
+      'token':    userManager.getToken(),
+      'other':    $stateParams.recipientName
+    })
+    .success(function(data, status, headers, config) {
+      if (data.success === 1) {
+        $state.go('talk', {'talkId': data.id});
+      }
+    });
+  })
+  .controller('TalkCtrl', function($scope, $state, $stateParams,
+      $http, $window, $timeout, userbarManager, userManager,
+      notificationHub, l10n) {
+    userbarManager.setActiveTab(2);
+    $scope.userToolbar = userManager.getForumToolbar();
+    $scope.me = userManager;
+    $scope.sendMessage = function() {
+      //~ console.log($stateParams.talkId);
+      $http.post('pm', {
+        'action': 'new',
+        'id': $stateParams.talkId,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'text': $scope.newText
+      })
+      .success(function(data, status, headers, config) {
+        //~ console.log(JSON.stringify(data));
+        if (data.success === 1) {
+          notificationHub.createAlert('success', l10n.get('Message sent'), 2);
+          $scope.newText = '';
+          $scope.checkNew();
+        } else {
+          notificationHub.createAlert('danger', l10n.get(data.error), 2);
+        }
       });
+    };
+    var msgPerPage = 2;
+    var lastLast, lastTot;
+    $scope.downloadMore = function() {
+      $http.post('pm', {
+        'action':   'list',
+        'id':       $stateParams.talkId,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'first':    lastLast,
+        'last':     msgPerPage + lastLast
+      })
+      .success(function(data, status, headers, config) {
+        //~ console.log(JSON.stringify(data));
+        if (data.success === 1) {
+          lastLast += msgPerPage;
+          $scope.pms = data.pms.concat($scope.pms);
+          if ($scope.recipientName === undefined) {
+            $scope.recipientName = (userManager.getUsername === data.sender)
+                ? data.receiver : data.sender;
+          }
+          lastTot = data.num;
+          if (lastLast < data.num) {
+            $("#showMore").show();
+          } else {
+            lastLast = data.num;
+            $("#showMore").hide();
+          }
+          console.log(lastLast + " " + data.num);
+        }
+      });
+    };
+    $scope.downloadMsg = function() {
+      $http.post('pm', {
+        'action':   'list',
+        'id':       $stateParams.talkId,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'first':    0,
+        'last':     lastLast
+      })
+      .success(function(data, status, headers, config) {
+        //~ console.log(JSON.stringify(data));
+        if (data.success === 1) {
+          $scope.pms = data.pms;
+          if ($scope.recipientName === undefined) {
+            $scope.recipientName = (userManager.getUsername() === data.sender)
+                ? data.receiver : data.sender;
+          }
+          lastTot = data.num;
+          if (data.pms.length != data.num) {
+            $("#showMore").show();
+          }
+          $timeout(function() {
+            $window.scrollTo(0, parseFloat($("html").css('height')));
+          }, 100);
+        }
+      });
+    };
+    $scope.checkNew = function() {
+      $http.post('pm', {
+        'action':   'list',
+        'id':       $stateParams.talkId,
+        'username': userManager.getUsername(),
+        'token':    userManager.getToken(),
+        'first':    0,
+        'last':     1
+      })
+      .success(function(data, status, headers, config) {
+        //~ console.log(JSON.stringify(data));
+        if (data.success === 1) {
+          if (data.num == lastTot) {
+            notificationHub.createAlert('info', l10n.get('No new messages'), 1);
+          } else {
+            console.log(data.num + ' ' + lastLast);
+            $scope.downloadMsg();
+          }
+        }
+      });
+    };
+    $("#showMore").hide();
+    lastLast = msgPerPage;
+    $scope.downloadMsg();
   })
   .controller('EdituserCtrl', function($scope, $state, $stateParams,
       $http, userbarManager, userManager, notificationHub, l10n) {
-    if (userManager.getUsername() !== $stateParams.userId)
+    if (userManager.getUsername() !== $stateParams.userId) {
       $state.go('overview');
-    userbarManager.setActiveTab(2);
+    }
+    userbarManager.setActiveTab(3);
     $scope.user = {
       password:  '',
       password2: '',
@@ -156,9 +315,9 @@ angular.module('pws.user', [])
       data['token'] = userManager.getToken();
       if ($scope.user.password2.length > 0) {
         if ($scope.user.password3 !== $scope.user.password2)
-          return notificationHub.createAlert('danger', l10n.get('signup.errors.password2'), 2);
+          return notificationHub.createAlert('danger', l10n.get('Passwords don\'t match'), 2);
         if ($scope.user.password.length < 1)
-          return notificationHub.createAlert('danger', l10n.get('signup.errors.mustPassword'), 2);
+          return notificationHub.createAlert('danger', l10n.get('You must specify your password'), 2);
         data['old_password'] = $scope.user.password;
         data['password'] = $scope.user.password2;
       }
@@ -168,11 +327,11 @@ angular.module('pws.user', [])
           if (data.success == 1) {
             if (data.hasOwnProperty('token'))
               localStorage.setItem('token', data['token']);
-            notificationHub.createAlert('success', l10n.get('user.edit.changed'), 2);
+            notificationHub.createAlert('success', l10n.get('Changes recorded'), 2);
             $state.go('^.profile');
           } else if (data.success == 0) {
             if (data.error === undefined)
-              notificationHub.createAlert('warning', l10n.get('user.edit.unchanged'), 3);
+              notificationHub.createAlert('warning', l10n.get('No changes recorded'), 3);
             else
               notificationHub.createAlert('danger', l10n.get(data.error), 3);
           }
