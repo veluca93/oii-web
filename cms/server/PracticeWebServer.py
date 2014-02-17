@@ -373,7 +373,7 @@ class APIHandler(object):
                 return 'login.error'
             else:
                 local.resp['token'] = token
-                local.resp['access_level'] = user.access_level
+                local.resp['user'] = self.get_user_info(user)
         elif local.data['action'] == 'get':
             user = local.session.query(User)\
                 .filter(User.username == local.data['username']).first()
@@ -1060,7 +1060,7 @@ class APIHandler(object):
                         txt = txt[:97] + '...'
                     talk['last_pm_text'] = txt
                 local.resp['talks'].append(talk)
-        elif local.data['action'] == 'new':
+        elif local.data['action'] == 'get':
             if local.user is None:
                 return 'Unauthorized'
             other = local.session.query(User)\
@@ -1086,15 +1086,21 @@ class APIHandler(object):
     def pm_handler(self):
         if local.data['action'] == 'list':
             query = local.session.query(PrivateMessage)\
-                .filter(PrivateMessage.conversation_id == local.data['id'])\
-                .order_by(desc(Post.timestamp))
+                .filter(PrivateMessage.talk_id == local.data['id'])\
+                .order_by(desc(PrivateMessage.timestamp))
             pms, local.resp['num'] = self.sliced_query(query)
             talk = local.session.query(Talk)\
                 .filter(Talk.id == local.data['id']).first()
+            if talk is None:
+                return 'Invalid talk'
+            if local.user not in (talk.sender, talk.receiver):
+                return 'Unauthorized'
             if local.data['first'] == 0 and local.user != talk.pms[0].sender:
                 talk.read = True
+            local.resp['sender'] = talk.sender.username
+            local.resp['receiver'] = talk.receiver.username
             local.resp['pms'] = list()
-            for p in pms:
+            for p in reversed(pms):
                 pm = dict()
                 pm['timestamp'] = make_timestamp(p.timestamp)
                 pm['sender'] = self.get_user_info(p.sender)
@@ -1107,6 +1113,8 @@ class APIHandler(object):
                 .filter(Talk.id == local.data['id']).first()
             if talk is None:
                 return 'Not found'
+            if 'text' not in local.data or len(local.data['text']) < 1:
+                return 'You must enter some text'
             pm = PrivateMessage(text=local.data['text'],
                                 timestamp=make_datetime())
             pm.sender_id = local.user.id

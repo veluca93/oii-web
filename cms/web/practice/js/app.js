@@ -122,6 +122,20 @@ angular.module('pws', [
         templateUrl: 'views/user.profile.html',
         controller: 'UserpageCtrl'
       })
+      .state('user.talks', {
+        url: '/talks',
+        templateUrl: 'views/user.talks.html',
+        controller: 'UsertalksCtrl'
+      })
+      .state('talk', {
+        url: '/talk/{talkId}',
+        templateUrl: 'views/talk.html',
+        controller: 'TalkCtrl'
+      })
+      .state('talkRedirect', {
+        url: '/talk/user/{recipientName}',
+        controller: 'TalkRedirectCtrl'
+      })
       .state('signup', {
         url: '/signup',
         templateUrl: 'views/signup.html',
