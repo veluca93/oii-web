@@ -26,13 +26,14 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
     navbarManager.setActiveTab(2);
     $http.post('forum', {
       'action':   'list',
-      'username': userManager.getUsername(),
-      'token':    userManager.getToken()
+      'username': userManager.getUser().username,
+      'token':    userManager.getUser().token
     })
     .success(function(data, status, headers, config) {
       $scope.forums = data.forums;
-    }).error(function(data, status, headers, config) {
-      notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
+    })
+    .error(function(data, status, headers, config) {
+      notificationHub.serverError(status);
     });
     $scope.lastPage = function(posts) {
       // FIXME: se si modifica 'pagination.perPage' in TopicCtrl si deve modificare anche qui!
@@ -76,8 +77,8 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       //~ }
       $http.post('topic', {
         'action':   'list',
-        'username': userManager.getUsername(),
-        'token':    userManager.getToken(),
+        'username': userManager.getUser().username,
+        'token':    userManager.getUser().token,
         'forum':    $stateParams.forumId,
         'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
         'last':     $scope.pagination.perPage * $scope.pagination.current,
@@ -90,8 +91,9 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         $scope.unansweredTopics = data.numUnanswered;
         $scope.breadcrumb.forumTitle = data.title;
         $scope.breadcrumb.forumDesc = data.description;
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
       });
     };
     $scope.newTopic = function() {
@@ -99,8 +101,8 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         'action':   'new',
         'title':    $scope.newTitle,
         'text':     $scope.newText,
-        'username': userManager.getUsername(),
-        'token':    userManager.getToken(),
+        'username': userManager.getUser().username,
+        'token':    userManager.getUser().token,
         'forum':    $stateParams.forumId
       })
       .success(function(data, status, headers, config) {
@@ -111,8 +113,9 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
           notificationHub.createAlert('danger', data.error, 2);
         }
         //~ $state.go(); // TODO: redirect al topic creato?
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
       });
     };
     $scope.getTopics();
@@ -120,18 +123,18 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
   .controller('TopicCtrl', function($scope, $http, $stateParams, $state,
       $location, userManager, notificationHub, l10n) {
     $scope.user.isMine = function(usr) {
-      return userManager.isLogged() && usr == userManager.getUsername();
+      return userManager.isLogged() && usr == userManager.getUser().token;
     };
     $scope.user.isMod = function() {
-      return userManager.isLogged() && userManager.getAccessLevel() < 3;
+      return userManager.isLogged() && userManager.getUser().access_level < 3;
     };
     $scope.pagination.perPage = 10;
     $scope.pagination.current = +$stateParams.pageNum;
     $scope.getPosts = function() {
       $http.post('post', {
         'action':   'list',
-        'username': userManager.getUsername(),
-        'token':    userManager.getToken(),
+        'username': userManager.getUser().username,
+        'token':    userManager.getUser().token,
         'topic':    $stateParams.topicId,
         'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
         'last':     $scope.pagination.perPage * $scope.pagination.current,
@@ -143,8 +146,9 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         $scope.breadcrumb.title = data.title;
         $scope.breadcrumb.forumId = data.forumId;
         $scope.breadcrumb.forumTitle = data.forumTitle;
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', 'Errore interno', 2);
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
       });
     }
     $scope.doQuote = function(text, user) {
@@ -159,31 +163,32 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
     };
     $scope.post.createNew = function() {
       $http.post('post', {
-          'action':   'new',
-          'text':     $scope.post.newText,
-          'username': userManager.getUsername(),
-          'token':    userManager.getToken(),
-          'topic':    $stateParams.topicId
-        })
-        .success(function(data, status, headers, config) {
-          if (data.success == 1) {
-            notificationHub.createAlert('info', l10n.get('Reply sent'), 1);
-            $scope.getPosts();
-            // TODO: redirect al post creato?
-          } else {
-            notificationHub.createAlert('danger', data.error, 2);
-          }
-        }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
-        });
+        'action':   'new',
+        'text':     $scope.post.newText,
+        'username': userManager.getUser().username,
+        'token':    userManager.getUser().token,
+        'topic':    $stateParams.topicId
+      })
+      .success(function(data, status, headers, config) {
+        if (data.success == 1) {
+          notificationHub.createAlert('info', l10n.get('Reply sent'), 1);
+          $scope.getPosts();
+          // TODO: redirect al post creato?
+        } else {
+          notificationHub.createAlert('danger', data.error, 2);
+        }
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
+      });
     };
     $scope.post.edit = function() {
       $http.post('post', {
         'action':   'edit',
         'id':       $scope.post.target,
         'text':     $scope.post.newText,
-        'username': userManager.getUsername(),
-        'token':    userManager.getToken()
+        'username': userManager.getUser().username,
+        'token':    userManager.getUser().token
       })
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
@@ -192,8 +197,9 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         } else {
           notificationHub.createAlert('danger', data.error, 2);
         }
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
       });
     };
     $scope.deletePost = function(id) {
@@ -202,8 +208,8 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       $http.post('post', {
         'action':   'delete',
         'id':       id,
-        'username': userManager.getUsername(),
-        'token':    userManager.getToken()
+        'username': userManager.getUser().username,
+        'token':    userManager.getUser().token
       })
       .success(function(data, status, headers, config) {
         if (data.success) {
@@ -215,8 +221,9 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
         } else {
           notificationHub.createAlert('danger', data.error, 2);
         }
-      }).error(function(data, status, headers, config) {
-        notificationHub.createAlert('danger', l10n.get('Internal error'), 2);
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
       });
     };
     $scope.getPosts();

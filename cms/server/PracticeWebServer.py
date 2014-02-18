@@ -1097,6 +1097,7 @@ class APIHandler(object):
             if local.data['first'] == 0 and len(talk.pms) and \
                local.user != talk.pms[0].sender:
                 talk.read = True
+                local.session.commit()
             local.resp['sender'] = talk.sender.username
             local.resp['receiver'] = talk.receiver.username
             local.resp['pms'] = list()

@@ -4,10 +4,15 @@
   </div>
   <div class="panel-body">
     <div class="list-group">
-      <a class="list-group-item" ng-repeat="t in talks" ui-sref="talk({talkId: t.id})">
-        <img ng-cloak src="http://gravatar.com/avatar/{{getRecipient(t).mail_hash}}?d=identicon&s=80" />
-        <span style="color:red">{{t.last_pm_text}}</span>
-        {{t | json}}
+      <a class="list-group-item" ng-repeat="t in talks" ui-sref="talk({talkId: t.id})" style="height: 70px">
+        <div style="float:left;clear:left">
+          <img ng-cloak class="img-thumbnail" src="{{me.getGravatar(getRecipient(t),40)}}" />
+        </div>
+        <div style="padding-left: 10px; float:left">
+          <b>{{getRecipient(t).username}}</b>
+          <br />
+          <i ng-if="t.last_pm_sender === me.getUser().username" class="fa fa-fw fa-reply"></i> {{t.last_pm_text}}
+        </div>
       </a>
     </div>
   </div>

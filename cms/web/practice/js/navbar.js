@@ -44,6 +44,6 @@ angular.module('pws.navbar', ['pws.user'])
     $('.signin-form input').click(function(e) {
       e.stopPropagation();
     });
-    $scope.getUsername = userManager.getUsername;
+    $scope.me = userManager;
     $scope.isActiveTab = navbarManager.isActiveTab;
   });

@@ -11,7 +11,7 @@
         </strong>
         <br />
         <a class="dont-underline" title="Go to user's page" ui-sref="user({userId: pm.sender.username})">
-          <img ng-cloak class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{pm.sender.mail_hash}}?d=identicon&amp;s=75">
+          <img ng-cloak class="small-avatar img-thumbnail" ng-src="{{me.getGravatar(pm.sender, 75)}}">
         </a>
         <br />
         <small>
@@ -25,15 +25,15 @@
     <dl class="panel-body">
       <dd class="sidebar bordered">
         <strong>
-          <a ui-sref="user({userId: me.getUsername()})">{{me.getUsername()}}</a>
+          <a ui-sref="user({userId: me.getUser().username})">{{me.getUser().username}}</a>
         </strong>
         <br />
-        <a class="dont-underline" title="Go to user's page" ui-sref="user({userId: me.getUsername()})">
-          <img class="small-avatar img-thumbnail" ng-src="{{me.getGravatar(75)}}">
+        <a class="dont-underline" title="Go to user's page" ui-sref="user({userId: me.getUser().username})">
+          <img class="small-avatar img-thumbnail" ng-src="{{me.getGravatar(me.getUser(), 75)}}">
         </a>
       </dd>
       <dd class="mainbar">
-        <div text-angular="text-angular" ta-toolbar="{{me.getForumToolbar()}}" ta-text-editor-class="editor-forum form-control"
+        <div text-angular="text-angular" ta-toolbar="{{me.getForumToolbar(me.getUser())}}" ta-text-editor-class="editor-forum form-control"
              ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
       </dd>
     </dl>
