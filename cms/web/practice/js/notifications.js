@@ -18,20 +18,41 @@
 'use strict';
 
 angular.module('pws.notifications', [])
-  .factory('notificationHub', function($timeout) {
+  .factory('notificationHub', function($timeout, l10n) {
+
+    // Alert creation routine
+    var createIt = function(type, msg, secs) {
+
+      // Create alert model and hide it
+      var alert = $('<div class="alert alert-' + type + ' hyphenate' +
+          ' alert-dismissable"><button type="button" class="close" ' +
+          'data-dismiss="alert" aria-hidden="true">&times;</button>' +
+          msg + '</div>').hide();
+
+      // Put it in the right place and open it
+      $(".notifications").prepend(alert);
+      alert.slideDown('fast');
+
+      // Wait for the user to read it and then destroy it
+      $timeout(function() {
+        alert.animate({'right': '-260px'}, function() {
+          $(this).remove();
+        });
+      }, Math.round(1000 * secs));
+
+    };
+
     return {
-      createAlert: function(type, msg, secs) {
-        var alert = $('<div class="alert alert-' + type + ' hyphenate' +
-            ' alert-dismissable"><button type="button" class="close" ' +
-            'data-dismiss="alert" aria-hidden="true">&times;</button>' +
-            msg + '</div>').hide();
-        $(".notifications").prepend(alert);
-        alert.slideDown('fast');
-        $timeout(function() {
-          alert.animate({'right': '-260px'}, function() {
-            $(this).remove();
-          });
-        }, Math.round(1000 * secs));
-      },
+      createAlert: createIt,
+      serverError: function(status) {
+
+        // Create a standard error for server querying failure
+        var error = '<b>ERROR ' + status + '</b><br />';
+        error += l10n.get('Make sure your internet connection is ' +
+            'working and, if this error occurs again, contact an ' +
+            'administrator.');
+        createIt('danger', error, 10);
+
+      }
     };
   });

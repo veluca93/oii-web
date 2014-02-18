@@ -123,7 +123,7 @@ angular.module('pws', [
         controller: 'UserpageCtrl'
       })
       .state('user.talks', {
-        url: '/talks',
+        url: '/talks/1',
         templateUrl: 'views/user.talks.html',
         controller: 'UsertalksCtrl'
       })

@@ -32,17 +32,20 @@ angular.module('pws.ranking', ['pws.pagination'])
       var data = {
         'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
         'last':     $scope.pagination.perPage * $scope.pagination.current,
-        'username': userManager.getUsername(),
-        'token':    userManager.getToken(),
+        'username': userManager.getUser().username,
+        'token':    userManager.getUser().token,
         'action':   'list'
       };
-      $http.post('user', data)
-        .success(function(data, status, headers, config) {
-          $scope.users = data['users'];
-          $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
-        }).error(function(data, status, headers, config) {
-          notificationHub.createAlert('danger', l10n.get('Connection error'), 2);
-        });
+      $http.post('user',
+        data
+      )
+      .success(function(data, status, headers, config) {
+        $scope.users = data['users'];
+        $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
+      });
     };
     $scope.getUsers();
   });

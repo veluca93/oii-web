@@ -252,8 +252,8 @@ angular.module('pws.l10n', [])
     {it: 'Bentornato'},
     'Sign in error':
     {it: 'Login errato'},
-    'Internal error during login: make sure your internet connection is working well and, if this error occurs again, contact an administrator.':
-    {it: 'Errore interno in fase di login: assicurati che la tua connessione a internet sia funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.'},
+    'Make sure your internet connection is working and, if this error occurs again, contact an administrator.':
+    {it: 'Assicurati che la tua connessione a internet sia funzionante e, se l\'errore dovesse ripetersi, contatta un amministratore.'},
     'Goodbye':
     {it: 'Arrivederci'},
     'User doesn\'t exist':
