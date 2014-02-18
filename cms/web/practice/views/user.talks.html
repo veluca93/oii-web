@@ -2,13 +2,11 @@
   <div class="panel-heading">
     <h3 class="panel-title">{{'Talks' | l10n}}</h3>
   </div>
-  <div class="panel-body">
+  <div class="talklist panel-body">
     <div class="list-group">
-      <a class="list-group-item" ng-repeat="t in talks" ui-sref="talk({talkId: t.id})" style="height: 70px">
-        <div style="float:left;clear:left">
-          <img ng-cloak class="img-thumbnail" src="{{me.getGravatar(getRecipient(t),40)}}" />
-        </div>
-        <div style="padding-left: 10px; float:left">
+      <a class="list-group-item" ng-class="{'new-message': !t.read && t.last_pm_sender !== me.getUser().username}" ng-repeat="t in talks" ui-sref="talk({talkId: t.id})">
+        <img ng-cloak class="img-thumbnail" ng-src="{{me.getGravatar(getRecipient(t), 40)}}" />
+        <div>
           <b>{{getRecipient(t).username}}</b>
           <br />
           <i ng-if="t.last_pm_sender === me.getUser().username" class="fa fa-fw fa-reply"></i> {{t.last_pm_text}}
