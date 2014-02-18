@@ -179,6 +179,33 @@ ul.nav-tabs > li > a {
   min-height: 120px;
 }
 
+.talklist .img-thumbnail {
+  float: left;
+}
+
+.talklist .list-group-item {
+  height: 70px;
+}
+
+.talklist .list-group-item > div {
+  padding-left: 10px;
+  float: left;
+}
+
+@-webkit-keyframes 'blink' {
+  0% { background: rgba(255, 239, 56, 0.36); }
+  50% { background: rgba(255, 255, 255, 1.0); }
+  100% { background: rgba(255, 239, 56, 0.36); }
+}
+
+.talklist .list-group-item.new-message {
+  -webkit-animation-direction: normal;
+  -webkit-animation-duration: 2s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-name: blink;
+  -webkit-animation-timing-function: ease;
+}
+
 /* Submissions */
 
 #submission_detail .modal-body {
