@@ -42,7 +42,7 @@ from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
     Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
     TaskScore, PrivateMessage, Talk
-from cmscommon.DateTime import make_timestamp, make_datetime
+from cmscommon.datetime import make_timestamp, make_datetime
 from cms.server import extract_archive
 
 from werkzeug.wrappers import Response, Request
