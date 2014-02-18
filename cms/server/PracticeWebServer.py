@@ -1073,9 +1073,9 @@ class APIHandler(object):
                         Talk.sender_id == other.id,
                         Talk.receiver_id == local.user.id))).first()
             if talk is None:
-                talk = Talk(sender_id=local.user.id,
-                            receiver_id=other.id,
-                            timestamp=make_datetime())
+                talk = Talk(timestamp=make_datetime())
+                talk.sender = local.user
+                talk.receiver = other
                 local.session.add(talk)
                 local.session.commit()
             local.resp['id'] = talk.id
@@ -1094,7 +1094,8 @@ class APIHandler(object):
                 return 'Invalid talk'
             if local.user not in (talk.sender, talk.receiver):
                 return 'Unauthorized'
-            if local.data['first'] == 0 and local.user != talk.pms[0].sender:
+            if local.data['first'] == 0 and len(talk.pms) and \
+               local.user != talk.pms[0].sender:
                 talk.read = True
             local.resp['sender'] = talk.sender.username
             local.resp['receiver'] = talk.receiver.username
