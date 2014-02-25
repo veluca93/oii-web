@@ -1042,6 +1042,7 @@ class APIHandler(object):
                 .filter(or_(
                     Talk.sender_id == local.user.id,
                     Talk.receiver_id == local.user.id))\
+                .filter(Talk.pms.any())\
                 .order_by(desc(Talk.timestamp))
             talks, local.resp['num'] = self.sliced_query(query)
             local.resp['talks'] = list()
