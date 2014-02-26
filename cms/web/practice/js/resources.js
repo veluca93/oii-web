@@ -155,6 +155,46 @@ angular.module('pws.resources', [])
         files: []
       },
       {
+        title: 'Corso di programmazione in C - Lezione 7 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'hBJrzlx-qU8',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 8 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'e77J9NOD01k',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 9 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'rfpf09WAanY',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 10 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'jRyLcwgAw2o',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 11 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'iNrwwlQR174',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 12 - Prof. Romeo Rizzi - UNIVR',
+        youtube: '56E3Pc5UT8I',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 13 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'nA8AtYh92hk',
+        files: []
+      },
+      {
+        title: 'Corso di programmazione in C - Lezione 14 - Prof. Romeo Rizzi - UNIVR',
+        youtube: 'X8HH8OkmWRg',
+        files: []
+      },
+      {
         title: 'Come inviare correttamente un file sorgente C alla piattaforma',
         youtube: 'YAmpEiGJFVs',
         files: []
