@@ -22,7 +22,9 @@
     <li class="my-popover pull-right" data-trigger="hover" data-placement="bottom" data-title="{{'Time limit' | l10n}}" data-content="{{'Time available for the execution of one testcase, measured in seconds.' | l10n}}" ng-show="task.time_limit != undefined">
       <a><i class="fa fa-clock-o fa-lg"></i> {{task.time_limit}} {{'sec' | l10n}}</a>
     </li>
-    <li class="pull-right" data-trigger="hover" data-placement="bottom" data-title="{{'Tags' | l10n}}" data-content="{{'Tags are useful to classify tasks by a common characteristic or technique, such as: <i>greedy</i>, <i>graphs</i>, and so on.' | l10n}}" ng-show="task.tags != undefined && task.tags.length">
+    <li class="pull-right" data-trigger="hover" data-placement="bottom" data-title="{{'Tags' | l10n}}"
+        data-content="{{'Tags are useful to classify tasks by a common characteristic or technique, such as: <i>greedy</i>, <i>graphs</i>, and so on.' | l10n}}"
+        ng-show="task.tags != undefined && task.tags.length">
       <a data-toggle="modal" data-target="#tags_detail">
         <span class="tab-badge-total badge pull-right">{{task.tags.length}}</span>
         <i class="fa fa-tags fa-lg"></i> {{'Tags' | l10n}}
@@ -39,7 +41,7 @@
         <div class="modal-body">
           <div class="tag-group">
             <span class="tag-group-item" ng-repeat="tag in task.tags">
-              <a class="label btn-info"><i class="fa fa-tag"></i> {{tag}}</a>
+              <button class="label btn-info" data-dismiss="modal" ng-click="tagClicked(tag)"><i class="fa fa-tag"></i> {{tag}}</button>
             </span>
           </div>
         </div>

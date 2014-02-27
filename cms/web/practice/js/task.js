@@ -32,7 +32,7 @@ angular.module('pws.task', [])
       }
     };
   })
-  .controller('TaskbarCtrl', function($scope, $stateParams, $http,
+  .controller('TaskbarCtrl', function($scope, $stateParams, $http, $state,
         $rootScope, $timeout, userManager, notificationHub, taskbarManager,
         l10n) {
     delete $rootScope.task;
@@ -42,6 +42,11 @@ angular.module('pws.task', [])
     $scope.isActiveTab = taskbarManager.isActiveTab;
     $scope.isLogged = userManager.isLogged;
     $scope.taskName = $stateParams.taskName;
+    $scope.tagClicked = function(tag) {
+      $timeout(function() {
+        $state.go('tasklist.taggedpage', {'pageNum': 1, 'tagName': tag});
+      }, 300);
+    };
     $http.post('task', {
       'name': $stateParams.taskName,
       'username': userManager.getUser().username,
