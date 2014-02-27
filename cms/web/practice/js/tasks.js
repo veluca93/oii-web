@@ -159,6 +159,13 @@ angular.module('pws.tasks', ['pws.pagination'])
     navbarManager.setActiveTab(0);
     $scope.search = {tag: ''};
     $scope.pagination = {perPage: 15};
+    $scope.goToTagged = function() {
+      if ($scope.search.tag.length > 0) {
+        $state.go('^.taggedpage', {'pageNum': 1, 'tagName': $scope.search.tag});
+      } else {
+        $state.go('^.page', {'pageNum': 1});
+      }
+    };
     $scope.getTasks = function() {
       // richiama getTasks() di TasklistPage
       $scope.$broadcast('getTasks');
@@ -175,9 +182,8 @@ angular.module('pws.tasks', ['pws.pagination'])
         'token':    userManager.getUser().token,
         'action':   'list'
       };
-      if ($scope.search.tag.length > 1) {
-        console.log($scope.search.tag); //FIXME
-        data.tag = $scope.search.tag;
+      if ($stateParams.tagName !== undefined) {
+        data.tag = $scope.search.tag = $stateParams.tagName;
       }
       $http.post('task',
         data

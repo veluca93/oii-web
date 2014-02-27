@@ -73,6 +73,11 @@ angular.module('pws', [
         templateUrl: 'views/tasks.html',
         controller: 'TasklistPage'
       })
+      .state('tasklist.taggedpage', {
+        url: '/tasks/{tagName}/{pageNum}',
+        templateUrl: 'views/tasks.html',
+        controller: 'TasklistPage'
+      })
       .state('task', {
         url: '/task/{taskName}',
         templateUrl: 'views/task.html',
