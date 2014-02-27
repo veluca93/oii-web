@@ -41,7 +41,7 @@
         <div class="modal-body">
           <div class="tag-group">
             <span class="tag-group-item" ng-repeat="tag in task.tags">
-              <button class="label btn-info" data-dismiss="modal" ng-click="tagClicked(tag)"><i class="fa fa-tag"></i> {{tag}}</button>
+              <a class="label btn-info" ng-click="tagClicked(tag)"><i class="fa fa-tag"></i> {{tag}}</a>
             </span>
           </div>
         </div>

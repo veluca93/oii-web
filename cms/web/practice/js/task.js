@@ -43,9 +43,10 @@ angular.module('pws.task', [])
     $scope.isLogged = userManager.isLogged;
     $scope.taskName = $stateParams.taskName;
     $scope.tagClicked = function(tag) {
-      $timeout(function() {
+      $("#tags_detail").modal('hide');
+      $('#tags_detail').on('hidden.bs.modal', function(e) {
         $state.go('tasklist.taggedpage', {'pageNum': 1, 'tagName': tag});
-      }, 300);
+      });
     };
     $http.post('task', {
       'name': $stateParams.taskName,
