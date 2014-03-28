@@ -128,6 +128,8 @@ angular.module('pws.l10n', [])
     {it: 'Tempo'},
     'Memory':
     {it: 'Memoria'},
+    'Too frequent submissions!':
+    {it: 'Sottoposizioni troppo frequenti!'},
 
     // Stats page
     'Number of people who solved it:':

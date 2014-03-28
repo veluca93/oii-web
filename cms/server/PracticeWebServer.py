@@ -740,7 +740,7 @@ class APIHandler(object):
                 .order_by(desc(Submission.timestamp)).first()
             if lastsub is not None and \
                make_datetime() - lastsub.timestamp < timedelta(seconds=20):
-                return 'submission.short_interval'
+                return 'Too frequent submissions!'
 
             try:
                 task = local.session.query(Task)\
