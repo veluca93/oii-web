@@ -130,6 +130,14 @@ angular.module('pws.l10n', [])
     {it: 'Memoria'},
     'Too frequent submissions!':
     {it: 'Sottoposizioni troppo frequenti!'},
+    'Some files are missing!':
+    {it: 'Mancano alcuni file!'},
+    'The files you sent are too big!':
+    {it: 'I file inviati sono troppo grandi!'},
+    'The language of the files you sent is not recognized!':
+    {it: 'Linguaggio dei file inviati non riconosciuto!'},
+    'The files you sent are in different languages!':
+    {it: 'I file inviati sono in linguaggi diversi!'},
 
     // Stats page
     'Number of people who solved it:':
