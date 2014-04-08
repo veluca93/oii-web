@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
-# Copyright © 2013 Luca Versari <veluca93@gmail.com>
+# Copyright © 2013-2014 Luca Versari <veluca93@gmail.com>
 # Copyright © 2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
@@ -31,6 +31,7 @@ import sys
 from subprocess import call
 from tempfile import TemporaryFile
 from cmscontrib.YamlLoader import YamlLoader
+from cms import config
 from cms.db import Executable, File
 from cms.db.filecacher import FileCacher
 from cms.grading import format_status_text
@@ -68,17 +69,14 @@ def mem_human(mem):
 def test_testcases(base_dir, soluzione, language, assume=None):
     global task, file_cacher
 
-    # Use a FileCacher with a NullBackend in order to avoid to fill
-    # the database with junk
+    # Use a disabled FileCacher with a FSBackend in order to avoid to fill
+    # the database with junk and to save up space.
     if file_cacher is None:
-        file_cacher = FileCacher(null=True)
+        file_cacher = FileCacher(path=os.path.join(config.cache_dir,
+                                                   'cmsMake'),
+                                 enabled=False)
 
     # Load the task
-    # TODO - This implies copying a lot of data to the FileCacher,
-    # which is annoying if you have to do it continuously; it would be
-    # better to use a persistent cache (although local, possibly
-    # filesystem-based instead of database-based) and somehow detect
-    # when the task has already been loaded
     if task is None:
         loader = YamlLoader(
             os.path.realpath(os.path.join(base_dir, "..")),
@@ -195,11 +193,10 @@ def test_testcases(base_dir, soluzione, language, assume=None):
 
 
 def clean_test_env():
-    """Clean the testing environment, mostly to reclaim disk space.
+    """Clean the testing environment, mostly to reclaim disk space and delete
+    useless folders.
 
     """
-    # We're done: since we have no way to reuse this cache, we destroy
-    # it to free space. See the TODO above.
     global file_cacher, task
     if file_cacher is not None:
         file_cacher.destroy_cache()
