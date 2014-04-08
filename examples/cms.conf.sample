@@ -11,6 +11,11 @@
     "_help": "Whether to have a backdoor (see doc for the risks).",
     "backdoor": false,
 
+    "_help": "Whether to use a local cache or always retrieve files",
+    "_help": "directly from the db (useful if, for example, you are",
+    "_help": "running many services on a machine with low hard disk",
+    "_help": "space.",
+    "use_cache": true,
 
 
     "_section": "AsyncLibrary",
