@@ -6,6 +6,7 @@
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2014 Luca Versari <veluca93@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -384,7 +385,7 @@ class FileCacher(object):
     # CHUNK_SIZE should be a multiple of these values.
     CHUNK_SIZE = 2 ** 14  # 16348
 
-    def __init__(self, service=None, path=None, null=False):
+    def __init__(self, service=None, path=None, null=False, enabled=None):
         """Initialize.
 
         By default the database-powered backend will be used, but this
@@ -402,6 +403,9 @@ class FileCacher(object):
         null (bool): if True, back the FileCacher with a NullBackend,
             that just discards every file it receives. This setting
             takes priority over path.
+        enabled (bool): overrides config.use_cache. If True, the files
+            are always retrieved from the backend. Otherwise, the
+            FileCacher behaves normally.
 
         """
         self.service = service
@@ -412,6 +416,11 @@ class FileCacher(object):
             self.backend = DBBackend()
         else:
             self.backend = FSBackend(path)
+
+        if enabled is None:
+            self.enabled = config.use_cache
+        else:
+            self.enabled = enabled
 
         if service is None:
             self.file_dir = tempfile.mkdtemp(dir=config.temp_dir)
@@ -433,6 +442,8 @@ class FileCacher(object):
         Ask the backend to provide the file and, if it's available,
         copy its content into the file-system cache.
 
+        If caching is disabled, this function does nothing.
+
         digest (unicode): the digest of the file to load.
         if_needed (bool): only load the file if it is not present in
             the local cache.
@@ -440,26 +451,27 @@ class FileCacher(object):
         raise (KeyError): if the backend cannot find the file.
 
         """
-        cache_file_path = os.path.join(self.file_dir, digest)
-        if if_needed and os.path.exists(cache_file_path):
-            return
+        if self.enabled:
+            cache_file_path = os.path.join(self.file_dir, digest)
+            if if_needed and os.path.exists(cache_file_path):
+                return
 
-        ftmp_handle, temp_file_path = tempfile.mkstemp(dir=self.temp_dir,
-                                                       text=False)
-        ftmp = os.fdopen(ftmp_handle, 'w')
+            ftmp_handle, temp_file_path = tempfile.mkstemp(dir=self.temp_dir,
+                                                           text=False)
+            ftmp = os.fdopen(ftmp_handle, 'w')
 
-        fobj = self.backend.get_file(digest)
+            fobj = self.backend.get_file(digest)
 
-        # Copy the file to a temporary position
-        try:
-            copyfileobj(fobj, ftmp, self.CHUNK_SIZE)
-        finally:
-            ftmp.close()
-            fobj.close()
+            # Copy the file to a temporary position
+            try:
+                copyfileobj(fobj, ftmp, self.CHUNK_SIZE)
+            finally:
+                ftmp.close()
+                fobj.close()
 
-        # Then move it to its real location (this operation is atomic
-        # by POSIX requirement)
-        os.rename(temp_file_path, cache_file_path)
+            # Then move it to its real location (this operation is atomic
+            # by POSIX requirement)
+            os.rename(temp_file_path, cache_file_path)
 
     def get_file(self, digest):
         """Retrieve a file from the storage.
@@ -472,6 +484,9 @@ class FileCacher(object):
         available as `get_file_content', `get_file_to_fobj' and `get_
         file_to_path'.
 
+        If caching is disabled, we always retrieve the file from the
+        storage.
+
         digest (unicode): the digest of the file to get.
 
         return (fileobj): a readable binary file-like object from which
@@ -480,19 +495,22 @@ class FileCacher(object):
         raise (KeyError): if the file cannot be found.
 
         """
-        cache_file_path = os.path.join(self.file_dir, digest)
+        if self.enabled:
+            cache_file_path = os.path.join(self.file_dir, digest)
 
-        logger.debug("Getting file %s.", digest)
+            logger.debug("Getting file %s.", digest)
 
-        if not os.path.exists(cache_file_path):
-            logger.debug("File %s not in cache, downloading "
-                         "from database.", digest)
+            if not os.path.exists(cache_file_path):
+                logger.debug("File %s not in cache, downloading "
+                             "from database.", digest)
 
-            self.load(digest)
+                self.load(digest)
 
-            logger.debug("File %s downloaded.", digest)
+                logger.debug("File %s downloaded.", digest)
 
-        return io.open(cache_file_path, 'rb')
+            return io.open(cache_file_path, 'rb')
+        else:
+            return self.backend.get_file(digest)
 
     def get_file_content(self, digest):
         """Retrieve a file from the storage.
@@ -543,18 +561,22 @@ class FileCacher(object):
             with io.open(dst_path, 'wb') as dst:
                 copyfileobj(src, dst, self.CHUNK_SIZE)
 
-    def save(self, digest, desc=""):
+    def save(self, digest, desc="", file_path=None):
         """Save the file with the given digest into the backend.
 
-        Use to local copy, available in the file-system cache, to store
-        the file in the backend, if it's not already there.
+        Store the file in the backend, if it's not already there, using
+        either the file given in the file_path argument or, if that argument
+        is None, the copy of the file present in the cache.
 
         digest (unicode): the digest of the file to load.
         desc (unicode): the (optional) description to associate to the
             file.
+        file_path (unicode): if it is None, use the copy of the file present
+            in the cache. Otherwise, use the file pointed to by this path.
 
         """
-        cache_file_path = os.path.join(self.file_dir, digest)
+        if file_path is None:
+            file_path = os.path.join(self.file_dir, digest)
 
         fobj = self.backend.put_file(digest, desc)
 
@@ -562,7 +584,7 @@ class FileCacher(object):
             return
 
         try:
-            with io.open(cache_file_path, 'rb') as src:
+            with io.open(file_path, 'rb') as src:
                 copyfileobj(src, fobj, self.CHUNK_SIZE)
         finally:
             fobj.close()
@@ -613,18 +635,25 @@ class FileCacher(object):
 
             logger.debug("File has digest %s.", digest)
 
-            cache_file_path = os.path.join(self.file_dir, digest)
+            if self.enabled:
+                file_path = os.path.join(self.file_dir, digest)
 
-            if not os.path.exists(cache_file_path):
-                move(dst.name, cache_file_path)
+                if not os.path.exists(file_path):
+                    move(dst.name, file_path)
+                else:
+                    os.unlink(dst.name)
             else:
-                os.unlink(dst.name)
+                file_path = dst.name
 
         # Store the file in the backend. We do that even if the file
         # was already in the cache (that is, we ignore the check above)
         # because there's a (small) chance that the file got removed
         # from the backend but somehow remained in the cache.
-        self.save(digest, desc)
+        self.save(digest, desc=desc, file_path=file_path)
+
+        # If the cache is disabled, clean up the temporary file.
+        if not self.enabled:
+            os.unlink(file_path)
 
         return digest
 
@@ -701,12 +730,13 @@ class FileCacher(object):
         digest (unicode): the file to delete.
 
         """
-        cache_file_path = os.path.join(self.file_dir, digest)
+        if self.enabled:
+            cache_file_path = os.path.join(self.file_dir, digest)
 
-        try:
-            os.unlink(cache_file_path)
-        except OSError:
-            pass
+            try:
+                os.unlink(cache_file_path)
+            except OSError:
+                pass
 
     def purge_cache(self):
         """Empty the local cache.
