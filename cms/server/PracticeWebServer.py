@@ -141,8 +141,8 @@ class APIHandler(object):
 
         with SessionGen() as local.session:
             try:
-                username = str(data['username'])
-                token = str(data['token'])
+                username = data['username']
+                token = data['token']
                 local.user = self.get_user(username, token)
             except (BadRequest, KeyError):
                 local.user = None
