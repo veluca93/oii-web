@@ -48,7 +48,8 @@ from cms.server import extract_archive
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, wrap_file, responder
 from werkzeug.routing import Map, Rule
-from werkzeug.exceptions import HTTPException, NotFound, BadRequest
+from werkzeug.exceptions import HTTPException, NotFound, BadRequest, \
+    InternalServerError
 
 import gevent
 import gevent.wsgi
@@ -104,10 +105,14 @@ class APIHandler(object):
         self.EMAIL_REG = re.compile(r'[^@]+@[^@]+\.[^@]+')
         self.USERNAME_REG = re.compile(r'^[A-Za-z0-9_\.]+$')
 
-    def __call__(self, environ, start_response):
-        return self.wsgi_app(environ, start_response)
-
     @responder
+    def __call__(self, environ, start_response):
+        try:
+            return self.wsgi_app(environ, start_response)
+        except:
+            logger.error(traceback.format_exc())
+            return InternalServerError()
+
     def wsgi_app(self, environ, start_response):
         route = self.router.bind_to_environ(environ)
         try:
