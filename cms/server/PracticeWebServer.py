@@ -179,9 +179,12 @@ class APIHandler(object):
         return (res, num)
 
     def get_user(self, username, token):
-        return local.session.query(User)\
-            .filter(User.username == username)\
-            .filter(User.password == token).first()
+        try:
+            return local.session.query(User)\
+                .filter(User.username == username)\
+                .filter(User.password == token).first()
+        except UnicodeDecodeError:
+            return None
 
     def check_user(self, username):
         if len(username) < 4:
