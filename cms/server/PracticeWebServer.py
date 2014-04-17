@@ -149,7 +149,7 @@ class APIHandler(object):
                 username = data['username']
                 token = data['token']
                 local.user = self.get_user(username, token)
-            except (BadRequest, KeyError):
+            except (BadRequest, KeyError, UnicodeEncodeError):
                 local.user = None
             if local.user is None:
                 local.access_level = 7  # Access level of unlogged user
