@@ -429,11 +429,15 @@ class APIHandler(object):
                 local.user.password = new_token
                 local.resp['token'] = new_token
             local.session.commit()
-        elif local.data['action'] == 'islogged':
-            if local.user is None:
-                return 'signup.errors.password'
         else:
             return 'Bad request'
+
+    def heartbeat_handler(self):
+        if local.user is None:
+            return 'Unauthorized'
+        local.resp['unreadtalks'] = local.session.query(Talk)\
+            .filter(Talk.receiver_id == local.user.id)\
+            .filter(Talk.read == False).count()
 
     def task_handler(self):
         if local.data['action'] == 'list':
@@ -1132,6 +1136,8 @@ class APIHandler(object):
                                 timestamp=make_datetime())
             pm.sender_id = local.user.id
             pm.talk = talk
+            if talk.sender_id != pm.sender_id:
+                talk.sender, talk.receiver = talk.receiver, talk.sender
             talk.timestamp = pm.timestamp
             talk.read = False
             local.session.add(pm)

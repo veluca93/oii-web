@@ -47,19 +47,23 @@ angular.module('pws.user', [])
     var getIt = function() {
       return JSON.parse(localStorage.getItem('user')) || {};
     };
-    var checklogged = undefined;
-    var checkIfLogged = function() {
-      checklogged = $timeout(checkIfLogged, 60000);
+    var heartbeat_timeout = undefined;
+    var heartbeat = function() {
+      heartbeat_timeout = $timeout(heartbeat, 60000);
       if(getIt().hasOwnProperty("token")) {
-        $http.post('user', {
-            'action':   'islogged',
+        $http.post('heartbeat', {
             'username': getIt().username,
             'token':    getIt().token
           })
           .success(function(data, status, headers, config) {
             if (data.success === 0) {
               localStorage.removeItem('user');
-              notificationHub.createAlert('success', l10n.get('Goodbye'), 1);
+              notificationHub.createAlert('danger', l10n.get('Sign in error'), 3);
+            } else {
+              var user = getIt();
+              user.unreadtalks = data.unreadtalks;
+              console.log(user.unreadtalks);
+              localStorage.setItem('user', JSON.stringify(user));
             }
           }).error(function(data, status, headers, config) {
             notificationHub.serverError(status);
@@ -69,7 +73,7 @@ angular.module('pws.user', [])
     return {
       getUser: getIt,
       isLogged: function() {
-        if(checklogged === undefined) checkIfLogged();
+        if(heartbeat_timeout === undefined) heartbeat();
         return getIt().hasOwnProperty("token");
       },
       getGravatar: function(user, size) {
