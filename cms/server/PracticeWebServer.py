@@ -429,6 +429,9 @@ class APIHandler(object):
                 local.user.password = new_token
                 local.resp['token'] = new_token
             local.session.commit()
+        elif local.data['action'] == 'islogged':
+            if local.user is None:
+                return 'signup.errors.password'
         else:
             return 'Bad request'
 
