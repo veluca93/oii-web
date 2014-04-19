@@ -55,12 +55,32 @@
           </div>
         </li>
         <li ng-if="me.isLogged()" class="dropdown">
-          <a class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user fa-lg"></i> <i>{{me.getUser().username}}</i> <b class="caret"></b></a>
+          <a class="dropdown-toggle" data-toggle="dropdown">
+            <i class="fa fa-user fa-lg"></i>
+            <i>{{me.getUser().username}}</i>
+            <span ng-if="me.getUser().unreadtalks" class="badge">{{me.getUser().unreadtalks}}</span>
+            <b class="caret"></b>
+          </a>
           <ul class="dropdown-menu">
-            <li><a ui-sref="user.profile({userId: me.getUser().username})"><i class="fa fa-list-ol fa-fw"></i> {{'My user profile' | l10n}}</a></li>
-            <li><a ui-sref="user.talks({userId: me.getUser().username})"><i class="fa fa-comments fa-fw"></i> {{'Messages' | l10n}}</a></li>
+            <li>
+              <a ui-sref="user.profile({userId: me.getUser().username})">
+                <i class="fa fa-list-ol fa-fw"></i>
+                {{'My user profile' | l10n}}
+              </a>
+            </li>
+            <li>
+              <a ui-sref="user.talks({userId: me.getUser().username})">
+                <i class="fa fa-comments fa-fw"></i> {{'Messages' | l10n}}
+                <span ng-if="me.getUser().unreadtalks" class="badge">{{me.getUser().unreadtalks}}</span>
+              </a>
+            </li>
             <li class="divider"></li>
-            <li><a ng-click="signout()"><i class="fa fa-sign-out fa-fw"></i> {{'Sign out' | l10n}}</a></li>
+            <li>
+              <a ng-click="signout()">
+                <i class="fa fa-sign-out fa-fw"></i>
+                {{'Sign out' | l10n}}
+              </a>
+            </li>
           </ul>
         </li>
       </ul>

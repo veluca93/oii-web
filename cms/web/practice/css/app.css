@@ -192,18 +192,8 @@ ul.nav-tabs > li > a {
   float: left;
 }
 
-@-webkit-keyframes 'blink' {
-  0% { background: rgba(255, 239, 56, 0.36); }
-  50% { background: rgba(255, 255, 255, 1.0); }
-  100% { background: rgba(255, 239, 56, 0.36); }
-}
-
 .talklist .list-group-item.new-message {
-  -webkit-animation-direction: normal;
-  -webkit-animation-duration: 2s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-name: blink;
-  -webkit-animation-timing-function: ease;
+  background-color: #C1E4F8;
 }
 
 /* Submissions */
