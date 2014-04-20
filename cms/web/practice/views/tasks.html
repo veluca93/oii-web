@@ -1,5 +1,5 @@
 <div>
-  <div ng-if="tasks.length < 1" style="text-align: center;font-style: italic;">{{'no tasks found' | l10n}}</div>
+  <div ng-if="tasks.length < 1" class="not-found-msg">{{'no tasks found' | l10n}}</div>
   <div class="list-group">
     <a ng-repeat="task in tasks" ng-class="{'correct': task.score == 100, 'partial': task.score > 0 && task.score < 100, 'wrong': task.score == 0}" class="list-group-item" ui-sref="task.statement({ taskName: task.name })">
       <i class="fa fa-angle-right"></i> {{task.title}}

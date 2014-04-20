@@ -156,6 +156,8 @@ angular.module('pws.l10n', [])
     {it: 'Archivio problemi e quiz'},
     'All tasks':
     {it: 'Tutti i problemi'},
+    'Task categories':
+    {it: 'Problemi per categoria'},
     'Quizzes':
     {it: 'Selezioni scolastiche'},
     'Ranking':
@@ -224,8 +226,10 @@ angular.module('pws.l10n', [])
     // Tasklist page
     'search':
     {it: 'cerca'},
-    'Search by tag':
-    {it: 'Ricerca per tag'},
+    'Search by name':
+    {it: 'Ricerca per nome'},
+    'no tasks found':
+    {it: 'nessun problema trovato'},
 
     // Errors
     'Username is too short':
