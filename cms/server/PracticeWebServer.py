@@ -448,7 +448,9 @@ class APIHandler(object):
             if 'tag' in local.data and local.data['tag'] is not None:
                 query = query.filter(Task.tags.any(name=local.data['tag']))
             if 'search' in local.data and local.data['search'] is not None:
-                pass # TODO: match the search text
+                sq = '%%%s%%' % local.data['search']
+                query = query.filter(or_(Task.title.ilike(sq),
+                                         Task.name.ilike(sq)))
             tasks, local.resp['num'] = self.sliced_query(query)
             local.resp['tasks'] = []
             for t in tasks:
