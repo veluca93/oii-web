@@ -62,7 +62,6 @@ angular.module('pws.user', [])
             } else {
               var user = getIt();
               user.unreadtalks = data.unreadtalks;
-              console.log(user.unreadtalks);
               localStorage.setItem('user', JSON.stringify(user));
             }
           }).error(function(data, status, headers, config) {

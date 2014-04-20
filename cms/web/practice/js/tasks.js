@@ -155,49 +155,62 @@ angular.module('pws.tasks', ['pws.pagination'])
     this.subDetails = subDetails;
     return this;
   })
-  .controller('TasklistSkel', function($scope, $state, navbarManager) {
+  .controller('TasklistSkel', function($scope, $state, $stateParams,
+      navbarManager) {
     navbarManager.setActiveTab(0);
-    $scope.search = {tag: ''};
+    $scope.search = {};
     $scope.pagination = {perPage: 15};
-    $scope.goToTagged = function() {
-      if ($scope.search.tag.length > 0) {
-        $state.go('^.taggedpage', {'pageNum': 1, 'tagName': $scope.search.tag});
-      } else {
-        $state.go('^.page', {'pageNum': 1});
+    $scope.reloadTasks = function() {
+      var new_q = $scope.search.q;
+      if (new_q !== null && new_q.length < 1) {
+        new_q = null;
       }
-    };
-    $scope.getTasks = function() {
-      // richiama getTasks() di TasklistPage
-      $scope.$broadcast('getTasks');
+      $state.go('^.page', {
+        'pageNum':  1,
+        'tag':      $scope.search.tag,
+        'q':        new_q
+      });
     };
   })
   .controller('TasklistPage', function($scope, $stateParams, $state, $http,
       notificationHub, userManager, l10n) {
     $scope.pagination.current = +$stateParams.pageNum;
+    $scope.search.tag = $stateParams.tag;
+    $scope.search.q   = $stateParams.q;
     $scope.getTasks = function() {
-      var data = {
+      $http.post('task', {
+        'search':   $stateParams.q,    // can be null
+        'tag':      $stateParams.tag,  // can be null
         'first':    $scope.pagination.perPage * ($scope.pagination.current-1),
         'last':     $scope.pagination.perPage * $scope.pagination.current,
         'username': userManager.getUser().username,
         'token':    userManager.getUser().token,
         'action':   'list'
-      };
-      if ($stateParams.tagName !== undefined) {
-        data.tag = $scope.search.tag = $stateParams.tagName;
-      }
-      $http.post('task',
-        data
-      )
+      })
       .success(function(data, status, headers, config) {
         $scope.tasks = data['tasks'];
         $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
+        if (data['num'] === 0) {
+          $scope.pagination.total = 1;
+        }
       })
       .error(function(data, status, headers, config) {
         notificationHub.serverError(status);
       });
     };
-    $scope.$on('getTasks', function(e) {
-      $scope.getTasks();
-    });
     $scope.getTasks();
-  });
+  })
+  .controller('TagsPage', function($scope, $http, notificationHub) {
+    $scope.getTags = function() {
+      $http.post('tag', {
+        'action':   'list'
+      })
+      .success(function(data, status, headers, config) {
+        $scope.tags = data['tags'];
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
+      });
+    };
+    $scope.getTags();
+  })

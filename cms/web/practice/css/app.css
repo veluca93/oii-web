@@ -30,6 +30,11 @@ a.dont-underline:hover {
           hyphens: auto;
 }
 
+.not-found-msg {
+  text-align: center;
+  font-style: italic;
+}
+
 /* Navbar */
 
 .user-brand {
@@ -63,6 +68,21 @@ a.dont-underline:hover {
 }
 
 /* Task list */
+
+.big-tag {
+  padding: 5.5px;
+  margin-left: 15px;
+  position: absolute;
+  border: 1px solid;
+}
+
+.big-tag button.close {
+  margin-left: 5px;
+}
+
+.big-tag i.fa {
+  margin-top: 5px;
+}
 
 .search-by-tag {
   margin-bottom: 10px;

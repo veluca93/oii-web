@@ -64,17 +64,17 @@ angular.module('pws', [
         templateUrl: 'views/forum.topic.html',
         controller: 'TopicCtrl'
       })
+      .state('tags', {
+        url: '/tags',
+        templateUrl: 'views/tags.html',
+        controller: 'TagsPage'
+      })
       .state('tasklist', {
         templateUrl: 'partials/tasklist.html',
         controller: 'TasklistSkel'
       })
       .state('tasklist.page', {
-        url: '/tasks/{pageNum}',
-        templateUrl: 'views/tasks.html',
-        controller: 'TasklistPage'
-      })
-      .state('tasklist.taggedpage', {
-        url: '/tasks/{tagName}/{pageNum}',
+        url: '/tasks/{pageNum}?tag&q',
         templateUrl: 'views/tasks.html',
         controller: 'TasklistPage'
       })

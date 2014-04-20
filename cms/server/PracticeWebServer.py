@@ -445,8 +445,10 @@ class APIHandler(object):
             query = local.session.query(Task)\
                 .filter(Task.access_level >= local.access_level)\
                 .order_by(desc(Task.id))
-            if 'tag' in local.data:
+            if 'tag' in local.data and local.data['tag'] is not None:
                 query = query.filter(Task.tags.any(name=local.data['tag']))
+            if 'search' in local.data and local.data['search'] is not None:
+                pass # TODO: match the search text
             tasks, local.resp['num'] = self.sliced_query(query)
             local.resp['tasks'] = []
             for t in tasks:
