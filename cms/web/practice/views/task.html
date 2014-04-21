@@ -23,8 +23,7 @@
       <a><i class="fa fa-clock-o fa-lg"></i> {{task.time_limit}} {{'sec' | l10n}}</a>
     </li>
     <li class="pull-right" data-trigger="hover" data-placement="bottom" data-title="{{'Tags' | l10n}}"
-        data-content="{{'Tags are useful to classify tasks by a common characteristic or technique, such as: <i>greedy</i>, <i>graphs</i>, and so on.' | l10n}}"
-        ng-show="task.tags != undefined && task.tags.length">
+        data-content="{{'Tags are useful to classify tasks by a common characteristic or technique, such as: <i>greedy</i>, <i>graphs</i>, and so on.' | l10n}}">
       <a data-toggle="modal" data-target="#tags_detail">
         <span class="tab-badge-total badge pull-right">{{task.tags.length}}</span>
         <i class="fa fa-tags fa-lg"></i> {{'Tags' | l10n}}
@@ -38,12 +37,39 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
           <h4 class="modal-title">{{'Tags list' | l10n}}</h4>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" id="taglist">
+          <div ng-if="task.tags.length < 1" class="not-found-msg">{{'no tags' | l10n}}</div>
           <div class="tag-group">
             <span class="tag-group-item" ng-repeat="tag in task.tags">
-              <a class="label btn-info" ng-click="tagClicked(tag)"><i class="fa fa-tag"></i> {{tag}}</a>
+              <a class="label btn-info left" ng-click="tagClicked(tag)">
+                <i class="fa fa-tag"></i>
+                {{tag}}
+              </a>
+              <a class="label btn-warning right" ng-click="tagDelete(tag)">&times;</a>
+            </span>
+            <span class="tag-group-item">
+              <a class="label btn-success" ng-click="newTag()">new tag +</a>
             </span>
           </div>
+        </div>
+        <hr class="newtagstuff" style="display: none">
+        <div class="newtagstuff modal-body" style="display: none">
+          <form class="search-by-tag form-horizontal" role="form" ng-submit="reloadTasks()">
+            <div class="form-group">
+              <label class="col-sm-4 control-label" for="newtag">Tagga questo problema</label>
+              <div class="col-sm-6">
+                <select id="tagchooser" disabled="disabled" class="form-control" maxlength="30" autocomplete="off" id="newtag" name="newtag" ng-model="tag.newtag" type="text">
+                  <option ng-repeat="tag in tags">{{tag}}</option>
+                </select>
+                <span id="tagloader" class="help-block">{{'Loading...' | l10n}}</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-offset-4 col-sm-8">
+                <button type="submit" class="btn btn-default ng-binding" ng-click="tagAdd()">Aggiungi tag</button>
+              </div>
+            </div>
+          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">{{'Close' | l10n}}</button>

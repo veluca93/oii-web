@@ -278,6 +278,12 @@ angular.module('pws.l10n', [])
     {it: 'Devi specificare una città'},
     'You must specify an institute':
     {it: 'Devi specificare un istituto'},
+    'Title is too short':
+    {it: 'Titolo troppo corto'},
+    'Description is too short':
+    {it: 'Descrizione troppo corta'},
+    'Text is too short':
+    {it: 'Testo troppo corto'},
 
     // Notifications
     'Welcome back':

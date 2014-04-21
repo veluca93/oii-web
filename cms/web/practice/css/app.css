@@ -162,6 +162,22 @@ ul.nav-tabs > li > a {
   border-top-left-radius: 0px;
 }
 
+/* Tags */
+
+.tag-group-item a {
+  text-decoration: none;
+}
+
+.tag-group-item a.left {
+  border-bottom-right-radius: 0px;
+  border-top-right-radius: 0px;
+}
+
+.tag-group-item a.right {
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+}
+
 /* User page */
 
 .userbadge.admin {

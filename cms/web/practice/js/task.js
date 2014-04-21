@@ -39,27 +39,88 @@ angular.module('pws.task', [])
     $timeout(function() {
       $(".my-popover").popover(); // enable popovers
     });
+    $scope.tag = {};
     $scope.isActiveTab = taskbarManager.isActiveTab;
     $scope.isLogged = userManager.isLogged;
     $scope.taskName = $stateParams.taskName;
     $scope.tagClicked = function(tag) {
       $("#tags_detail").modal('hide');
       $('#tags_detail').on('hidden.bs.modal', function(e) {
-        $state.go('tasklist.taggedpage', {'pageNum': 1, 'tagName': tag});
+        $state.go('tasklist.page', {'pageNum': 1, 'tag': tag});
       });
     };
-    $http.post('task', {
-      'name': $stateParams.taskName,
-      'username': userManager.getUser().username,
-      'token': userManager.getUser().token,
-      'action': 'get'
-    })
-    .success(function(data, status, headers, config) {
-      $rootScope.task = data;
-    })
-    .error(function(data, status, headers, config) {
-      notificationHub.serverError(status);
-    });
+    $scope.tagAdd = function() {
+      $http.post('tag', {
+        'action': 'add',
+        'tag': $scope.tag.newtag,
+        'task': $rootScope.task.name,
+        'username': userManager.getUser().username,
+        'token': userManager.getUser().token
+      })
+      .success(function(data, status, headers, config) {
+        if (data.success === 0) {
+          notificationHub.createAlert('danger', data['error'], 3);
+        } else {
+          $scope.loadTask();
+          notificationHub.createAlert('success', 'Task correctly tagged', 2);
+        }
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
+      });
+    };
+    $scope.tagDelete = function(tag) {
+      if (confirm("Are you sure?")) {
+        $http.post('tag', {
+          'action': 'remove',
+          'tag': tag,
+          'task': $rootScope.task.name,
+          'username': userManager.getUser().username,
+          'token': userManager.getUser().token
+        })
+        .success(function(data, status, headers, config) {
+          if (data.success === 0) {
+            notificationHub.createAlert('danger', data['error'], 3);
+          } else {
+            $scope.loadTask();
+            notificationHub.createAlert('success', 'Task correctly untagged', 2);
+          }
+        })
+        .error(function(data, status, headers, config) {
+          notificationHub.serverError(status);
+        });
+      }
+    };
+    $scope.newTag = function() {
+      $(".newtagstuff").show();
+      $http.post('tag', {
+        'action': 'list'
+      })
+      .success(function(data, status, headers, config) {
+        $scope.tags = data['tags'];
+        $("#tagloader").hide();
+        $("#tagseparator").show();
+        $("#tagchooser").removeAttr("disabled");
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
+      });
+    };
+    $scope.loadTask = function() {
+      $http.post('task', {
+        'name': $stateParams.taskName,
+        'username': userManager.getUser().username,
+        'token': userManager.getUser().token,
+        'action': 'get'
+      })
+      .success(function(data, status, headers, config) {
+        $rootScope.task = data;
+      })
+      .error(function(data, status, headers, config) {
+        notificationHub.serverError(status);
+      });
+    };
+    $scope.loadTask();
   })
   .controller('StatementCtrl', function($scope, $window, taskbarManager) {
     taskbarManager.setActiveTab(1);
