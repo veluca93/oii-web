@@ -423,9 +423,9 @@ class APIHandler(object):
                local.data['old_password'] != '':
                 old_token = self.hashpw(local.data['old_password'])
                 if local.user.password != old_token:
-                    return 'user.edit.wrong'
+                    return 'Wrong password'
                 if len(local.data['password']) < 5:
-                    return 'signup.errors.password'
+                    return 'Password\'s too short'
                 new_token = self.hashpw(local.data['password'])
                 local.user.password = new_token
                 local.resp['token'] = new_token
@@ -517,7 +517,7 @@ class APIHandler(object):
                 return 'Unauthorized'
             try:
                 if len(local.data['description']) < 5:
-                    return 'tags.description_short'
+                    return 'Description is too short'
                 else:
                     tag = Tag(name=local.data['tag'],
                               description=local.data['description'],
@@ -889,10 +889,10 @@ class APIHandler(object):
                 return 'Unauthorized'
             if local.data['title'] is None or \
                len(local.data['title']) < 4:
-                return "forum.title_short"
+                return "Title is too short"
             if local.data['description'] is None or \
                len(local.data['description']) < 4:
-                return "forum.description_short"
+                return "Description is too short"
             forum = Forum(title=local.data['title'],
                           description=local.data['description'],
                           access_level=7,
@@ -1003,7 +1003,7 @@ class APIHandler(object):
             if topic is None or topic.forum.access_level < local.access_level:
                 return 'Not found'
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return "post.text_short"
+                return "Text is too short"
             post = Post(text=local.data['text'],
                         timestamp=make_datetime())
             post.author = local.user
@@ -1050,7 +1050,7 @@ class APIHandler(object):
             if post.author != local.user and local.user.access_level > 2:
                 return 'Unauthorized'
             if local.data['text'] is None or len(local.data['text']) < 4:
-                return 'post.text_short'
+                return 'Text is too short'
             post.text = local.data['text']
             local.session.commit()
         else:
