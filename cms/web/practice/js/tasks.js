@@ -224,4 +224,5 @@ angular.module('pws.tasks', ['pws.pagination'])
   .controller('EventiPage', function($scope, $http, notificationHub) {
     $scope.terr = 'terr2004,terr2005,terr2006,terr2007,terr2008,terr2009,terr2010,terr2011,terr2012,terr2013,terr2014'.split(',');
     $scope.oii  = 'oii2004,oii2005,oii2006,oii2007,oii2008,oii2009,oii2010,oii2011,oii2012,oii2013,oii2014'.split(',');
+    $scope.ioi  = 'ioi2004,ioi2005,ioi2006,ioi2007,ioi2008,ioi2009,ioi2010,ioi2011,ioi2012,ioi2013,ioi2014'.split(',');
   })
