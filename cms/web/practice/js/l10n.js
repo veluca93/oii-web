@@ -222,6 +222,24 @@ angular.module('pws.l10n', [])
     {it: 'Problemi sottomessi'},
     'no submissions':
     {it: 'nessuna sottoposizione'},
+    'Send message':
+    {it: 'Invia messaggio'},
+    'Talks':
+    {it: 'Conversazioni'},
+    'Messages':
+    {it: 'Messaggi'},
+    'Talk with':
+    {it: 'Conversazione con'},
+    'Load previous messages':
+    {it: 'Carica messaggi precedenti'},
+    'Check new messages':
+    {it: 'Controlla nuovi messaggi'},
+    'Message sent':
+    {it: 'Messaggio inviato'},
+    'No new messages':
+    {it: 'Nessun nuovo messaggio'},
+    'You must enter some text':
+    {it: 'Devi inserire il testo'},
 
     // Tasklist page
     'search':
