@@ -1,0 +1,18 @@
+<div class="container">
+  <legend>Selezioni territoriali</legend>
+  <div class="tag-group">
+    <span class="tag-group-item" ng-repeat="tag in terr" style="padding: 5px;">
+      <a ui-sref="tasklist.page({tag: tag, pageNum: 1})" class="label btn-info">
+        <i class="fa fa-tag"></i> {{tag}}
+      </a>
+    </span>
+  </div>
+  <legend style="margin-top:20px;">Selezioni nazionali</legend>
+  <div class="tag-group">
+    <span class="tag-group-item" ng-repeat="tag in oii" style="padding: 5px;">
+      <a ui-sref="tasklist.page({tag: tag, pageNum: 1})" class="label btn-info">
+        <i class="fa fa-tag"></i> {{tag}}
+      </a>
+    </span>
+  </div>
+</div>

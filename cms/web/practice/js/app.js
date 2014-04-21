@@ -45,10 +45,15 @@ angular.module('pws', [
          url: '/sso',
          controller: 'SSOCtrl'
       })
-      .state('tags', {
-        url: '/tags',
-        templateUrl: 'views/tags.html',
-        controller: 'TagsPage'
+      .state('tecniche', {
+        url: '/tags/tecniques',
+        templateUrl: 'views/tecniche.html',
+        controller: 'TecnichePage'
+      })
+      .state('eventi', {
+        url: '/tags/events',
+        templateUrl: 'views/eventi.html',
+        controller: 'EventiPage'
       })
       .state('tasklist', {
         templateUrl: 'partials/tasklist.html',
