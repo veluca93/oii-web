@@ -64,6 +64,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       //~ $location.search('na', null);
     //~ };
     $scope.newText = $scope.newTitle = '';
+    $scope.isSticky = false;
     $scope.pagination.current = +$stateParams.pageNum;
     $scope.getTopics = function(onlyUnanswered) {
       onlyUnanswered = (typeof onlyUnanswered !== 'undefined') ? onlyUnanswered : false;
@@ -100,6 +101,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       $http.post('topic', {
         'action':   'new',
         'title':    $scope.newTitle,
+        'sticky':   $scope.isSticky,
         'text':     $scope.newText,
         'username': userManager.getUser().username,
         'token':    userManager.getUser().token,

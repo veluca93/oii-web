@@ -914,7 +914,7 @@ class APIHandler(object):
             local.resp['description'] = forum.description
             query = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
-                .order_by(desc(Topic.raised), desc(Topic.timestamp))
+                .order_by(desc(Topic.sticky), desc(Topic.timestamp))
             topics, local.resp['num'] = self.sliced_query(query)
             local.resp['numUnsolved'] = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
@@ -931,7 +931,7 @@ class APIHandler(object):
                 topic['posts'] = t.npost
                 topic['views'] = t.nview
                 topic['author_username'] = t.author.username
-                topic['raised'] = t.raised
+                topic['sticky'] = t.sticky
                 topic['solved'] = t.solved
                 topic['lastpost'] = {
                     'username':  t.last_writer.username,
@@ -950,8 +950,8 @@ class APIHandler(object):
                 return "forum.title_short"
             if local.data['text'] is None or len(local.data['text']) < 4:
                 return "post.text_short"
-            if local.data['raised'] is None or \
-				(local.data['raised'] != False and local.data['raised'] != True):
+            if local.data['sticky'] is None or \
+                (local.data['sticky'] != False and local.data['sticky'] != True):
                 raise KeyError
             topic = Topic(status='open',
                           title=local.data['title'],
@@ -962,7 +962,7 @@ class APIHandler(object):
             topic.last_writer = local.user
             topic.author = local.user
             topic.npost = 1
-            topic.raised = local.data['raised']
+            topic.sticky = local.data['sticky']
             post = Post(text=local.data['text'],
                         timestamp=make_datetime())
             post.author = local.user

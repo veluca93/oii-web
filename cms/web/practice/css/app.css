@@ -342,6 +342,10 @@ table.submissions th {
   margin: 0px;
 }
 
+.forum-group dl.solved > dd {
+  opacity: 0.5;
+}
+
 .forum-group .panel-body {
   padding: 0px;
 }

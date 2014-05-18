@@ -141,7 +141,7 @@ class Topic(Base):
 
     nview = Column(Integer, nullable=False, default=0)
     
-    raised = Column(Boolean, nullable=False, default=False)
+    sticky = Column(Boolean, nullable=False, default=False)
 
     last_writer_id = Column(
         Integer,
