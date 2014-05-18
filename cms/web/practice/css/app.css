@@ -368,8 +368,16 @@ table.submissions th {
   background-color: #F9F9F9;
 }
 
+.forum-group .panel-body dl.sticky {
+  background-color: #E4F2FF;
+}
+
 .forum-group.focus-light .panel-body dl:hover {
   background-color: #FFD;
+}
+
+.forum-group.focus-light .panel-body dl.sticky:hover {
+  background-color: #F2FCFF;
 }
 
 .forum-group .panel-body dl:last-child {
