@@ -355,6 +355,10 @@ table.submissions th {
   border-bottom: 1px solid #EEE;
 }
 
+.forum-group .panel-body:not(.topic) dl.sticky {
+  border-bottom: 1px solid #CFCFCF;
+}
+
 .forum-group .panel-heading:not(.topic) {
   padding-left: 0px;
   padding-right: 0px;
