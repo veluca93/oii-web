@@ -914,14 +914,14 @@ class APIHandler(object):
             local.resp['description'] = forum.description
             query = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
-                .order_by(desc(Topic.timestamp))
+                .order_by(desc(Topic.raised), desc(Topic.timestamp))
             topics, local.resp['num'] = self.sliced_query(query)
-            local.resp['numUnanswered'] = local.session.query(Topic)\
+            local.resp['numUnsolved'] = local.session.query(Topic)\
                 .filter(Topic.forum_id == forum.id)\
-                .filter(Topic.answered == False).count()
+                .filter(Topic.solved == False).count()
             local.resp['topics'] = []
             for t in topics:
-                if noAnswer and t.answered is True:
+                if noAnswer and t.solved is True:
                     continue
                 topic = dict()
                 topic['id'] = t.id
@@ -931,6 +931,8 @@ class APIHandler(object):
                 topic['posts'] = t.npost
                 topic['views'] = t.nview
                 topic['author_username'] = t.author.username
+                topic['raised'] = t.raised
+                topic['solved'] = t.solved
                 topic['lastpost'] = {
                     'username':  t.last_writer.username,
                     'timestamp': make_timestamp(t.timestamp)
@@ -948,15 +950,19 @@ class APIHandler(object):
                 return "forum.title_short"
             if local.data['text'] is None or len(local.data['text']) < 4:
                 return "post.text_short"
+            if local.data['raised'] is None or \
+				(local.data['raised'] != False and local.data['raised'] != True):
+                raise KeyError
             topic = Topic(status='open',
                           title=local.data['title'],
                           timestamp=make_datetime(),
                           creation_timestamp=make_datetime(),
-                          answered=False)
+                          solved=False)
             topic.forum = forum
             topic.last_writer = local.user
             topic.author = local.user
             topic.npost = 1
+            topic.raised = local.data['raised']
             post = Post(text=local.data['text'],
                         timestamp=make_datetime())
             post.author = local.user
@@ -969,7 +975,7 @@ class APIHandler(object):
                 .filter(Post.forum_id == forum.id).count()
             local.session.commit()
         else:
-            return 'Bad request'
+            raise KeyError
 
     def post_handler(self):
         if local.data['action'] == 'list':
@@ -1009,7 +1015,6 @@ class APIHandler(object):
             post.topic = topic
             post.forum = topic.forum
             topic.timestamp = post.timestamp
-            topic.answered = True
             topic.last_writer = local.user
             local.session.add(post)
             topic.forum.npost = local.session.query(Post)\

@@ -131,7 +131,7 @@ class Topic(Base):
 
     status = Column(String, nullable=False)
 
-    answered = Column(Boolean, default=False)
+    solved = Column(Boolean, nullable=False, default=False)
 
     timestamp = Column(DateTime, nullable=False)
 
@@ -140,6 +140,8 @@ class Topic(Base):
     npost = Column(Integer, nullable=False, default=0)
 
     nview = Column(Integer, nullable=False, default=0)
+    
+    raised = Column(Boolean, nullable=False, default=False)
 
     last_writer_id = Column(
         Integer,
