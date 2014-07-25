@@ -123,7 +123,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
   .controller('TopicCtrl', function($scope, $http, $stateParams, $state,
       $location, userManager, notificationHub, l10n) {
     $scope.user.isMine = function(usr) {
-      return userManager.isLogged() && usr == userManager.getUser().token;
+      return userManager.isLogged() && usr == userManager.getUser().username;
     };
     $scope.user.isMod = function() {
       return userManager.isLogged() && userManager.getUser().access_level < 3;
