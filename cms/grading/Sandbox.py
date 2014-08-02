@@ -40,6 +40,7 @@ from gevent import subprocess
 
 from cms import config
 from cms.io.GeventUtils import copyfileobj, rmtree
+from cmscommon.commands import pretty_print_cmdline
 from cmscommon.datetime import monotonic_time
 
 
@@ -64,21 +65,6 @@ def with_log(func):
         return func(self, *args, **kwargs)
 
     return newfunc
-
-
-def pretty_print_cmdline(cmdline):
-    """Pretty print a command line.
-
-    Take a command line suitable to be passed to a Popen-like call and
-    returns a string that represents it in a way that preserves the
-    structure of arguments and can be passed to bash as is.
-
-    More precisely, delimitate every item of the command line with
-    single apstrophes and join all the arguments separating them with
-    spaces.
-
-    """
-    return " ".join(["'%s'" % (x.replace("'", "'\"'\"'")) for x in cmdline])
 
 
 def wait_without_std(procs):
@@ -208,11 +194,11 @@ class SandboxBase(object):
     EXIT_SYSCALL = 'syscall'
     EXIT_NONZERO_RETURN = 'nonzero return'
 
-    def __init__(self, file_cacher=None):
+    def __init__(self, file_cacher):
         """Initialization.
 
         file_cacher (FileCacher): an instance of the FileCacher class
-            (to interact with FS).
+            (to interact with FS), if the sandbox needs it.
 
         """
         self.file_cacher = file_cacher
@@ -275,6 +261,7 @@ class SandboxBase(object):
         system path.
 
         path (string): relative path of the file inside the sandbox.
+
         return (string): the absolute path.
 
         """
@@ -286,6 +273,7 @@ class SandboxBase(object):
 
         path (string): relative path of the file inside the sandbox.
         executable (bool): to set permissions.
+
         return (file): the file opened in write binary mode.
 
         """
@@ -342,8 +330,8 @@ class SandboxBase(object):
         """Open a file in the sandbox given its relative path.
 
         path (string): relative path of the file inside the sandbox.
-        trunc_len (int): if None, does nothing; otherwise, before
-                         returning truncate it at the specified length.
+        trunc_len (int|None): if None, does nothing; otherwise, before
+            returning truncate it at the specified length.
 
         return (file): the file opened in read binary mode.
 
@@ -361,7 +349,8 @@ class SandboxBase(object):
 
         path (string): relative path of the file inside the sandbox.
         maxlen (int): maximum number of bytes to read, or None if no
-                      limit.
+            limit.
+
         return (string): the content of the file up to maxlen bytes.
 
         """
@@ -383,8 +372,8 @@ class SandboxBase(object):
 
         path (string): relative path of the file inside the sandbox.
         description (string): the description for FS.
-        trunc_len (int): if None, does nothing; otherwise, before
-                         returning truncate it at the specified length.
+        trunc_len (int|None): if None, does nothing; otherwise, before
+            returning truncate it at the specified length.
 
         return (string): the digest of the file.
 
@@ -398,6 +387,7 @@ class SandboxBase(object):
         """Return the stats of a file in the sandbox.
 
         path (string): relative path of the file inside the sandbox.
+
         return (stat_result): the stat results.
 
         """
@@ -407,6 +397,7 @@ class SandboxBase(object):
         """Return if a file exists in the sandbox.
 
         path (string): relative path of the file inside the sandbox.
+
         return (bool): if the file exists.
 
         """
@@ -575,12 +566,13 @@ class StupidSandbox(SandboxBase):
 
         command ([string]): executable filename and arguments of the
             command.
-        stdin (file): a file descriptor/object or None.
-        stdout (file): a file descriptor/object or None.
-        stderr (file): a file descriptor/object or None.
-        preexec_fn (callable): to be called just before execve() or
-                               None.
+        stdin (file|None): a file descriptor/object or None.
+        stdout (file|None): a file descriptor/object or None.
+        stderr (file|None): a file descriptor/object or None.
+        preexec_fn (function|None): to be called just before execve()
+            or None.
         close_fds (bool): close all file descriptor before executing.
+
         return (object): popen object.
 
         """
@@ -751,6 +743,8 @@ class IsolateSandbox(SandboxBase):
        command number N.
 
     """
+    next_id = 0
+
     def __init__(self, file_cacher=None, temp_dir=None):
         """Initialization.
 
@@ -759,15 +753,19 @@ class IsolateSandbox(SandboxBase):
         """
         SandboxBase.__init__(self, file_cacher)
 
-        # Get our shard number, to use as a unique identifier for the
-        # sandbox on this machine. FIXME This is the only use of
-        # FileCacher.service, and it's an improper use! Avoid it!
+        # Isolate only accepts ids between 0 and 99. We assign the
+        # range [(shard+1)*10, (shard+2)*10) to each Worker and keep
+        # the range [0, 10) for other uses (command-line scripts like
+        # cmsMake or direct console users of isolate). Inside each
+        # range ids are assigned sequentially, with a wrap-around.
+        # FIXME This is the only use of FileCacher.service, and it's an
+        # improper use! Avoid it!
         if file_cacher is not None and file_cacher.service is not None:
-            # We add 1 to avoid conflicting with console users of the
-            # sandbox who use the default box id of 0.
-            box_id = file_cacher.service.shard + 1
+            box_id = ((file_cacher.service.shard + 1) * 10
+                      + (IsolateSandbox.next_id % 10)) % 100
         else:
-            box_id = 0
+            box_id = IsolateSandbox.next_id % 10
+        IsolateSandbox.next_id += 1
 
         # We create a directory "tmp" inside the outer temporary directory,
         # because the sandbox will bind-mount the inner one. The sandbox also
@@ -821,7 +819,7 @@ class IsolateSandbox(SandboxBase):
 
         # Tell isolate to get the sandbox ready.
         box_cmd = [self.box_exec] + (["--cg"] if self.cgroup else []) \
-            + ["-b", str(self.box_id)] + ["--init"]
+            + ["--box-id=%d" % self.box_id] + ["--init"]
         ret = subprocess.call(box_cmd)
         if ret != 0:
             raise SandboxInterfaceException(
@@ -872,47 +870,47 @@ class IsolateSandbox(SandboxBase):
         """
         res = list()
         if self.box_id is not None:
-            res += ["-b", str(self.box_id)]
+            res += ["--box-id=%d" % self.box_id]
         if self.cgroup:
             res += ["--cg"]
         if self.chdir is not None:
-            res += ["-c", self.chdir]
+            res += ["--chdir=%s" % self.chdir]
         for in_name, out_name, options in self.dirs:
             s = in_name
             if out_name is not None:
                 s += "=" + out_name
             if options is not None:
                 s += ":" + options
-            res += ["-d", s]
+            res += ["--dir=%s" % s]
         if self.preserve_env:
-            res += ["-e"]
+            res += ["--full-env"]
         for var in self.inherit_env:
-            res += ["-E", var]
+            res += ["--env=%s" % var]
         for var, value in self.set_env.items():
-            res += ["-E", "%s=%s" % (var, value)]
+            res += ["--env=%s=%s" % (var, value)]
         if self.stdin_file is not None:
-            res += ["-i", self.inner_absolute_path(self.stdin_file)]
+            res += ["--stdin=%s" % self.inner_absolute_path(self.stdin_file)]
         if self.stack_space is not None:
-            res += ["-k", str(self.stack_space)]
+            res += ["--stack=%d" % self.stack_space]
         if self.address_space is not None:
-            res += ["-m", str(self.address_space)]
+            res += ["--mem=%d" % self.address_space]
         if self.stdout_file is not None:
-            res += ["-o", self.inner_absolute_path(self.stdout_file)]
+            res += ["--stdout=%s" % self.inner_absolute_path(self.stdout_file)]
         if self.max_processes is not None:
-            res += ["-p%d" % self.max_processes]
+            res += ["--processes=%d" % self.max_processes]
         else:
-            res += ["-p"]
+            res += ["--processes"]
         if self.stderr_file is not None:
-            res += ["-r", self.inner_absolute_path(self.stderr_file)]
+            res += ["--stderr=%s" % self.inner_absolute_path(self.stderr_file)]
         if self.timeout is not None:
-            res += ["-t", str(self.timeout)]
-        res += ["-v"] * self.verbosity
+            res += ["--time=%g" % self.timeout]
+        res += ["--verbose"] * self.verbosity
         if self.wallclock_timeout is not None:
-            res += ["-w", str(self.wallclock_timeout)]
+            res += ["--wall-time=%g" % self.wallclock_timeout]
         if self.extra_timeout is not None:
-            res += ["-x", str(self.extra_timeout)]
-        res += ["-M", self.relative_path("%s.%d" %
-                                         (self.info_basename, self.exec_num))]
+            res += ["--extra-time=%g" % self.extra_timeout]
+        res += ["--meta=%s" % self.relative_path("%s.%d" % (self.info_basename,
+                                                            self.exec_num))]
         res += ["--run"]
         return res
 
@@ -1105,6 +1103,7 @@ class IsolateSandbox(SandboxBase):
         absolute path inside the sandbox.
 
         path (string): relative path of the file inside the sandbox.
+
         return (string): the absolute path of the file inside the sandbox.
 
         """
@@ -1119,6 +1118,7 @@ class IsolateSandbox(SandboxBase):
 
         command (list): executable filename and arguments of the
                         command.
+
         return (bool): True if the sandbox didn't report errors
                        (caused by the sandbox itself), False otherwise
 
@@ -1225,7 +1225,7 @@ class IsolateSandbox(SandboxBase):
 
         # Tell isolate to cleanup the sandbox.
         box_cmd = [self.box_exec] + (["--cg"] if self.cgroup else []) \
-            + ["-b", str(self.box_id)]
+            + ["--box-id=%d" % self.box_id]
         subprocess.call(box_cmd + ["--cleanup"])
 
         # Delete the working directory.

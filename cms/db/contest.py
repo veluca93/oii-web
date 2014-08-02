@@ -157,6 +157,7 @@ class Contest(Base):
     # Max contest time for each user in seconds.
     per_user_time = Column(
         Interval,
+        CheckConstraint("per_user_time >= '0 seconds'"),
         nullable=True)
 
     # Maximum number of submissions or user_tests allowed for each user
@@ -491,8 +492,8 @@ class Contest(Base):
 
         username (string): the username of the user.
         task_name (string): the name of the task.
-        timestamp (datetime): the time relative to which making the
-            calculation.
+        timestamp (datetime|None): the time relative to which making
+            the calculation, or None to use now.
 
         return ((int, datetime|None, datetime|None)): see description
             above.

@@ -35,9 +35,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import desc
 from sqlalchemy.sql import or_, and_
 
-from cms import config, SOURCE_EXT_TO_LANGUAGE_MAP
+from cms import config, ServiceCoord, SOURCE_EXT_TO_LANGUAGE_MAP
 from cms.io import Service
-from cms import ServiceCoord
 from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
     Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
@@ -1156,7 +1155,6 @@ class PracticeWebServer(Service):
 
     '''
     def __init__(self, shard):
-
         Service.__init__(self, shard=shard)
 
         self.address = config.contest_listen_address[shard]

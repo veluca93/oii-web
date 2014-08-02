@@ -22,14 +22,17 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import json
 import os
 import sys
 
+from subprocess import call
+from tempfile import TemporaryFile
 from cmscontrib.YamlLoader import YamlLoader
 from cms import config
-from cms.db import Executable
+from cms.db import Executable, File
 from cms.db.filecacher import FileCacher
 from cms.grading import format_status_text
 from cms.grading.Job import EvaluationJob
@@ -107,7 +110,7 @@ def test_testcases(base_dir, soluzione, language, assume=None):
         for t in sorted(dataset.testcases.keys()):
             with file_cacher.get_file(dataset.testcases[t].input) as fin:
                 with TemporaryFile() as fout:
-                    print("%s" % t, end='')
+                    print(str(t), end='')
                     call(soluzione, stdin=fin, stdout=fout, cwd=base_dir)
                     fout.seek(0)
                     digest = file_cacher.put_file_from_fobj(fout)

@@ -22,7 +22,9 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import unicode_literals
 
+import io
 import sys
 import time
 import urllib
@@ -73,8 +75,8 @@ def browser_do_request(browser, url, data=None, files=None):
         for field_name, file_path in files:
             browser.form.new_control('file', field_name, {'id': field_name})
             filename = os.path.basename(file_path)
-            browser.form.add_file(open(file_path), 'text/plain', filename,
-                                  id=field_name)
+            browser.form.add_file(io.open(file_path, 'rb'), 'text/plain',
+                                  filename, id=field_name)
 
         browser.form.set_all_readonly(False)
         browser.form.fixup()
@@ -144,8 +146,8 @@ class TestRequest(object):
             # Success
             elif success:
                 if debug:
-                    print("Request '%s' successfully completed" %
-                          (description), file=sys.stderr)
+                    print("Request '%s' successfully completed in %.3fs" %
+                          (description, self.duration), file=sys.stderr)
                 self.outcome = TestRequest.OUTCOME_SUCCESS
 
             # Failure

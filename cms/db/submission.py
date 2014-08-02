@@ -313,7 +313,8 @@ class SubmissionResult(Base):
     # Score as computed by ScoringService. Null means not yet scored.
     score = Column(
         Float,
-        nullable=True)
+        nullable=True,
+        index=True)
 
     # Score details. It's a JSON-encoded string containing information
     # that is given to ScoreType.get_html_details to generate an HTML

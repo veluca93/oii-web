@@ -4,12 +4,11 @@
 build/
 dist/
 cms.egg-info/
-
-!cms/web/assets/pdfjs/build/
-
 .testfailures
 .unittestfailures
 .coverage*
 cache/
 lib/
 log/
+
+!cms/web/assets/pdfjs/build/

@@ -31,6 +31,7 @@ already existing in the database.
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import unicode_literals
 
 # We enable monkey patching to make many libraries gevent-friendly
 # (for instance, urllib3, used by requests)
@@ -42,6 +43,7 @@ import logging
 import os
 import os.path
 
+from cms import utf8_decoder
 from cms.db import SessionGen, Base, Contest, User, Task, Submission, \
     ask_for_contest
 from cms.db.filecacher import FileCacher
@@ -115,7 +117,7 @@ class Reimporter(object):
                 pass
 
             # Special case #2: Task.datasets
-            if _is_rel(prp, Task.datasets):
+            elif _is_rel(prp, Task.datasets):
                 old_datasets = dict((d.description, d) for d in old_value)
                 new_datasets = dict((d.description, d) for d in new_value)
 
@@ -335,11 +337,12 @@ def main():
                         "may get lost")
     parser.add_argument("-u", "--users", action="store_true",
                         help="(re)load the users from the .yaml file")
-    parser.add_argument("-L", "--loader", action="store", default=None,
+    parser.add_argument("-L", "--loader",
+                        action="store", type=utf8_decoder, default=None,
                         help="use the specified loader (default: autodetect)")
     parser.add_argument("-F", "--full", action="store_true",
                         help="reimport tasks even if they haven't changed")
-    parser.add_argument("import_directory",
+    parser.add_argument("import_directory", action="store", type=utf8_decoder,
                         help="source directory from where import")
 
     args = parser.parse_args()
