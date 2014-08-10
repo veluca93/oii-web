@@ -455,21 +455,32 @@ table.submissions th {
   border-left-width: 4px;
 }
 
+.forum-group .message pre {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
 @media (min-width: 768px){
   .forum-group .mainbar {
     width: 568px;
+    max-width: 568px;
   }
 }
 
 @media (min-width: 992px){
   .forum-group .mainbar {
     width: 788px;
+    max-width: 788px;
   }
 }
 
-@media (min-width: 1170px){
+@media (min-width: 1200px){
   .forum-group .mainbar {
     width: 988px;
+    max-width: 988px;
   }
 }
 
