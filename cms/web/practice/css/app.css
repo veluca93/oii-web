@@ -453,6 +453,7 @@ table.submissions th {
   background-color: #F6F9FC;
   border: 1px solid #ADCDDD;
   border-left-width: 4px;
+  font-size: 14px;
 }
 
 .forum-group .message pre {
