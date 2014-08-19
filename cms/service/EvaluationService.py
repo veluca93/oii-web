@@ -192,7 +192,6 @@ def user_test_get_jobs(user_test):
 JobQueueEntry = namedtuple('JobQueueEntry',
                            ['job_type', 'object_id', 'dataset_id'])
 
-    return (bool): True if jqe is still to be performed.
 
 def jqe_check(jqe):
     """
