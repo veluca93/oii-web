@@ -74,7 +74,8 @@ __all__ = [
     # drop
     "drop_db",
     # util
-    "get_contest_list", "is_contest_id", "ask_for_contest",
+    "test_db_connection", "get_contest_list", "is_contest_id",
+    "ask_for_contest",
     # test
     "Test", "TestQuestion", "QuestionFile", "TestScore",
     # forum
@@ -84,7 +85,7 @@ __all__ = [
 
 # Instantiate or import these objects.
 
-version = 12
+version = 13
 
 
 engine = create_engine(config.database, echo=config.database_debug,
@@ -113,7 +114,8 @@ from .fsobject import FSObject
 from .init import init_db
 from .drop import drop_db
 
-from .util import get_contest_list, is_contest_id, ask_for_contest
+from .util import test_db_connection, get_contest_list, is_contest_id, \
+    ask_for_contest
 
 
 configure_mappers()
