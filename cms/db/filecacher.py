@@ -243,7 +243,7 @@ class DBBackend(FileCacherBackend):
                 # Check digest uniqueness
                 if fso is not None:
                     logger.debug("File %s already stored on database, not "
-                                 "sending it again." % digest)
+                                 "sending it again.", digest)
                     session.rollback()
                     return None
 
@@ -255,7 +255,7 @@ class DBBackend(FileCacherBackend):
 
                     session.add(fso)
 
-                    logger.debug("File %s stored on the database." % digest)
+                    logger.debug("File %s stored on the database.", digest)
 
                     # FIXME There is a remote possibility that someone
                     # will try to access this file, believing it has
@@ -269,7 +269,7 @@ class DBBackend(FileCacherBackend):
                     return lobject
 
         except IntegrityError:
-            logger.warning("File %s caused an IntegrityError, ignoring..." %
+            logger.warning("File %s caused an IntegrityError, ignoring...",
                            digest)
 
     def describe(self, digest):
@@ -498,15 +498,15 @@ class FileCacher(object):
         if self.enabled:
             cache_file_path = os.path.join(self.file_dir, digest)
 
-            logger.debug("Getting file %s." % digest)
+            logger.debug("Getting file %s.", digest)
 
             if not os.path.exists(cache_file_path):
                 logger.debug("File %s not in cache, downloading "
-                             "from database." % digest)
+                             "from database.", digest)
 
                 self.load(digest)
 
-                logger.debug("File %s downloaded." % digest)
+                logger.debug("File %s downloaded.", digest)
 
             return io.open(cache_file_path, 'rb')
         else:
@@ -633,7 +633,7 @@ class FileCacher(object):
             digest = hasher.hexdigest().decode("ascii")
             dst.flush()
 
-            logger.debug("File has digest %s." % digest)
+            logger.debug("File has digest %s.", digest)
 
             if self.enabled:
                 file_path = os.path.join(self.file_dir, digest)
@@ -792,8 +792,8 @@ class FileCacher(object):
                 fobj.close()
             computed_digest = hasher.hexdigest().decode("ascii")
             if digest != computed_digest:
-                logger.error("File with hash %s actually has hash %s" %
-                             (digest, computed_digest))
+                logger.error("File with hash %s actually has hash %s",
+                             digest, computed_digest)
                 if delete:
                     self.delete(digest)
                 clean = False
