@@ -342,6 +342,10 @@ table.submissions th {
   margin: 0px;
 }
 
+.forum-group dl.solved > dd {
+  opacity: 0.5;
+}
+
 .forum-group .panel-body {
   padding: 0px;
 }
@@ -349,6 +353,10 @@ table.submissions th {
 .forum-group .panel-body:not(.topic) dl {
   padding: 5px 0px 5px 0px;
   border-bottom: 1px solid #EEE;
+}
+
+.forum-group .panel-body:not(.topic) dl.sticky {
+  border-bottom: 1px solid #CFCFCF;
 }
 
 .forum-group .panel-heading:not(.topic) {
@@ -364,8 +372,16 @@ table.submissions th {
   background-color: #F9F9F9;
 }
 
+.forum-group .panel-body dl.sticky {
+  background-color: #E4F2FF;
+}
+
 .forum-group.focus-light .panel-body dl:hover {
   background-color: #FFD;
+}
+
+.forum-group.focus-light .panel-body dl.sticky:hover {
+  background-color: #F2FCFF;
 }
 
 .forum-group .panel-body dl:last-child {

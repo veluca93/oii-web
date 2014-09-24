@@ -10,12 +10,13 @@
       </dl>
     </div>
     <div class="panel-body">
-      <dl class="row" ng-repeat="topic in topics">
+      <dl class="row" ng-repeat="topic in topics" ng-class="{'sticky': topic.sticky, 'solved': topic.solved}">
         <dd class="content col-xs-6">
-          <i class="fa fa-{{topic.status | getIcon}}"></i>
+          <i class="fa fa-{{topic.sticky ? 'thumb-tack' : (topic.solved ? 'check' : 'angle-right')}}"></i>
           <a ui-sref="topic.page({ topicId: topic.id, pageNum: 1 })"><b>{{topic.title}}</b></a>
           </br>
-          {{'by' | l10n}} <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}} <!-- TODO: meno dati marginali (data/ora) da mobile -->
+          <!-- TODO: meno dati marginali (data/ora) da mobile -->
+          {{'by' | l10n}} <a ui-sref="user({userId: topic.author_username})">{{topic.author_username}}</a> &middot; {{topic.timestamp | dateFmt}}
         </dd>
         <dd class="count col-sm-1 hidden-xs">{{topic.posts-1}}</dd>
         <dd class="count col-md-1 hidden-sm hidden-xs">{{topic.views}}</dd>
@@ -42,7 +43,8 @@
           <h4 class="modal-title">{{'New topic' | l10n}}</h4>
         </div>
         <div class="modal-body">
-          <input ng-model="newTitle" type="text" class="form-control" placeholder="{{'Enter topic title...' | l10n}}"><br>
+          <input ng-model="newTitle" type="text" class="form-control" placeholder="{{'Enter topic title...' | l10n}}">
+          <input ng-model="isSticky" type="checkbox"> Sticky topic
           <div text-angular="text-angular" ta-toolbar="{{user.toolbar}}" ta-text-editor-class="editor-forum form-control"
               ta-toolbar-button-class="btn btn-xs btn-default" name="newText" ng-model="newText" >
           </div>
