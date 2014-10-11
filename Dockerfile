@@ -5,9 +5,7 @@ RUN apt-get -y install build-essential fpc postgresql postgresql-client gettext 
 RUN apt-get install -y openssh-server supervisor
 RUN mkdir -p /var/run/sshd /var/log/supervisor
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-RUN echo "root:annibale" | chpasswd
-RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-CMD /usr/bin/supervisord
+CMD cgroups-mount && /usr/bin/supervisord
 EXPOSE 22 8888 8889 8890
 ADD . /cms
 RUN cd /cms && ./setup.py build && ./setup.py install && rm -rf /cms
