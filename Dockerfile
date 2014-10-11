@@ -5,7 +5,7 @@ RUN apt-get -y install build-essential fpc postgresql postgresql-client gettext 
 RUN apt-get install -y openssh-server supervisor
 RUN mkdir -p /var/run/sshd /var/log/supervisor
 COPY examples/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-RUN echo "root:annibale | chpasswd"
+RUN echo "root:annibale" | chpasswd
 RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 CMD /usr/bin/supervisord
 EXPOSE 22 8888 8889 8890
