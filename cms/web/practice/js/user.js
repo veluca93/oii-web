@@ -143,6 +143,27 @@ angular.module('pws.user', [])
       notificationHub.createAlert('success', l10n.get('Goodbye'), 1);
     };
   })
+  .controller('SSOCtrl', function($scope, $http, notificationHub, $location, 
+       userManager) {
+    $http.post('do_sso', {
+      'username':   userManager.getUser().username,
+      'payload':    $location.$$search.sso,
+      'sig':        $location.$$search.sig
+    })
+    .success(function(data, status, headers, config) {
+      if (data.success === 1) {
+        // TODO Change this to a relative address with $location.url()
+        window.location.href = 'http://192.168.239.136/session/sso_login?' + data.parameters;
+      } else {
+        notificationHub.createAlert('danger', l10n.get('Single Sign On failed'), 3);
+        $state.go('overview');
+      }
+    })
+    .error(function(data, status, headers, config) {
+      notificationHub.serverError(status);
+    });
+
+  })
   .controller('UserpageCtrl', function($scope, $http, notificationHub,
       $stateParams, $state, $timeout, userbarManager, l10n) {
     userbarManager.setActiveTab(1);

@@ -151,6 +151,10 @@ angular.module('pws', [
         templateUrl: 'views/tests.html',
         controller: 'TestsCtrl'
       })
+      .state('sso', {
+        url: '/sso',
+        controller: 'SSOCtrl'
+      })
       .state('test', {
         url: '/test/{testName}',
         templateUrl: 'views/testpage.html',

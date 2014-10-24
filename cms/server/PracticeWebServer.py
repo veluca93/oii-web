@@ -27,8 +27,12 @@ import tempfile
 import mimetypes
 import traceback
 import pkg_resources
+import urllib
+import hmac
 
-from base64 import b64decode
+from hashlib import sha256
+
+from base64 import b64decode, b64encode
 from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
@@ -327,6 +331,37 @@ class APIHandler(object):
                 .filter(Institute.city_id == local.data['id']).all()
             local.resp['institutes'] = [{'id': r.id, 'name': r.name}
                                         for r in out]
+
+    def do_sso_handler(self):
+
+        payload = local.data['payload']
+        sig = local.data['sig']
+        computed_sig = hmac.new("password1234".encode(), payload.encode(), sha256).hexdigest()
+
+        # TODO 
+        # If python >= 2.7.7, hmac.compare_digest(computed_sig, sig) is better.
+        if computed_sig != sig:
+            return 'Bad request'
+      
+        # Get nonce.
+        payload_decoded = b64decode(payload).decode()
+        d = dict(nonce.split("=") for nonce in payload_decoded.split(' '))
+
+        # Prepare response.    
+        user = local.session.query(User)\
+            .filter(User.username == local.data['username']).first()   
+        if user is None:
+            return 'Bad request' 
+        response_data = dict()
+        response_data['nonce'] = d['nonce']
+        response_data['external_id'] = local.data['username']
+        response_data['email'] = user.email
+
+        # Build final url.
+        res_payload = urllib.urlencode(response_data)
+        res_payload = b64encode(res_payload.encode())
+        sig = hmac.new("password1234".encode(), res_payload, sha256).hexdigest()
+        local.resp['parameters'] = urllib.urlencode({'sso': res_payload, 'sig': sig})
 
     def user_handler(self):
         if local.data['action'] == 'new':
