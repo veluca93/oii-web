@@ -339,7 +339,7 @@ class APIHandler(object):
             config.secret_key.encode(),
             payload.encode(),
             hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(computed_sig, sig):
+        if not computed_sig != sig:
             return 'Bad request'
         # Get nonce.
         payload_decoded = b64decode(payload).decode()
