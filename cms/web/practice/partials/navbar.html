@@ -81,12 +81,14 @@
                 {{'My user profile' | l10n}}
               </a>
             </li>
+<!--
             <li>
               <a ui-sref="user.talks({userId: me.getUser().username})">
                 <i class="fa fa-comments fa-fw"></i> {{'Messages' | l10n}}
                 <span ng-if="me.getUser().unreadtalks" class="badge">{{me.getUser().unreadtalks}}</span>
               </a>
             </li>
+-->
             <li class="divider"></li>
             <li>
               <a ng-click="signout()">
