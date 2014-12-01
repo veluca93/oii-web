@@ -343,7 +343,7 @@ class APIHandler(object):
             return 'Bad request'
         # Get nonce.
         payload_decoded = b64decode(payload).decode()
-        d = dict(nonce.split("=") for nonce in payload_decoded.split(' '))
+        d = dict(nonce.split("=") for nonce in payload_decoded.split('&'))
         # Prepare response.
         response_data = dict()
         response_data['nonce'] = d['nonce']
