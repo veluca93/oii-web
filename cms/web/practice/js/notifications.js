@@ -1,6 +1,7 @@
 /* Contest Management System
  * Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
  * Copyright © 2013 William Di Luigi <williamdiluigi@gmail.com>
+ * Copyright © 2015 Luca Chiodini <luca@chiodini.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -23,11 +24,11 @@ angular.module('pws.notifications', [])
     // Alert creation routine
     var createIt = function(type, msg, secs) {
 
-      // Create alert model and hide it
+      // Create alert model with translated message and hide it
       var alert = $('<div class="alert alert-' + type + ' hyphenate' +
           ' alert-dismissable"><button type="button" class="close" ' +
           'data-dismiss="alert" aria-hidden="true">&times;</button>' +
-          msg + '</div>').hide();
+          l10n.get(msg) + '</div>').hide();
 
       // Put it in the right place and open it
       $(".notifications").prepend(alert);

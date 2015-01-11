@@ -109,7 +109,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       })
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
-          notificationHub.createAlert('info', l10n.get('Topic created'), 1);
+          notificationHub.createAlert('info', 'Topic created', 1);
           $scope.getTopics();
         } else {
           notificationHub.createAlert('danger', data.error, 2);
@@ -173,7 +173,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       })
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
-          notificationHub.createAlert('info', l10n.get('Reply sent'), 1);
+          notificationHub.createAlert('info', 'Reply sent', 1);
           $scope.getPosts();
           // TODO: redirect al post creato?
         } else {
@@ -194,7 +194,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       })
       .success(function(data, status, headers, config) {
         if (data.success == 1) {
-          notificationHub.createAlert('info', l10n.get('Edit saved'), 1);
+          notificationHub.createAlert('info', 'Edit saved', 1);
           $scope.getPosts();
         } else {
           notificationHub.createAlert('danger', data.error, 2);
@@ -215,7 +215,7 @@ angular.module('pws.forum', ['pws.pagination', 'textAngular'])
       })
       .success(function(data, status, headers, config) {
         if (data.success) {
-          notificationHub.createAlert('info', l10n.get('Delete completed'), 1);
+          notificationHub.createAlert('info', 'Delete completed', 1);
           if (data.success == 1)
             $scope.getPosts();
           else

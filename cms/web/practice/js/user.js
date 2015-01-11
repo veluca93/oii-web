@@ -58,7 +58,7 @@ angular.module('pws.user', [])
           .success(function(data, status, headers, config) {
             if (data.success === 0) {
               localStorage.removeItem('user');
-              notificationHub.createAlert('danger', l10n.get('Sign in error'), 3);
+              notificationHub.createAlert('danger', 'Sign in error', 3);
             } else {
               var user = getIt();
               user.unreadtalks = data.unreadtalks;
@@ -132,7 +132,7 @@ angular.module('pws.user', [])
             notificationHub.createAlert('success', l10n.get('Welcome back') +
                 ', ' + userManager.getUser().username, 2);
           } else if (data.success === 0) {
-            notificationHub.createAlert('danger', l10n.get('Sign in error'), 3);
+            notificationHub.createAlert('danger', 'Sign in error', 3);
           }
         }).error(function(data, status, headers, config) {
           notificationHub.serverError(status);
@@ -140,7 +140,7 @@ angular.module('pws.user', [])
     };
     $scope.signout = function() {
       userManager.signout();
-      notificationHub.createAlert('success', l10n.get('Goodbye'), 1);
+      notificationHub.createAlert('success', 'Goodbye', 1);
     };
   })
   .controller('UserpageCtrl', function($scope, $http, notificationHub,
@@ -157,7 +157,7 @@ angular.module('pws.user', [])
       if (data.success === 1) {
         $scope.user = data;
       } else {
-        notificationHub.createAlert('danger', l10n.get('User doesn\'t exist'), 3);
+        notificationHub.createAlert('danger', 'User doesn\'t exist', 3);
         $state.go('overview');
       }
     })
@@ -229,11 +229,11 @@ angular.module('pws.user', [])
       .success(function(data, status, headers, config) {
         //~ console.log(JSON.stringify(data));
         if (data.success === 1) {
-          notificationHub.createAlert('success', l10n.get('Message sent'), 2);
+          notificationHub.createAlert('success', 'Message sent', 2);
           $scope.newText = '';
           $scope.checkNew();
         } else {
-          notificationHub.createAlert('danger', l10n.get(data.error), 2);
+          notificationHub.createAlert('danger', data.error, 2);
         }
       })
       .error(function(data, status, headers, config) {
@@ -269,7 +269,7 @@ angular.module('pws.user', [])
           }
           //~ console.log(lastLast + " " + data.num);
         } else {
-          notificationHub.createAlert('danger', l10n.get(data.error), 2);
+          notificationHub.createAlert('danger', data.error, 2);
           $state.go("overview");
         }
       })
@@ -302,7 +302,7 @@ angular.module('pws.user', [])
             $window.scrollTo(0, parseFloat($("html").css('height')));
           }, 100);
         } else {
-          notificationHub.createAlert('danger', l10n.get(data.error), 2);
+          notificationHub.createAlert('danger', data.error, 2);
           $state.go("overview");
         }
       })
@@ -323,13 +323,13 @@ angular.module('pws.user', [])
         //~ console.log(JSON.stringify(data));
         if (data.success === 1) {
           if (data.num == lastTot) {
-            notificationHub.createAlert('info', l10n.get('No new messages'), 1);
+            notificationHub.createAlert('info', 'No new messages', 1);
           } else {
             console.log(data.num + ' ' + lastLast);
             $scope.downloadMsg();
           }
         } else {
-          notificationHub.createAlert('danger', l10n.get(data.error), 2);
+          notificationHub.createAlert('danger', data.error, 2);
           $state.go("overview");
         }
       })
@@ -360,9 +360,9 @@ angular.module('pws.user', [])
       data['token'] = userManager.getUser().token;
       if ($scope.user.password2.length > 0) {
         if ($scope.user.password3 !== $scope.user.password2)
-          return notificationHub.createAlert('danger', l10n.get('Passwords don\'t match'), 2);
+          return notificationHub.createAlert('danger', 'Passwords don\'t match', 2);
         if ($scope.user.password.length < 1)
-          return notificationHub.createAlert('danger', l10n.get('You must specify your password'), 2);
+          return notificationHub.createAlert('danger', 'You must specify your password', 2);
         data['old_password'] = $scope.user.password;
         data['password'] = $scope.user.password2;
       }
@@ -372,13 +372,13 @@ angular.module('pws.user', [])
           if (data.success == 1) {
             if (data.hasOwnProperty('token'))
               localStorage.setItem('token', data['token']);
-            notificationHub.createAlert('success', l10n.get('Changes recorded'), 2);
+            notificationHub.createAlert('success', 'Changes recorded', 2);
             $state.go('^.profile');
           } else if (data.success == 0) {
             if (data.error === undefined)
-              notificationHub.createAlert('warning', l10n.get('No changes recorded'), 3);
+              notificationHub.createAlert('warning', 'No changes recorded', 3);
             else
-              notificationHub.createAlert('danger', l10n.get(data.error), 3);
+              notificationHub.createAlert('danger', data.error, 3);
           }
         })
         .error(function(data, status, headers, config) {
