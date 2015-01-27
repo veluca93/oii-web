@@ -274,8 +274,13 @@ angular.module('pws.resources', [])
         files: []
       },
       {
-        title: '01 Dizionario mediante Liste 4: ricerca',
-        youtube: 'Pr14Vbhc2d0',
+        title: '01 Dizionario mediante Liste 4: ricerca (1/2)',
+        youtube: 'PneFLXrTrMM',
+        files: []
+      },
+      {
+        title: '01 Dizionario mediante Liste 4: ricerca (2/2)',
+        youtube: 'lUobj-OfnaM',
         files: []
       },
       {
