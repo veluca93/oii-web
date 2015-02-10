@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2014 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2015 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
@@ -41,13 +41,15 @@ from functools import wraps
 
 import gevent.coros
 from gevent.event import Event
+from sqlalchemy import func, not_
 
 from cms import ServiceCoord, get_service_shards
 from cms.io import Executor, PriorityQueue, QueueItem, TriggeredService, \
     rpc_method
 from cms.db import Session, SessionGen, Contest, Dataset, Submission, \
-    SubmissionResult, UserTest, UserTestResult
-from cms.service import get_submission_results, get_datasets_to_judge
+    SubmissionResult, Task, UserTest, UserTestResult
+from cms.service import get_submissions, get_submission_results, \
+    get_datasets_to_judge
 from cmscommon.datetime import make_datetime, make_timestamp
 from cms.grading.Job import JobGroup
 
@@ -208,6 +210,48 @@ def user_test_get_operations(user_test, dataset):
                           dataset.id), \
             priority, \
             user_test.timestamp
+
+
+def get_relevant_operations_(level, submissions, dataset_id=None):
+    """Return all possible operations involving the submissions
+
+    level (string): the starting level; if 'compilation', then we
+        return operations for both compilation and evaluation; if
+        'evaluation', we return evaluations only.
+    submissions ([Submission]): submissions we want the operations for.
+    dataset_id (int|None): id of the dataset to select, or None for all
+        datasets
+
+    return ([ESOperation]): list of relevant operations.
+
+    """
+    operations = []
+    for submission in submissions:
+        # All involved datasets: all of the task's dataset unless
+        # one was specified.
+        datasets = submission.task.datasets
+        if dataset_id is not None:
+            for dataset in submission.task.datasets:
+                if dataset.id == dataset_id:
+                    datasets = [dataset]
+                    break
+
+        # For each submission and dataset, the operations are: one
+        # compilation, and one evaluation per testcase.
+        for dataset in datasets:
+            if level == 'compilation':
+                operations.append(ESOperation(
+                    ESOperation.COMPILATION,
+                    submission.id,
+                    dataset.id))
+            for codename in dataset.testcases:
+                operations.append(ESOperation(
+                    ESOperation.EVALUATION,
+                    submission.id,
+                    dataset.id,
+                    codename))
+
+    return operations
 
 
 class ESOperation(QueueItem):
@@ -705,6 +749,14 @@ class EvaluationExecutor(Executor):
         self.evaluation_service = evaluation_service
         self.pool = WorkerPool(self.evaluation_service)
 
+        # QueueItem (ESOperation) we have extracted from the queue,
+        # but not yet finished to execute.
+        self._currently_executing = None
+
+        # Whether execute need to drop the currently executing
+        # operation.
+        self._drop_current = False
+
         for i in xrange(get_service_shards("Worker")):
             worker = ServiceCoord("Worker", i)
             self.pool.add_worker(worker)
@@ -718,12 +770,36 @@ class EvaluationExecutor(Executor):
         entry (QueueEntry): entry containing the operation to perform.
 
         """
+        self._currently_executing = entry.item
         side_data = (entry.priority, entry.timestamp)
         res = None
-        while res is None:
+        while res is None and not self._drop_current:
             self.pool.wait_for_workers()
+            if self._drop_current:
+                break
             res = self.pool.acquire_worker(entry.item,
                                            side_data=side_data)
+        self._drop_current = False
+        self._currently_executing = None
+
+    def dequeue(self, operation):
+        """Remove an item from the queue.
+
+        We need to override dequeue because in execute we wait for a
+        worker to become available to serve the operation, and if that
+        operation needed to be dequeued, we need to remove it also
+        from there.
+
+        operation (ESOperation)
+
+        """
+        try:
+            super(EvaluationExecutor, self).dequeue(operation)
+        except KeyError:
+            if self._currently_executing == operation:
+                self._drop_current = True
+            else:
+                raise
 
 
 def with_post_finish_lock(func):
@@ -771,6 +847,7 @@ class EvaluationService(TriggeredService):
             ServiceCoord("ScoringService", 0))
 
         self.add_executor(EvaluationExecutor(self))
+        self.start_sweeper(117.0)
 
         self.add_timeout(self.check_workers_timeout, None,
                          EvaluationService.WORKER_TIMEOUT_CHECK_TIME
@@ -780,9 +857,6 @@ class EvaluationService(TriggeredService):
                          EvaluationService.WORKER_CONNECTION_CHECK_TIME
                          .total_seconds(),
                          immediately=False)
-
-    def _sweeper_timeout(self):
-        return 117.0
 
     def submission_enqueue_operations(self, submission, check_again=False):
         """Push in queue the operations required by a submission.
@@ -871,41 +945,57 @@ class EvaluationService(TriggeredService):
         return (dict): statistics on the submissions.
 
         """
-        stats = {
-            "scored": 0,
-            "evaluated": 0,
-            "compilation_fail": 0,
-            "compiling": 0,
-            "evaluating": 0,
-            "max_compilations": 0,
-            "max_evaluations": 0,
-            "invalid": 0}
+        # TODO: at the moment this counts all submission results for
+        # the live datasets. It is interesting to show also numbers
+        # for the datasets with autojudge, and for all datasets.
+        stats = {}
         with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest_id, session)
-            for submission_result in contest.get_submission_results():
-                if submission_result.compilation_failed():
-                    stats["compilation_fail"] += 1
-                elif not submission_result.compiled():
-                    if submission_result.compilation_tries >= \
-                            EvaluationService.MAX_COMPILATION_TRIES:
-                        stats["max_compilations"] += 1
-                    else:
-                        stats["compiling"] += 1
-                elif submission_result.compilation_succeeded():
-                    if submission_result.evaluated():
-                        if submission_result.scored():
-                            stats["scored"] += 1
-                        else:
-                            stats["evaluated"] += 1
-                    else:
-                        if submission_result.evaluation_tries >= \
-                                EvaluationService.MAX_EVALUATION_TRIES:
-                            stats["max_evaluations"] += 1
-                        else:
-                            stats["evaluating"] += 1
-                else:
-                    # Should not happen.
-                    stats["invalid"] += 1
+            base_query = session\
+                .query(func.count(SubmissionResult.submission_id))\
+                .select_from(SubmissionResult)\
+                .join(Dataset)\
+                .join(Task, Dataset.task_id == Task.id)\
+                .filter(Task.active_dataset_id == SubmissionResult.dataset_id)\
+                .filter(Task.contest_id == self.contest_id)
+
+            compiled = base_query.filter(SubmissionResult.filter_compiled())
+            evaluated = compiled.filter(SubmissionResult.filter_evaluated())
+            not_compiled = base_query.filter(
+                not_(SubmissionResult.filter_compiled()))
+            not_evaluated = compiled.filter(
+                SubmissionResult.filter_compilation_succeeded(),
+                not_(SubmissionResult.filter_evaluated()))
+
+            queries = {}
+            queries['compiling'] = not_compiled.filter(
+                SubmissionResult.compilation_tries
+                < EvaluationService.MAX_COMPILATION_TRIES)
+            queries['max_compilations'] = not_compiled.filter(
+                SubmissionResult.compilation_tries
+                >= EvaluationService.MAX_COMPILATION_TRIES)
+            queries['compilation_fail'] = base_query.filter(
+                SubmissionResult.filter_compilation_failed())
+            queries['evaluating'] = not_evaluated.filter(
+                SubmissionResult.evaluation_tries
+                < EvaluationService.MAX_EVALUATION_TRIES)
+            queries['max_evaluations'] = not_evaluated.filter(
+                SubmissionResult.evaluation_tries
+                >= EvaluationService.MAX_EVALUATION_TRIES)
+            queries['scoring'] = evaluated.filter(
+                not_(SubmissionResult.filter_scored()))
+            queries['scored'] = evaluated.filter(
+                SubmissionResult.filter_scored())
+            queries['total'] = base_query
+
+            stats = {}
+            keys = queries.keys()
+            results = queries[keys[0]].union_all(
+                *(queries[key] for key in keys[1:])).all()
+
+        for i in range(len(keys)):
+            stats[keys[i]] = results[i][0]
+        stats['invalid'] = 2 * stats['total'] - sum(stats.itervalues())
+
         return stats
 
     @rpc_method
@@ -917,14 +1007,14 @@ class EvaluationService(TriggeredService):
         returns (dict): the dict with the workers information.
 
         """
-        return self._executors[0].pool.get_status()
+        return self.get_executor().pool.get_status()
 
     def check_workers_timeout(self):
         """We ask WorkerPool for the unresponsive workers, and we put
         again their operations in the queue.
 
         """
-        lost_operations = self._executors[0].pool.check_timeouts()
+        lost_operations = self.get_executor().pool.check_timeouts()
         for priority, timestamp, operation in lost_operations:
             logger.info("Operation %s put again in the queue because of "
                         "worker timeout.", operation)
@@ -936,7 +1026,7 @@ class EvaluationService(TriggeredService):
         again their operations in the queue.
 
         """
-        lost_operations = self._executors[0].pool.check_connections()
+        lost_operations = self.get_executor().pool.check_connections()
         for priority, timestamp, operation in lost_operations:
             logger.info("Operation %s put again in the queue because of "
                         "disconnected worker.", operation)
@@ -972,7 +1062,8 @@ class EvaluationService(TriggeredService):
                 submission_id,
                 dataset_id,
                 testcase_codename))
-        return any([operation in self._executors[0].pool
+        return any([operation in self.get_executor().pool
+                    or operation in self.get_executor()
                     for operation in operations])
 
     def user_test_busy(self, user_test_id, dataset_id):
@@ -990,7 +1081,8 @@ class EvaluationService(TriggeredService):
                 user_test_id,
                 dataset_id),
         ]
-        return any([operations in self._executors[0].pool
+        return any([operations in self.get_executor().pool
+                    or operation in self.get_executor()
                     for operation in operations])
 
     def operation_busy(self, operation):
@@ -1057,10 +1149,10 @@ class EvaluationService(TriggeredService):
         """
         # Unpack the plus tuple. It's built in the RPC call to Worker's
         # execute_job_group method inside WorkerPool.acquire_worker.
-        type_, object_id, dataset_id, testcase_codename, side_data, \
+        type_, object_id, dataset_id, testcase_codename, _, \
             shard = plus
 
-        # Restore operation from it's fields
+        # Restore operation from its fields.
         operation = ESOperation(
             type_, object_id, dataset_id, testcase_codename)
 
@@ -1072,7 +1164,7 @@ class EvaluationService(TriggeredService):
         # this method and do nothing because in that case we know the
         # operation has returned to the queue and perhaps already been
         # reassigned to another worker.
-        if self._executors[0].pool.release_worker(shard):
+        if self.get_executor().pool.release_worker(shard):
             logger.info("Ignored result from worker %s as requested.", shard)
             return
 
@@ -1095,8 +1187,6 @@ class EvaluationService(TriggeredService):
                                  "not successful.", shard)
                     job_success = False
 
-        _, timestamp = side_data
-
         logger.info("Operation `%s' for submission %s completed. Success: %s.",
                     operation, object_id, job_success)
 
@@ -1106,10 +1196,22 @@ class EvaluationService(TriggeredService):
                 submission_result = SubmissionResult.get_from_id(
                     (object_id, dataset_id), session)
                 if submission_result is None:
-                    logger.error("[action_finished] Couldn't find "
-                                 "submission %d(%d) in the database.",
-                                 object_id, dataset_id)
-                    return
+                    logger.info("[action_finished] Couldn't find "
+                                "submission %d(%d) in the database. "
+                                "Creating it.", object_id, dataset_id)
+                    submission = Submission.get_from_id(object_id, session)
+                    dataset = Dataset.get_from_id(dataset_id, session)
+                    if submission is None:
+                        logger.error("[action_finished] Could not find "
+                                     "submission %d in the database.",
+                                     object_id)
+                        return
+                    if dataset is None:
+                        logger.error("[action_finished] Could not find "
+                                     "dataset %d in the database.", dataset_id)
+                        return
+                    submission_result = submission.get_result_or_create(
+                        dataset)
 
                 submission_result.compilation_tries += 1
 
@@ -1227,6 +1329,7 @@ class EvaluationService(TriggeredService):
                          submission_result.compilation_outcome)
 
         # Enqueue next steps to be done
+        submission_result.sa_session.commit()
         self.submission_enqueue_operations(submission)
 
     def evaluation_ended(self, submission_result):
@@ -1266,6 +1369,7 @@ class EvaluationService(TriggeredService):
                              submission_result.dataset_id)
 
         # Enqueue next steps to be done (e.g., if evaluation failed).
+        submission_result.sa_session.commit()
         self.submission_enqueue_operations(submission)
 
     def user_test_compilation_ended(self, user_test_result):
@@ -1308,6 +1412,7 @@ class EvaluationService(TriggeredService):
                          user_test_result.compilation_outcome)
 
         # Enqueue next steps to be done
+        user_test_result.sa_session.commit()
         self.user_test_enqueue_operations(user_test)
 
     def user_test_evaluation_ended(self, user_test_result):
@@ -1340,6 +1445,7 @@ class EvaluationService(TriggeredService):
                              user_test_result.dataset_id)
 
         # Enqueue next steps to be done (e.g., if evaluation failed).
+        user_test_result.sa_session.commit()
         self.user_test_enqueue_operations(user_test)
 
     @rpc_method
@@ -1385,6 +1491,7 @@ class EvaluationService(TriggeredService):
             session.commit()
 
     @rpc_method
+    @with_post_finish_lock
     def invalidate_submission(self,
                               submission_id=None,
                               dataset_id=None,
@@ -1425,41 +1532,40 @@ class EvaluationService(TriggeredService):
                 "Unexpected invalidation level `%s'." % level)
 
         with SessionGen() as session:
+            # First we load all involved submissions.
+            submissions = get_submissions(
+                # Give contest_id only if all others are None.
+                self.contest_id
+                if {user_id, task_id, submission_id} == {None}
+                else None,
+                user_id, task_id, submission_id, session)
+
+            # Then we get all relevant operations, and we remove them
+            # both from the queue and from the pool (i.e., we ignore
+            # the workers involved in those operations).
+            operations = get_relevant_operations_(
+                level, submissions, dataset_id)
+            for operation in operations:
+                try:
+                    self.dequeue(operation)
+                except KeyError:
+                    pass  # Ok, the operation wasn't in the queue.
+                try:
+                    self.get_executor().pool.ignore_operation(operation)
+                except LookupError:
+                    pass  # Ok, the operation wasn't in the pool.
+
+            # Then we find all existing results in the database, and
+            # we remove them.
             submission_results = get_submission_results(
                 # Give contest_id only if all others are None.
                 self.contest_id
                 if {user_id, task_id, submission_id, dataset_id} == {None}
                 else None,
                 user_id, task_id, submission_id, dataset_id, session)
-
             logger.info("Submission results to invalidate %s for: %d.",
                         level, len(submission_results))
-            if len(submission_results) == 0:
-                return
-
             for submission_result in submission_results:
-                operations = [
-                    ESOperation(
-                        ESOperation.COMPILATION,
-                        submission_result.submission_id,
-                        submission_result.dataset_id)
-                ]
-                for evaluation in submission_result.evaluations:
-                    operations.append(ESOperation(
-                        ESOperation.EVALUATION,
-                        submission_result.submission_id,
-                        submission_result.dataset_id,
-                        evaluation.testcase.codename))
-                for operation in operations:
-                    try:
-                        self.dequeue(operation)
-                    except KeyError:
-                        pass  # Ok, the operation wasn't in the queue.
-                    try:
-                        self._executors[0].pool.ignore_operation(operation)
-                    except LookupError:
-                        pass  # Ok, the operation wasn't in the pool.
-
                 # We invalidate the appropriate data and queue the
                 # operations to recompute those data.
                 if level == "compilation":
@@ -1467,8 +1573,9 @@ class EvaluationService(TriggeredService):
                 elif level == "evaluation":
                     submission_result.invalidate_evaluation()
 
-            for submission in set(submission_result.submission
-                                  for submission_result in submission_results):
+            # Finally, we re-enqueue the operations for the
+            # submissions.
+            for submission in submissions:
                 self.submission_enqueue_operations(submission)
 
             session.commit()
@@ -1486,7 +1593,7 @@ class EvaluationService(TriggeredService):
 
         lost_operations = []
         try:
-            lost_operations = self._executors[0].pool.disable_worker(shard)
+            lost_operations = self.get_executor().pool.disable_worker(shard)
         except ValueError:
             return False
 
@@ -1507,7 +1614,7 @@ class EvaluationService(TriggeredService):
         """
         logger.info("Received request to enable worker %s.", shard)
         try:
-            self._executors[0].pool.enable_worker(shard)
+            self.get_executor().pool.enable_worker(shard)
         except ValueError:
             return False
 

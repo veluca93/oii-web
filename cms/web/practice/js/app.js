@@ -41,28 +41,9 @@ angular.module('pws', [
         templateUrl: 'views/overview.html',
         controller: 'HomepageCtrl'
       })
-      .state('forums', {
-        url: '/forum',
-        templateUrl: 'views/forums.html',
-        controller: 'ForumsCtrl'
-      })
-      .state('forum', {
-        templateUrl: 'partials/forum.html',
-        controller: 'ForumSkel'
-      })
-      .state('forum.page', {
-        url: '/forum/{forumId}/{pageNum}',
-        templateUrl: 'views/forum.html',
-        controller: 'ForumCtrl'
-      })
-      .state('topic', {
-        templateUrl: 'partials/forum.topic.html',
-        controller: 'ForumSkel'
-      })
-      .state('topic.page', {
-        url: '/topic/{topicId}/{pageNum}',
-        templateUrl: 'views/forum.topic.html',
-        controller: 'TopicCtrl'
+      .state('sso', {
+         url: '/sso',
+         controller: 'SSOCtrl'
       })
       .state('tags', {
         url: '/tags',

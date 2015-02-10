@@ -20,7 +20,9 @@
 import os
 import io
 import re
+import hmac
 import json
+import urllib
 import logging
 import hashlib
 import tempfile
@@ -28,7 +30,7 @@ import mimetypes
 import traceback
 import pkg_resources
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
@@ -327,6 +329,38 @@ class APIHandler(object):
                 .filter(Institute.city_id == local.data['id']).all()
             local.resp['institutes'] = [{'id': r.id, 'name': r.name}
                                         for r in out]
+
+    def sso_handler(self):
+        if local.user is None:
+            return 'Unauthorized'
+        payload = local.data['payload']
+        sig = local.data['sig']
+        computed_sig = hmac.new(
+            config.secret_key.encode(),
+            payload.encode(),
+            hashlib.sha256).hexdigest()
+        if computed_sig != sig:
+            return 'Bad request'
+        # Get nonce.
+        payload_decoded = b64decode(payload).decode()
+        d = dict(nonce.split("=") for nonce in payload_decoded.split('&'))
+        # Prepare response.
+        response_data = dict()
+        response_data['nonce'] = d['nonce']
+        response_data['external_id'] = local.user.username
+        response_data['username'] = local.user.username
+        response_data['email'] = local.user.email
+        # Build final url.
+        res_payload = urllib.urlencode(response_data)
+        res_payload = b64encode(res_payload.encode())
+        sig = hmac.new(
+            config.secret_key.encode(),
+            res_payload,
+            hashlib.sha256).hexdigest()
+        local.resp['parameters'] = urllib.urlencode({
+            'sso': res_payload,
+            'sig': sig
+        })
 
     def user_handler(self):
         if local.data['action'] == 'new':
@@ -1171,8 +1205,9 @@ class PracticeWebServer(Service):
         handler = APIHandler(self)
 
         self.wsgi_app = SharedDataMiddleware(handler, {
-            '/':        ('cms.web', 'practice'),
-            '/assets':  ('cms.web', 'assets')
+            '/':          ('cms.web', 'practice'),
+            '/assets':    ('cms.web', 'assets'),
+            '/resources': '/home/ioi/resources'
         })
 
     def run(self):
