@@ -44,7 +44,7 @@ from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
     Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
     TaskScore, PrivateMessage, Talk
 from cmscommon.datetime import make_timestamp, make_datetime
-from cms.server import extract_archive
+from cmscommon.archive import Archive
 
 from werkzeug.wrappers import Response, Request
 from werkzeug.wsgi import SharedDataMiddleware, wrap_file, responder
@@ -812,16 +812,27 @@ class APIHandler(object):
                'submission' in local.data['files']:
                 archive_data = decode_file(local.data['files']['submission'])
                 del local.data['files']['submission']
-                temp_archive_file, temp_archive_filename = \
-                    tempfile.mkstemp(dir=config.temp_dir)
-                with os.fdopen(temp_archive_file, "w") as temp_archive_file:
-                    temp_archive_file.write(archive_data['body'])
-                archive_contents = extract_archive(temp_archive_filename,
-                                                   archive_data['filename'])
-                if archive_contents is None:
+
+                # Create the archive.
+                archive = Archive.from_raw_data(archive_data["body"])
+
+                if archive is None:
                     return 'Invalid archive!'
+
+                # Extract the archive.
+                unpacked_dir = archive.unpack()
+                for name in archive.namelist():
+                    filename = os.path.basename(name)
+                    body = open(os.path.join(unpacked_dir, filename), "r").read()
+                    self.request.files[filename] = [{
+                        'filename': filename,
+                        'body': body
+                    }]
+
                 files_sent = dict([(i['filename'], i)
                                    for i in archive_contents])
+
+                archive.cleanup()
             else:
                 files_sent = \
                     dict([(k, decode_file(v))
