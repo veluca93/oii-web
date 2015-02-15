@@ -103,6 +103,18 @@ class User(Base):
         nullable=False,
         default=False)
 
+    # The last time this user requested a testcase
+    last_help_time = Column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcfromtimestamp(0))
+
+    # Total number of helps received
+    help_count = Column(
+        Integer,
+        nullable=False,
+        default=0)
+
     # Contest (id and object) to which the user is participating.
     contest_id = Column(
         Integer,

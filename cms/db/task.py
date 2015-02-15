@@ -83,6 +83,12 @@ class Task(Base):
         Integer,
         nullable=False)
 
+    # Whether users can ask for help on this task
+    help_available = Column(
+        Boolean,
+        nullable=False,
+        default=True)
+
     # Stats
     nsubs = Column(
         Integer,
