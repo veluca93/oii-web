@@ -53,9 +53,6 @@ Having a finite set of both contest- and task-tokens can be very confusing, for 
 
 Note that "token sets" are "intangible": they're just a counter shown to the user, computed dynamically every time. Yet, once a token is used, a Token object will be created, stored in the database and associated with the submission it was used on.
 
-.. note::
-   The full-feedback mode introduced in IOI 2013 has not been ported upstream yet (see :gh_issue:`246`). Note that although disabling tokens and making all testcases public would give full feedback, the final scores would be computed differently: the one of the latest submission would be used instead of the maximum among all submissions. To achieve the correct scoring behavior, get in touch with the developers or check `the ML archives <http://www.freelists.org/post/contestms/applying-tokens-automatically,1>`_.
-
 Changing token rules during a contest may lead to inconsistencies. Do so at your own risk!
 
 

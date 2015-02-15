@@ -586,7 +586,7 @@ class WorkerPool(object):
                          "that cannot be found.", operation)
             raise
         self._ignore[shard] = True
-        self._worker[shard].ignore_operation()
+        self._worker[shard].ignore_job()
 
     def get_status(self):
         """Returns a dict with info about the current status of all

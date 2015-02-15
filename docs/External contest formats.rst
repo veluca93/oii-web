@@ -123,15 +123,16 @@ The following are optional files, that must be present for certain task types or
 
 .. _externalcontestformats_task-description:
 
-.. _externalcontestformats_task-directory:
+Task description
+----------------
 
 The task YAML files require the following keys.
 
-The content of the task directory is used both to retrieve the task data and to infer the type of the task.
+- ``name`` (string; also accepted: ``nome_breve``): the name used to reference internally to this task; it is exposed in the URLs.
 
-These are the required files.
+- ``title`` (string; also accepted: ``nome``): the long name (title) used in the web interface.
 
-- :file:`task.yaml`: this file contains the name of the task and describes some of its properties; its content is detailed :ref:`below <externalcontestformats_task-description>`; in order to retain backward compatibility, this file can also be provided in the file :file:`{task_name.yaml}` in the root directory of the *contest*.
+- ``n_input`` (integer): number of test cases to be evaluated for this task; the actual test cases are retrieved from the :ref:`task directory <externalcontestformats_task-directory>`.
 
 - ``score_mode``: the score mode for the task, as in :ref:`configuringacontest_score`; it can be ``max_tokened_last`` (for the legacy behavior), or ``max`` (for the modern behavior).
 
@@ -139,26 +140,26 @@ These are the required files.
 
 The following are optional keys.
 
-- :file:`input/input{%d}.txt` and :file:`output/output{%d}.txt` for all integers :samp:`{%d}` between 0 (included) and ``n_input`` (excluded): these are of course the input and reference output files.
+- ``time_limit`` (float; also accepted: ``timeout``): the timeout limit for this task in seconds; defaults to no limitations.
 
-The following are optional files, that must be present for certain task types or score types.
+- ``memory_limit`` (integer; also accepted: ``memlimit``): the memory limit for this task in megabytes; defaults to no limitations.
 
-- :file:`gen/GEN`: in the Italian environment, this file describes the parameters for the input generator: each line not composed entirely by white spaces or comments (comments start with ``#`` and end with the end of the line) represents an input file. Here, it is used, in case it contains specially formatted comments, to signal that the score type is :ref:`scoretypes_groupmin`. If a line contains only a comment of the form :samp:`# ST: {score}` then it marks the beginning of a new group assigning at most :samp:`{score}` points, containing all subsequent testcases until the next special comment. If the file does not exists, or does not contain any special comments, the task is given the :ref:`scoretypes_sum` score type.
+- ``public_testcases`` (string; also accepted: ``risultati``): a comma-separated list of test cases (identified by their numbers, starting from 0) that are marked as public, hence their results are available to contestants even without using tokens.
 
 - ``token_*``: additional token parameters for the task, see :ref:`configuringacontest_tokens` (the names of the parameters are the same as the internal names described there).
 
-- :file:`sol/*.h` and :file:`sol/*lib.pas`: if a grader is present, all other files in the :file:`sol` directory that end with ``.h`` or ``lib.pas`` are treated as auxiliary files needed by the compilation of the grader with the submitted solution.
+- ``max_*_number`` and ``min_*_interval`` (integers): limitations for the task, see :ref:`configuringacontest_limitations` (the names of the parameters are the same as the internal names described there); by default they're all unset.
 
 - ``output_only`` (boolean): if set to True, the task is created with the :ref:`tasktypes_outputonly` type; defaults to False.
 
-- :file:`check/manager`: (also accepted: :file:`cor/manager`) for tasks of type :ref:`tasktypes_communication`, this executable is the program that reads the input and communicates with the user solution.
+The following are optional keys that must be present for some task type or score type.
 
-- :file:`sol/stub.%l`: for tasks of type :ref:`tasktypes_communication`, this is the piece of code that is compiled together with the user submitted code, and is usually used to manage the communication with :file:`manager`. Again, all supported languages must be present.
+- ``total_value`` (float): for tasks using the :ref:`scoretypes_sum` score type, this is the maximum score for the task and defaults to 100.0; for other score types, the maximum score is computed from the :ref:`task directory <externalcontestformats_task-directory>`.
 
 - ``infile`` and ``outfile`` (strings): for :ref:`tasktypes_batch` tasks, these are the file names for the input and output files; default to :file:`input.txt` and :file:`output.txt`; if left empty, :file:`stdin` and :file:`stdout` are used.
 
+- ``primary_language`` (string): the statement will be imported with this language code; defaults to ``it`` (Italian), in order to ensure backward compatibility.
 
-.. _externalcontestformats_task-description:
 
 Polygon format
 ==============
