@@ -9,6 +9,7 @@
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
+# Copyright © 2015 William Di Luigi <williamdiluigi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -53,7 +54,6 @@ import pkg_resources
 import re
 import socket
 import struct
-import tempfile
 import traceback
 from datetime import timedelta
 from urllib import quote
@@ -65,22 +65,23 @@ from sqlalchemy import func
 from werkzeug.http import parse_accept_header
 from werkzeug.datastructures import LanguageAccept
 
-from cms import SOURCE_EXT_TO_LANGUAGE_MAP, ConfigError, config, ServiceCoord
+from cms import ConfigError, ServiceCoord, config, filename_to_language
 from cms.io import WebService
 from cms.db import Session, Contest, User, Task, Question, Submission, Token, \
     File, UserTest, UserTestFile, UserTestManager, PrintJob
 from cms.db.filecacher import FileCacher
 from cms.grading.tasktypes import get_task_type
 from cms.grading.scoretypes import get_score_type
-from cms.server import file_handler_gen, extract_archive, \
-    actual_phase_required, get_url_root, filter_ascii, \
-    CommonRequestHandler, format_size, compute_actual_phase
+from cms.server import file_handler_gen, actual_phase_required, \
+    get_url_root, filter_ascii, CommonRequestHandler, format_size, \
+    compute_actual_phase
 from cmscommon.isocodes import is_language_code, translate_language_code, \
     is_country_code, translate_country_code, \
     is_language_country_code, translate_language_country_code
 from cmscommon.crypto import encrypt_number
 from cmscommon.datetime import make_datetime, make_timestamp, get_timezone
 from cmscommon.mimetypes import get_type_for_file_name
+from cmscommon.archive import Archive
 
 
 logger = logging.getLogger(__name__)
@@ -738,7 +739,7 @@ class SubmissionFileHandler(FileHandler):
             else:
                 # We don't recognize this filename. Let's try to 'undo'
                 # the '%l' -> 'c|cpp|pas' replacement before giving up.
-                filename = re.sub('\.%s$' % submission.language, '.%l',
+                filename = re.sub(r'\.%s$' % submission.language, '.%l',
                                   filename)
 
         if filename not in submission.files:
@@ -979,16 +980,10 @@ class SubmitHandler(BaseHandler):
             archive_data = self.request.files["submission"][0]
             del self.request.files["submission"]
 
-            # Extract the files from the archive.
-            temp_archive_file, temp_archive_filename = \
-                tempfile.mkstemp(dir=config.temp_dir)
-            with os.fdopen(temp_archive_file, "w") as temp_archive_file:
-                temp_archive_file.write(archive_data["body"])
+            # Create the archive.
+            archive = Archive.from_raw_data(archive_data["body"])
 
-            archive_contents = extract_archive(temp_archive_filename,
-                                               archive_data["filename"])
-
-            if archive_contents is None:
+            if archive is None:
                 self.application.service.add_notification(
                     self.current_user.username,
                     self.timestamp,
@@ -999,8 +994,17 @@ class SubmitHandler(BaseHandler):
                                                               safe=''))
                 return
 
-            for item in archive_contents:
-                self.request.files[item["filename"]] = [item]
+            # Extract the archive.
+            unpacked_dir = archive.unpack()
+            for name in archive.namelist():
+                filename = os.path.basename(name)
+                body = open(os.path.join(unpacked_dir, filename), "r").read()
+                self.request.files[filename] = [{
+                    'filename': filename,
+                    'body': body
+                }]
+
+            archive.cleanup()
 
         # This ensure that the user sent one file for every name in
         # submission format and no more. Less is acceptable if task
@@ -1032,7 +1036,6 @@ class SubmitHandler(BaseHandler):
         # in file_digests (i.e. like they have already been sent to FS).
         submission_lang = None
         file_digests = {}
-        retrieved = 0
         if task_type.ALLOW_PARTIAL_SUBMISSION and \
                 last_submission_t is not None:
             for filename in required.difference(provided):
@@ -1044,31 +1047,17 @@ class SubmitHandler(BaseHandler):
                         submission_lang = last_submission_t.language
                     file_digests[filename] = \
                         last_submission_t.files[filename].digest
-                    retrieved += 1
 
         # We need to ensure that everytime we have a .%l in our
         # filenames, the user has the extension of an allowed
         # language, and that all these are the same (i.e., no
         # mixed-language submissions).
-        def which_language(user_filename):
-            """Determine the language of user_filename from its
-            extension.
-
-            user_filename (string): the file to test.
-            return (string): the extension of user_filename, or None
-                             if it is not a recognized language.
-
-            """
-            for source_ext, language in SOURCE_EXT_TO_LANGUAGE_MAP.iteritems():
-                if user_filename.endswith(source_ext):
-                    return language
-            return None
 
         error = None
         for our_filename in files:
             user_filename = files[our_filename][0]
             if our_filename.find(".%l") != -1:
-                lang = which_language(user_filename)
+                lang = filename_to_language(user_filename)
                 if lang is None:
                     error = self._("Cannot recognize submission's language.")
                     break
@@ -1520,16 +1509,10 @@ class UserTestHandler(BaseHandler):
             archive_data = self.request.files["submission"][0]
             del self.request.files["submission"]
 
-            # Extract the files from the archive.
-            temp_archive_file, temp_archive_filename = \
-                tempfile.mkstemp(dir=config.temp_dir)
-            with os.fdopen(temp_archive_file, "w") as temp_archive_file:
-                temp_archive_file.write(archive_data["body"])
+            # Create the archive.
+            archive = Archive.from_raw_data(archive_data["body"])
 
-            archive_contents = extract_archive(temp_archive_filename,
-                                               archive_data["filename"])
-
-            if archive_contents is None:
+            if archive is None:
                 self.application.service.add_notification(
                     self.current_user.username,
                     self.timestamp,
@@ -1539,8 +1522,17 @@ class UserTestHandler(BaseHandler):
                 self.redirect("/testing?%s" % quote(task.name, safe=''))
                 return
 
-            for item in archive_contents:
-                self.request.files[item["filename"]] = [item]
+            # Extract the archive.
+            unpacked_dir = archive.unpack()
+            for name in archive.namelist():
+                filename = os.path.basename(name)
+                body = open(os.path.join(unpacked_dir, filename), "r").read()
+                self.request.files[filename] = [{
+                    'filename': filename,
+                    'body': body
+                }]
+
+            archive.cleanup()
 
         # This ensure that the user sent one file for every name in
         # submission format and no more. Less is acceptable if task
@@ -1573,7 +1565,6 @@ class UserTestHandler(BaseHandler):
         # in file_digests (i.e. like they have already been sent to FS).
         submission_lang = None
         file_digests = {}
-        retrieved = 0
         if task_type.ALLOW_PARTIAL_SUBMISSION and last_user_test_t is not None:
             for filename in required.difference(provided):
                 if filename in last_user_test_t.files:
@@ -1584,31 +1575,17 @@ class UserTestHandler(BaseHandler):
                         submission_lang = last_user_test_t.language
                     file_digests[filename] = \
                         last_user_test_t.files[filename].digest
-                    retrieved += 1
 
         # We need to ensure that everytime we have a .%l in our
         # filenames, the user has one amongst ".cpp", ".c", or ".pas,
         # and that all these are the same (i.e., no mixed-language
         # submissions).
-        def which_language(user_filename):
-            """Determine the language of user_filename from its
-            extension.
-
-            user_filename (string): the file to test.
-            return (string): the extension of user_filename, or None
-                             if it is not a recognized language.
-
-            """
-            for source_ext, language in SOURCE_EXT_TO_LANGUAGE_MAP.iteritems():
-                if user_filename.endswith(source_ext):
-                    return language
-            return None
 
         error = None
         for our_filename in files:
             user_filename = files[our_filename][0]
             if our_filename.find(".%l") != -1:
-                lang = which_language(user_filename)
+                lang = filename_to_language(user_filename)
                 if lang is None:
                     error = self._("Cannot recognize test's language.")
                     break
@@ -2002,24 +1979,26 @@ class PrintingHandler(BaseHandler):
 
 class StaticFileGzHandler(tornado.web.StaticFileHandler):
     """Handle files which may be gzip-compressed on the filesystem."""
-    def get(self, path, *args, **kwargs):
-        # Unless told otherwise, default to text/plain.
-        self.set_header("Content-Type", "text/plain")
+    def validate_absolute_path(self, root, absolute_path):
+        self.is_gzipped = False
         try:
-            # Try an ordinary request.
-            tornado.web.StaticFileHandler.get(self, path, *args, **kwargs)
-        except tornado.web.HTTPError as error:
-            if error.status_code == 404:
-                # If that failed, try servicing it with a .gz extension.
-                path = "%s.gz" % path
-
-                tornado.web.StaticFileHandler.get(self, path, *args, **kwargs)
-
-                # If it succeeded, then mark the encoding as gzip.
-                self.set_header("Content-Encoding", "gzip")
-            else:
+            return tornado.web.StaticFileHandler.validate_absolute_path(
+                self, root, absolute_path)
+        except tornado.web.HTTPError as e:
+            if e.status_code != 404:
                 raise
+            self.is_gzipped = True
+            self.absolute_path = \
+                tornado.web.StaticFileHandler.validate_absolute_path(
+                    self, root, absolute_path + ".gz")
+            self.set_header("Content-encoding", "gzip")
+            return self.absolute_path
 
+    def get_content_type(self):
+        if self.is_gzipped:
+            return "text/plain"
+        else:
+            return tornado.web.StaticFileHandler.get_content_type(self)
 
 _cws_handlers = [
     (r"/", MainHandler),

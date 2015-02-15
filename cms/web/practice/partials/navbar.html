@@ -34,8 +34,8 @@
         <li ng-class="{active: isActiveTab(2)}">
           <a ui-sref="forums"><i class="fa fa-comments fa-lg"></i> {{'Forum' | l10n}}</a>
         </li>
-        <li ng-class="{active: isActiveTab(5)}" ng-if="!me.isLogged()">
-          <a ui-sref="signup"><i class="fa fa-pencil fa-lg"></i> {{'Sign up' | l10n}}</a>
+        <li ng-show="me.isLogged()" ng-class="{active: isActiveTab(2)}">
+          <a href="http://cms.di.unipi.it:8080/session/sso"><i class="fa fa-comments fa-lg"></i> Forum</a>
         </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">

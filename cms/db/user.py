@@ -28,7 +28,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from sqlalchemy.schema import Column, ForeignKey, CheckConstraint
 from sqlalchemy.types import Boolean, Integer, String, Unicode, DateTime, \
@@ -118,14 +118,15 @@ class User(Base):
 
     registration_time = Column(
         DateTime,
-        nullable=False)
+        nullable=False,
+        default=datetime.utcnow())
 
     # Institute
     institute_id = Column(
         Integer,
         ForeignKey(Institute.id,
                    onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True)
     institute = relationship(
         Institute,

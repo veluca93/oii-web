@@ -125,7 +125,7 @@ def do_setup():
                 os.chmod(file_, 0644)
 
     setup(name="cms",
-          version="1.2.0pre",
+          version="1.3.0pre",
           author="The CMS development team",
           author_email="contestms@freelists.org",
           url="https://github.com/cms-dev/cms",
@@ -285,7 +285,7 @@ def build():
 
     print("compiling localization files:")
     for locale in glob(os.path.join("cms", "server", "po", "*.po")):
-        country_code = re.search("/([^/]*)\.po", locale).groups()[0]
+        country_code = re.search(r"/([^/]*)\.po", locale).groups()[0]
         print("  %s" % country_code)
         path = os.path.join("cms", "server", "mo", country_code,
                             "LC_MESSAGES")
@@ -324,17 +324,17 @@ def install():
         # Skip if destination is a symlink
         if os.path.islink(conf_file):
             continue
-        if os.path.exists(os.path.join(".", "examples", conf_file_name)):
-            copyfile(os.path.join(".", "examples", conf_file_name),
+        if os.path.exists(os.path.join(".", "config", conf_file_name)):
+            copyfile(os.path.join(".", "config", conf_file_name),
                      conf_file, cmsuser, 0660)
         else:
             conf_file_name = "%s.sample" % conf_file_name
-            copyfile(os.path.join(".", "examples", conf_file_name),
+            copyfile(os.path.join(".", "config", conf_file_name),
                      conf_file, cmsuser, 0660)
 
     print("copying localization files:")
     for locale in glob(os.path.join("cms", "server", "po", "*.po")):
-        country_code = re.search("/([^/]*)\.po", locale).groups()[0]
+        country_code = re.search(r"/([^/]*)\.po", locale).groups()[0]
         print("  %s" % country_code)
         path = os.path.join("cms", "server", "mo", country_code, "LC_MESSAGES")
         dest_path = os.path.join(USR_ROOT, "share", "locale",
