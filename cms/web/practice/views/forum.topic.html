@@ -1,0 +1,44 @@
+<div class="forum-group post panel panel-info">
+  <dl class="panel-heading" ng-repeat-start="post in posts">
+    <dd class="head sidebar">
+      <a ui-sref="user({userId: post.author.username})">
+        <b>{{post.author.username}}</b>
+      </a>
+    </dd>
+    <dd class="head mainbar">
+      <div class="btn-group pull-right">
+        <button ng-hide="!user.isLogged() || user.isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#new_post" ng-click="doQuote(post.text,post.author.username)">
+          {{'quote' | l10n}}
+        </button>
+        <button ng-show="user.isMod() || user.isMine(post.author.username)" class="btn btn-xs btn-link" data-toggle="modal" data-target="#edit_post" ng-click="doEdit(post.text,post.id)">
+          {{'edit' | l10n}}
+        </button>
+        <button ng-show="user.isMod()" class="btn btn-xs btn-link" ng-click="deletePost(post.id)">
+          {{'delete' | l10n}}
+        </button>
+      </div>
+      <button class="btn btn-xs btn-link hidden-xs">
+<!--
+        title="{{'Get permalink' | l10n}}">
+-->
+        {{post.timestamp | dateFmt}} <!-- TODOLATER: show permalink to this post -->
+      </button>
+    </dd>
+  </dl>
+  <dl class="panel-body" ng-repeat-end>
+    <dd class="sidebar bordered">
+      <a class="dont-underline" title="{{'Go to user\'s page' | l10n}}" ui-sref="user({userId: post.author.username})">
+        <img class="small-avatar img-thumbnail" src="http://gravatar.com/avatar/{{post.author.mail_hash}}?d=identicon&s=75" />
+      </a>
+      <br />
+      <abbr title="{{'User\'s score' | l10n}}">score</abbr>: {{post.author.score}}
+      <br />
+      <small>{{'posts' | l10n}}: {{post.author.post_count}}</small>
+      <br />
+      <small>{{'signed up' | l10n}}: {{post.author.join_date | monthYearFmt}}</small>
+    </dd>
+    <dd class="mainbar">
+      <div class="message" ng-bind-html="post.text"></div>
+    </dd>
+  </dl>
+</div>
