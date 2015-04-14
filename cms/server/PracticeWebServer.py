@@ -929,6 +929,7 @@ class APIHandler(object):
                     }
                 local.resp['forums'].append(forum)
         elif local.data['action'] == 'new':
+            return "Not anymore"
             if local.access_level > 1:
                 return 'Unauthorized'
             if local.data['title'] is None or \
@@ -984,6 +985,7 @@ class APIHandler(object):
                 }
                 local.resp['topics'].append(topic)
         elif local.data['action'] == 'new':
+            return "Not anymore"
             if local.user is None:
                 return 'Unauthorized'
             forum = local.session.query(Forum)\
@@ -1046,6 +1048,7 @@ class APIHandler(object):
                 post['author'] = self.get_user_info(p.author)
                 local.resp['posts'].append(post)
         elif local.data['action'] == 'new':
+            return "Not anymore"
             if local.user is None:
                 return 'Unauthorized'
             topic = local.session.query(Topic)\
@@ -1068,6 +1071,7 @@ class APIHandler(object):
                 .filter(Post.topic_id == topic.id).count()
             local.session.commit()
         elif local.data['action'] == 'delete':
+            return "Not anymore"
             if local.user is None:
                 return 'Unauthorized'
             post = local.session.query(Post)\
@@ -1090,6 +1094,7 @@ class APIHandler(object):
                 .filter(Topic.forum_id == forum.id).count()
             local.session.commit()
         elif local.data['action'] == 'edit':
+            return "Not anymore"
             if local.user is None:
                 return 'Unauthorized'
             post = local.session.query(Post)\
@@ -1178,6 +1183,7 @@ class APIHandler(object):
                 pm['text'] = p.text
                 local.resp['pms'].append(pm)
         elif local.data['action'] == 'new':
+            return "Not anymore"
             if local.user is None:
                 return 'Unauthorized'
             talk = local.session.query(Talk)\
