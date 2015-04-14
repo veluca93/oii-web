@@ -37,9 +37,6 @@
         <li>
           <a ui-sref="forums"><i class="fa fa-comments fa-lg"></i> <small>{{'Forum vecchio (read only)' | l10n}}</small></a>
         </li>
-        <li ng-show="me.isLogged()" ng-class="{active: isActiveTab(2)}">
-          <a href="http://cms.di.unipi.it:8080/session/sso"><i class="fa fa-comments fa-lg"></i> Forum</a>
-        </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li ng-if="!me.isLogged()" class="dropdown">
