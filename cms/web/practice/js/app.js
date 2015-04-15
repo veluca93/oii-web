@@ -161,7 +161,8 @@ angular.module('pws', [
         controller: 'TopicCtrl'
       });
   })
-  .controller('HomepageCtrl', function(navbarManager) {
+  .controller('HomepageCtrl', function(navbarManager, userManager) {
+    $scope.me = userManager;
     navbarManager.setActiveTab(0);
   })
   .filter('repext', function() {

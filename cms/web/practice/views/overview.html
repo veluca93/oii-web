@@ -31,7 +31,10 @@
       <div class="col-sm-4">
         <h2 class="visible-xs">{{'Get to know other coders' | l10n}}</h2>
         <p>{{'Introduce yourself to other students, discuss the tasks, clear up your doubts on: basic constructs of you programming language, algorithms and data structures, libraries, algorithm techniques, and much more!' | l10n}}</p>
-        <p class="visible-xs"><a class="btn btn-default" ui-sref="forums">{{'Go to the forum' | l10n}} &raquo;</a></p>
+        <p class="visible-xs">
+          <a class="btn btn-default" ng-if="!me.isLogged()" href="http://cms.di.unipi.it:8000">{{'Go to the forum' | l10n}} &raquo;</a>
+          <a class="btn btn-default" ng-if="me.isLogged()" href="http://cms.di.unipi.it:8000/session/sso">{{'Go to the forum' | l10n}} &raquo;</a>
+        </p>
       </div>
     </div>
     <div class="row hidden-xs">
@@ -42,7 +45,10 @@
         <p><a class="btn btn-default" ui-sref="ranking.page({pageNum: 1})">{{'See the rankings' | l10n}} &raquo;</a></p>
       </div>
       <div class="col-sm-4">
-        <p><a class="btn btn-default" ui-sref="forums">{{'Go to the forum' | l10n}} &raquo;</a></p>
+        <p>
+          <a class="btn btn-default" ng-if="!me.isLogged()" href="http://cms.di.unipi.it:8000">{{'Go to the forum' | l10n}} &raquo;</a>
+          <a class="btn btn-default" ng-if="me.isLogged()" href="http://cms.di.unipi.it:8000/session/sso">{{'Go to the forum' | l10n}} &raquo;</a>
+        </p>
       </div>
     </div>
     <hr>
