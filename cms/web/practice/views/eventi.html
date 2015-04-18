@@ -1,26 +1,30 @@
 <div class="container">
-  <legend>Selezioni territoriali</legend>
-  <div class="tag-group">
-    <span class="tag-group-item" ng-repeat="tag in terr" style="padding: 5px;">
-      <a ui-sref="tasklist.page({tag: tag, pageNum: 1})" class="label btn-info">
-        <i class="fa fa-tag"></i> {{tag}}
-      </a>
-    </span>
-  </div>
-  <legend style="margin-top:20px;">Selezioni nazionali</legend>
-  <div class="tag-group">
-    <span class="tag-group-item" ng-repeat="tag in oii" style="padding: 5px;">
-      <a ui-sref="tasklist.page({tag: tag, pageNum: 1})" class="label btn-info">
-        <i class="fa fa-tag"></i> {{tag}}
-      </a>
-    </span>
-  </div>
-  <legend style="margin-top:20px;">IOI</legend>
-  <div class="tag-group">
-    <span class="tag-group-item" ng-repeat="tag in ioi" style="padding: 5px;">
-      <a ui-sref="tasklist.page({tag: tag, pageNum: 1})" class="label btn-info">
-        <i class="fa fa-tag"></i> {{tag}}
-      </a>
-    </span>
+  <div ng-repeat="year in ioi" style="margin-bottom: 10px">
+    <em>Anno IOI: {{year}}</em>
+    <div class="tag-group">
+      <span class="tag-group-item" style="padding: 5px;" ng-if="year != 2010">
+        <a ui-sref="tasklist.page({tag: 'ioi' + year + ',territoriali', pageNum: 1})" class="label btn-info">
+          <i class="fa fa-tag"></i> selezioni territoriali
+        </a>
+      </span>
+      <span class="tag-group-item" style="padding: 5px;" ng-if="year == 2010">
+        <a class="label btn-warning" title="non svolte">
+          <i class="fa fa-tag"></i> selezioni territoriali
+        </a>
+      </span>
+      <span class="tag-group-item" style="padding: 5px;" ng-if="year != 2009">
+        <a ui-sref="tasklist.page({tag: 'ioi' + year + ',nazionali', pageNum: 1})" class="label btn-info" ng-if="year != 2016">
+          <i class="fa fa-tag"></i> selezioni nazionali
+        </a>
+        <a href="http://bit.ly/IqT6zt" class="label btn-info" ng-if="year == 2016">
+          <i class="fa fa-tag"></i> selezioni nazionali
+        </a>
+      </span>
+      <span class="tag-group-item" style="padding: 5px;" ng-if="year == 2009">
+        <a class="label btn-warning" title="non svolte">
+          <i class="fa fa-tag"></i> selezioni nazionali
+        </a>
+      </span>
+    </div>
   </div>
 </div>

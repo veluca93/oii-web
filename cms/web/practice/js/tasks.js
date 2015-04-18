@@ -219,10 +219,27 @@ angular.module('pws.tasks', ['pws.pagination'])
     $scope.getTags();
   })
   .controller('TecnichePage', function($scope, $http, notificationHub) {
-    $scope.tags = 'dp,greedy,grafi'.split(',');
+    $scope.tags = [];
+    $http.post('tag', {
+      'action': 'list'
+    })
+    .success(function(data, status, headers, config) {
+      var tags = data['tags'];
+      for (var idx in tags) {
+        if (tags[idx].indexOf("ioi") === 0 || tags[idx] == "nazionali" || tags[idx] == "territoriali") {
+          // skip
+        } else {
+          $scope.tags.push(tags[idx]);
+        }
+      }
+    })
+    .error(function(data, status, headers, config) {
+      notificationHub.serverError(status);
+    });
   })
   .controller('EventiPage', function($scope, $http, notificationHub) {
-    $scope.terr = 'terr2004,terr2005,terr2006,terr2007,terr2008,terr2009,terr2010,terr2011,terr2012,terr2013,terr2014'.split(',');
-    $scope.oii  = 'oii2004,oii2005,oii2006,oii2007,oii2008,oii2009,oii2010,oii2011,oii2012,oii2013,oii2014'.split(',');
-    $scope.ioi  = 'ioi2004,ioi2005,ioi2006,ioi2007,ioi2008,ioi2009,ioi2010,ioi2011,ioi2012,ioi2013,ioi2014'.split(',');
+    $scope.ioi = [];
+    for (var i=2016; i>=2004; i--) {
+      $scope.ioi.push(i);
+    }
   })
