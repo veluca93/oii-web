@@ -226,7 +226,7 @@ angular.module('pws.tasks', ['pws.pagination'])
     .success(function(data, status, headers, config) {
       var tags = data['tags'];
       for (var idx in tags) {
-        if (tags[idx].indexOf("ioi") === 0 || tags[idx] == "nazionali" || tags[idx] == "territoriali") {
+        if (tags[idx].indexOf("ioi") === 0 || tags[idx] == "nazionali" || tags[idx] == "territoriali" || tags[idx] == "gator") {
           // skip
         } else {
           $scope.tags.push(tags[idx]);
