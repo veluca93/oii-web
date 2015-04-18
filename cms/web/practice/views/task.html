@@ -41,11 +41,11 @@
           <div ng-if="task.tags.length < 1" class="not-found-msg">{{'no tags' | l10n}}</div>
           <div class="tag-group">
             <span class="tag-group-item" ng-repeat="tag in task.tags">
-              <a class="label btn-info left" ng-click="tagClicked(tag)">
+              <a class="label btn-info left" ng-click="tagClicked(tag.name)">
                 <i class="fa fa-tag"></i>
-                {{tag}}
+                {{tag.name}}
               </a>
-              <a class="label btn-warning right" ng-click="tagDelete(tag)">&times;</a>
+              <a ng-if="tag.can_delete" class="label btn-warning right" ng-click="tagDelete(tag.name)">&times;</a>
             </span>
             <span class="tag-group-item">
               <a class="label btn-success" ng-click="newTag()">new tag +</a>

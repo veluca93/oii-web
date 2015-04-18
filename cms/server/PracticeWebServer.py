@@ -42,7 +42,7 @@ from cms.io import Service
 from cms.db.filecacher import FileCacher
 from cms.db import SessionGen, User, Submission, File, Task, Test, Tag, \
     Forum, Topic, Post, TestScore, Institute, Region, Province, City, \
-    TaskScore, PrivateMessage, Talk
+    TaskScore, PrivateMessage, Talk, TaskTag
 from cmscommon.datetime import make_timestamp, make_datetime
 from cmscommon.archive import Archive
 
@@ -478,26 +478,40 @@ class APIHandler(object):
             query = local.session.query(Task)\
                 .filter(Task.access_level >= local.access_level)\
                 .order_by(desc(Task.id))
+
             if 'tag' in local.data and local.data['tag'] is not None:
-                query = query.filter(Task.tags.any(name=local.data['tag']))
+                tags = local.data['tag'].split(',')[:5]  # Ignore requests with more that 5 tags
+                conditions = [Tag.name == tname for tname in tags]
+                targets = local.session.query(Tag).filter(or_(*conditions)).all()
+                local.resp['tags'] = []
+                for tag in targets:
+                    local.resp['tags'].append(tag.name)
+                    query = query.filter(Task.tasktags.any(tag=tag))
+
             if 'search' in local.data and local.data['search'] is not None:
                 sq = '%%%s%%' % local.data['search']
                 query = query.filter(or_(Task.title.ilike(sq),
                                          Task.name.ilike(sq)))
+
             tasks, local.resp['num'] = self.sliced_query(query)
             local.resp['tasks'] = []
+
             for t in tasks:
                 task = dict()
                 task['id'] = t.id
                 task['name'] = t.name
                 task['title'] = t.title
+
                 if local.user is not None:
                     taskscore = local.session.query(TaskScore)\
                         .filter(TaskScore.task_id == t.id)\
                         .filter(TaskScore.user_id == local.user.id).first()
+
                     if taskscore is not None:
                         task['score'] = taskscore.score
+
                 local.resp['tasks'].append(task)
+
         elif local.data['action'] == 'get':
             t = local.session.query(Task)\
                 .filter(Task.name == local.data['name'])\
@@ -517,8 +531,14 @@ class APIHandler(object):
             for (name, obj) in t.attachments.iteritems():
                 att.append((name, obj.digest))
             local.resp['attachments'] = att
-            local.resp['tags'] = [tag.name
-                                  for tag in t.tags if tag.hidden is False]
+            local.resp['tags'] = []
+            for tasktag in t.tasktags:
+                if not tasktag.tag.hidden:
+                    local.resp['tags'].append({
+                        'name': tasktag.tag.name,
+                        'can_delete': local.user is tasktag.user and not tasktag.approved
+                    })
+
         elif local.data['action'] == 'stats':
             t = local.session.query(Task)\
                 .filter(Task.name == local.data['name'])\
@@ -572,41 +592,43 @@ class APIHandler(object):
                 local.session.delete(tag)
                 local.session.commit()
         elif local.data['action'] == 'add':
-            if local.access_level >= 5:
+            if local.access_level > 5:
                 return 'Unauthorized'
             tag = local.session.query(Tag)\
                 .filter(Tag.name == local.data['tag']).first()
             task = local.session.query(Task)\
                 .filter(Task.name == local.data['task']).first()
             if tag is None:
-                return 'tags.tag_doesnt_exist'
+                return 'Tag does not exist'
             elif tag.hidden is True and local.access_level > 0:
                 return 'Unauthorized'
             elif task is None:
-                return 'tags.task_doesnt_exist'
-            elif tag in task.tags:
-                return 'tags.task_has_tag'
+                return 'Task does not exist'
             else:
-                task.tags.append(tag)
-                local.session.commit()
+                try:
+                    local.session.add(TaskTag(task=task, tag=tag, user=local.user))
+                    local.session.commit()
+                except IntegrityError:
+                    return 'The task already has this tag'
+
         elif local.data['action'] == 'remove':
-            if local.access_level >= 5:
+            if local.access_level > 5:
                 return 'Unauthorized'
             tag = local.session.query(Tag)\
                 .filter(Tag.name == local.data['tag']).first()
             task = local.session.query(Task)\
                 .filter(Task.name == local.data['task']).first()
-            if tag is None:
-                return 'tags.tag_doesnt_exist'
-            elif tag.hidden is True and local.access_level > 0:
-                return 'Unauthorized'
-            elif task is None:
-                return 'tags.tag_doesnt_exist'
-            elif tag not in task.tags:
-                return 'tags.task_hasnt_tag'
-            else:
-                task.tags.remove(tag)
-                local.session.commit()
+            tasktag = local.session.query(TaskTag)\
+                .filter(TaskTag.tag == tag)\
+                .filter(TaskTag.task == task).first()
+            if local.access_level > 0:
+                if tag.hidden or tasktag.approved or local.user is not tasktag.user:
+                    return 'Unauthorized'
+            elif tasktag is None:
+                return 'Task does not have tag'
+
+            local.session.delete(tasktag)
+            local.session.commit()
         else:
             return 'Bad request'
 

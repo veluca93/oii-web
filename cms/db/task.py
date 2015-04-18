@@ -241,6 +241,9 @@ class Task(Base):
         # this relationship.
         post_update=True)
 
+    # The list of tasktags which tag this task
+    tasktags = relationship('TaskTag')
+
     # Follows the description of the fields automatically added by
     # SQLAlchemy.
     # datasets (list of Dataset objects)
@@ -587,11 +590,33 @@ class Testcase(Base):
         nullable=False)
 
 
-tasktags = Table(
-    'tasktags', Base.metadata,
-    Column('task_id', Integer, ForeignKey('tasks.id')),
-    Column('tag_id', Integer, ForeignKey('tags.id'))
-)
+class TaskTag(Base):
+    __tablename__ = 'tasktags'
+    task_id = Column(
+        Integer,
+        ForeignKey('tasks.id'),
+        primary_key=True
+    )
+
+    tag_id = Column(
+        Integer,
+        ForeignKey('tags.id'),
+        primary_key=True
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey('users.id')
+    )
+
+    approved = Column(
+        Boolean,
+        default=False
+    )
+
+    tag = relationship("Tag")
+    task = relationship("Task")
+    user = relationship("User")
 
 
 class Tag(Base):
@@ -599,11 +624,6 @@ class Tag(Base):
     id = Column(
         Integer,
         primary_key=True)
-
-    tasks = relationship(
-        "Task",
-        secondary=tasktags,
-        backref="tags")
 
     name = Column(
         String,
@@ -615,6 +635,9 @@ class Tag(Base):
     description = Column(
         String,
         nullable=False)
+
+    # List of tasktags which tag tasks by using this tag
+    tasktags = relationship("TaskTag")
 
 
 class TaskScore(Base):

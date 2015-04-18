@@ -174,6 +174,9 @@ class User(Base):
         nullable=False,
         default=timedelta())
 
+    # List of tasktags (not "approved" yet) created by this user
+    tasktags = relationship("TaskTag")
+
     # Follows the description of the fields automatically added by
     # SQLAlchemy.
     # messages (list of Message objects)

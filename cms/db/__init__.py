@@ -58,7 +58,7 @@ __all__ = [
     "User", "Message", "Question",
     # task
     "Task", "Statement", "Attachment", "SubmissionFormatElement", "Dataset",
-    "Manager", "Testcase", "TaskScore", "Tag",
+    "Manager", "Testcase", "TaskScore", "Tag", "TaskTag",
     # submission
     "Submission", "File", "Token", "SubmissionResult", "Executable",
     "Evaluation",
@@ -101,7 +101,7 @@ from .contest import Contest, Announcement
 from .location import Region, Province, City, Institute
 from .user import User, Message, Question
 from .task import Task, Statement, Attachment, SubmissionFormatElement, \
-    Dataset, Manager, Testcase, Tag, TaskScore
+    Dataset, Manager, Testcase, Tag, TaskScore, TaskTag
 from .submission import Submission, File, Token, SubmissionResult, \
     Executable, Evaluation
 from .usertest import UserTest, UserTestFile, UserTestManager, \
