@@ -175,8 +175,11 @@ angular.module('pws.tasks', ['pws.pagination'])
   .controller('TasklistPage', function($scope, $stateParams, $state, $http,
       notificationHub, userManager, l10n) {
     $scope.pagination.current = +$stateParams.pageNum;
-    $scope.search.tag = $stateParams.tag;
-    $scope.search.q   = $stateParams.q;
+    $scope.search.q = $stateParams.q;
+    $scope.search.tag_string = "";
+    if ($scope.search.tag != null) {
+      $scope.search.tags = $scope.search.tag.split(",");
+    }
     $scope.getTasks = function() {
       $http.post('task', {
         'search':   $stateParams.q,    // can be null
@@ -189,6 +192,7 @@ angular.module('pws.tasks', ['pws.pagination'])
       })
       .success(function(data, status, headers, config) {
         $scope.tasks = data['tasks'];
+        $scope.search.tag_string = (data['tags'] || []).join(' + ');
         $scope.pagination.total = Math.ceil(data['num'] / $scope.pagination.perPage);
         if (data['num'] === 0) {
           $scope.pagination.total = 1;
