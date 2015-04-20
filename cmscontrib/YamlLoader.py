@@ -226,6 +226,10 @@ class YamlLoader(Loader):
                 io.open(os.path.join(self.path, name + ".yaml"),
                         "rt", encoding="utf-8"))
 
+        # If there is a .skip_import file, we pretend the task didn't change
+        if os.path.exists(os.path.join(path, ".skip_import")):
+            return False
+
         # If there is no .itime file, we assume that the task has changed
         if not os.path.exists(os.path.join(path, ".itime")):
             return True
