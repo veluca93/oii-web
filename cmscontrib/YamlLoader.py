@@ -227,7 +227,7 @@ class YamlLoader(Loader):
                         "rt", encoding="utf-8"))
 
         # If there is a .skip_import file, we pretend the task didn't change
-        if not os.path.exists(os.path.join(path, ".skip_import")):
+        if os.path.exists(os.path.join(path, ".skip_import")):
             return False
 
         # If there is no .itime file, we assume that the task has changed
