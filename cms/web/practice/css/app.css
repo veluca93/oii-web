@@ -501,6 +501,35 @@ table.submissions th {
   }
 }
 
+/* Ranking page */
+.ranking .user-thumbnail {
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+}
+
+.ranking span[data-field='username'] {
+    font-weight: 500;
+}
+
+.ranking span[data-field='real-name'] {
+    margin-left: 10px;
+    color: gray;
+    font-size: 90%;
+    font-weight: 400;
+}
+
+.ranking tt[data-field='score'] {
+    display: inline-block;
+    margin-top: 7px;
+    margin-left: 40px;
+}  
+
+.ranking tt[data-field='tasks-solved'] {
+    display: inline-block;
+    margin-top: 7px;
+}
+
 /* PDF.JS */
 
 .viewer {
