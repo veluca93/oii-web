@@ -242,6 +242,9 @@ class APIHandler(object):
         info['post_count'] = len(user.posts)
         info['score'] = user.score
         info['institute'] = self.get_institute_info(user.institute)
+        info['first_name'] = user.first_name
+        info['last_name'] = user.last_name
+        info['tasks_solved'] = -1
         return info
 
     # Handlers that do not require JSON data
