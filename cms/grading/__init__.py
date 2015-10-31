@@ -245,7 +245,7 @@ def get_compilation_commands(language, source_filenames, executable_filename,
         # In order to use Python 3 change them to:
         # /usr/bin/python3 -m py_compile %s
         # mv __pycache__/%s.*.pyc %s
-        py_command = ["/usr/bin/python2", "-m", "py_compile",
+        py_command = ["/usr/bin/python3", "-m", "py_compile",
                       source_filenames[0]]
         mv_command = ["/bin/mv", "%s.pyc" % os.path.splitext(os.path.basename(
                       source_filenames[0]))[0], executable_filename]
