@@ -247,7 +247,7 @@ def get_compilation_commands(language, source_filenames, executable_filename,
         # mv __pycache__/%s.*.pyc %s
         py_command = ["/usr/bin/python3", "-m", "py_compile",
                       source_filenames[0]]
-        mv_command = ["/bin/mv", "%s.pyc" % os.path.splitext(os.path.basename(
+        mv_command = ["/bin/mv", "__pycache__/%s.cpython-34.pyc" % os.path.splitext(os.path.basename(
                       source_filenames[0]))[0], executable_filename]
         commands.append(py_command)
         commands.append(mv_command)
@@ -284,7 +284,7 @@ def get_evaluation_commands(language, executable_filename):
     elif language == LANG_PYTHON:
         # In order to use Python 3 change it to:
         # /usr/bin/python3 %s
-        command = ["/usr/bin/python2", executable_filename]
+        command = ["/usr/bin/python3", executable_filename]
         commands.append(command)
     elif language == LANG_PHP:
         command = ["/usr/bin/php5", executable_filename]
