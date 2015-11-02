@@ -97,11 +97,11 @@ angular.module('pws.resources', [])
         youtube: 'viXj9zyMAlk',
         files: []
       },
-      //~ {
-        //~ title: 'Lezione 12',
-        //~ youtube: '##todo##',
-        //~ files: []
-      //~ },
+      {
+        title: 'Lezione 12',
+        youtube: 'vxa6eyV2oBs',
+        files: ['functionDado.pas', 'repeat_throw_until.pas']
+      },
       {
         title: 'Lezione 13',
         youtube: 'CgCKVC_tDMM',
