@@ -45,6 +45,6 @@ RUN apt-get -y remove libyaml-dev
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 8888 8889 8890
-WORKDIR /cms
+WORKDIR /problems
 CMD cgroups-mount
 CMD supervisord
