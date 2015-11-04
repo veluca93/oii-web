@@ -1,17 +1,50 @@
 FROM ubuntu:14.04
 MAINTAINER Luca Versari <veluca93@gmail.com>
+
 RUN apt-get update
-RUN apt-get -y install build-essential fpc postgresql postgresql-client gettext python2.7 python-setuptools python-tornado python-psycopg2 python-sqlalchemy python-psutil python-netifaces python-crypto python-tz python-six iso-codes shared-mime-info stl-manual python-beautifulsoup python-mechanize python-coverage python-mock cgroup-lite python-requests python-werkzeug python-gevent python-yaml python-sphinx texlive texlive-latex-extra nano latexmk pypy python-pip python-numpy patool
-RUN pip install sortedcontainers
-RUN pip install https://github.com/obag/cms-booklet/archive/master.zip
-RUN curl -O https://bootstrap.pypa.io/get-pip.py
-RUN pypy get-pip.py
-RUN pypy /usr/local/bin/pip install sortedcontainers
-RUN apt-get install -y openssh-server supervisor
-RUN mkdir -p /var/run/sshd /var/log/supervisor
-RUN sed -i 's/StrictModes yes/StrictModes no/' /etc/ssh/sshd_config
+RUN apt-get -y install g++
+RUN apt-get -y install postgresql-client
+RUN apt-get -y install gettext
+RUN apt-get -y install python2.7
+RUN apt-get -y install iso-codes
+RUN apt-get -y install shared-mime-info
+RUN apt-get -y install stl-manual
+RUN apt-get -y install cgroup-lite
+RUN apt-get -y install supervisor
+RUN apt-get -y install python-pip
+
+# This apt-get is necessary until the following adopt python wheels:
+#   * psycopg2
+#   * pycups
+#   * PyYAML
+# (And until python wheels will support Linux binaries)
+RUN apt-get -y install python-dev
+RUN apt-get -y install libpq-dev
+RUN apt-get -y install libcups2-dev
+RUN apt-get -y install libyaml-dev
+
+RUN apt-get -y install fpc
+
+ADD . /oiiweb
+
+RUN cd /oiiweb && \
+    pip install -r REQUIREMENTS.txt && \
+    python setup.py build && \
+    python setup.py install
+
+RUN apt-get -y install fpc
+RUN apt-get -y install pypy
+RUN curl -O https://bootstrap.pypa.io/get-pip.py && pypy get-pip.py && pypy -m pip install sortedcontainers
+
+# See above about python wheels
+RUN apt-get -y remove python-dev
+RUN apt-get -y remove libpq-dev
+RUN apt-get -y remove libcups2-dev
+RUN apt-get -y remove libyaml-dev
+
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-CMD cgroups-mount && /usr/bin/supervisord
-EXPOSE 22 8888 8889 8890
-ADD . /cms
-RUN cd /cms && ./setup.py build && ./setup.py install && rm -rf /cms
+
+EXPOSE 8888 8889 8890
+WORKDIR /cms
+CMD cgroups-mount
+CMD supervisord
