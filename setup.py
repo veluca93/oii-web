@@ -317,21 +317,6 @@ def install():
              os.path.join(USR_ROOT, "bin", "isolate"),
              root, 04750, group=cmsuser_grp)
 
-    print("copying configuration to /usr/local/etc/.")
-    makedir(os.path.join(USR_ROOT, "etc"), root, 0755)
-    for conf_file_name in ["cms.conf", "cms.ranking.conf"]:
-        conf_file = os.path.join(USR_ROOT, "etc", conf_file_name)
-        # Skip if destination is a symlink
-        if os.path.islink(conf_file):
-            continue
-        if os.path.exists(os.path.join(".", "config", conf_file_name)):
-            copyfile(os.path.join(".", "config", conf_file_name),
-                     conf_file, cmsuser, 0660)
-        else:
-            conf_file_name = "%s.sample" % conf_file_name
-            copyfile(os.path.join(".", "config", conf_file_name),
-                     conf_file, cmsuser, 0660)
-
     print("copying localization files:")
     for locale in glob(os.path.join("cms", "server", "po", "*.po")):
         country_code = re.search(r"/([^/]*)\.po", locale).groups()[0]
