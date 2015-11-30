@@ -301,57 +301,7 @@ def install():
     RWS.
 
     """
-    # We set permissions for each manually installed files, so we want
-    # max liberty to change them.
-    old_umask = os.umask(0000)
-
-    print("creating user and group cmsuser.")
-    os.system("useradd cmsuser -c 'CMS default user' -M -r -s /bin/false -U")
-    cmsuser = pwd.getpwnam("cmsuser")
-    root = pwd.getpwnam("root")
-    cmsuser_grp = grp.getgrnam("cmsuser")
-
-    print("copying isolate to /usr/local/bin/.")
-    makedir(os.path.join(USR_ROOT, "bin"), root, 0755)
-    copyfile(os.path.join(".", "isolate", "isolate"),
-             os.path.join(USR_ROOT, "bin", "isolate"),
-             root, 04750, group=cmsuser_grp)
-
-    print("copying localization files:")
-    for locale in glob(os.path.join("cms", "server", "po", "*.po")):
-        country_code = re.search(r"/([^/]*)\.po", locale).groups()[0]
-        print("  %s" % country_code)
-        path = os.path.join("cms", "server", "mo", country_code, "LC_MESSAGES")
-        dest_path = os.path.join(USR_ROOT, "share", "locale",
-                                 country_code, "LC_MESSAGES")
-        makedir(dest_path, root, 0755)
-        copyfile(os.path.join(path, "cms.mo"),
-                 os.path.join(dest_path, "cms.mo"),
-                 root, 0644)
-
-    print("creating directories.")
-    dirs = [os.path.join(VAR_ROOT, "log"),
-            os.path.join(VAR_ROOT, "cache"),
-            os.path.join(VAR_ROOT, "lib"),
-            os.path.join(VAR_ROOT, "run"),
-            os.path.join(USR_ROOT, "include"),
-            os.path.join(USR_ROOT, "share")]
-    for _dir in dirs:
-        # Skip if destination is a symlink
-        if os.path.islink(os.path.join(_dir, "cms")):
-            continue
-        makedir(_dir, root, 0755)
-        _dir = os.path.join(_dir, "cms")
-        makedir(_dir, cmsuser, 0770)
-
-    print("copying Polygon testlib:")
-    path = os.path.join("cmscontrib", "polygon", "testlib.h")
-    dest_path = os.path.join(USR_ROOT, "include", "cms", "testlib.h")
-    copyfile(path, dest_path, root, 0644)
-
-    os.umask(old_umask)
-    print("done.")
-
+    pass
 
 if __name__ == "__main__":
     do_setup()
