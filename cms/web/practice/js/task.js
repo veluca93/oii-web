@@ -126,10 +126,7 @@ angular.module('pws.task', [])
     taskbarManager.setActiveTab(1);
     $scope.goodBrowser = !!$window.Worker;
     $scope.getPDFURL = function(hash) {
-      return 'assets/pdfjs/web/viewer.html?file=' + location.pathname.replace(/[^\/]*$/, '') + 'files/' + hash + '/testo.pdf';
-    };
-    $scope.getPDFURLforIE8 = function(hash) {
-      return 'files/' + hash + '/testo.pdf';
+      return location.pathname.replace(/[^\/]*$/, '') + 'files/' + hash + '/testo.pdf';
     };
   })
   .controller('AttachmentsCtrl', function(taskbarManager) {
@@ -219,5 +216,19 @@ angular.module('pws.task', [])
     };
     $scope.showDetails = function(id) {
       subsDatabase.subDetails(id);
+    };
+  })
+  .directive('pdf', function() {
+    return {
+      restrict: 'E',
+      link: function(scope, element, attrs) {
+        var hasBuiltInPdf = !("ActiveXObject" in window) && !/iPhone|iPod|Android|BlackBerry|Opera Mini|Phone|Mobile/i.test(navigator.userAgent);
+        if (hasBuiltInPdf)
+          element.replaceWith('<object data="' + attrs.ngSrc + '" type="application/pdf" class="' + attrs.class + 
+            '">Update your browser!</object>');
+        else
+          element.replaceWith('<iframe seamless src="assets/pdfjs/web/viewer.html?file=' + attrs.ngSrc +
+            '" class="' + attrs.class +'"/>');
+      }
     };
   });
