@@ -128,6 +128,9 @@ angular.module('pws.task', [])
     $scope.getPDFURL = function(hash) {
       return location.pathname.replace(/[^\/]*$/, '') + 'files/' + hash + '/testo.pdf';
     };
+    $scope.getLegacyPDFURL = function(hash) {
+      return "assets/pdfjs/web/viewer.html?file=" + $scope.getPDFURL(hash);
+    };
   })
   .controller('AttachmentsCtrl', function(taskbarManager) {
     taskbarManager.setActiveTab(2);
@@ -221,14 +224,14 @@ angular.module('pws.task', [])
   .directive('pdf', function() {
     return {
       restrict: 'E',
-      link: function(scope, element, attrs) {
-        var hasBuiltInPdf = !("ActiveXObject" in window) && !/iPhone|iPod|Android|BlackBerry|Opera Mini|Phone|Mobile/i.test(navigator.userAgent);
-        if (hasBuiltInPdf)
-          element.replaceWith('<object data="' + attrs.ngSrc + '" type="application/pdf" class="' + attrs.class + 
-            '">Update your browser!</object>');
-        else
-          element.replaceWith('<iframe seamless src="assets/pdfjs/web/viewer.html?file=' + attrs.ngSrc +
-            '" class="' + attrs.class +'"/>');
-      }
-    };
+      template: '<object data="{{getPDFURL(task.statements.it)}}" type="application/pdf"><old-pdf class="viewer"/></object>',
+      replace: true
+    }
+  })
+  .directive('oldPdf', function() {
+    return {
+      restrict: 'E',
+      template: '<iframe seamless ng-src="{{getLegacyPDFURL(task.statements.it)}}" class="viewer"/>',
+      replace: true
+    }
   });
