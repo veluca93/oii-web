@@ -1,5 +1,5 @@
 <div class="row container text-center" >
-  <pdf ng-if="goodBrowser == true" src="{{getPDFURL(task.statements.it)}}" class="viewer"/>
+  <pdf ng-if="goodBrowser == true" ng-src="{{getPDFURL(task.statements.it)}}" class="viewer"/>
   <a ng-if="goodBrowser == false" href="{{getPDFURL(task.statements.it)}}" class="btn btn-lg btn-success">
     Download
   </a>

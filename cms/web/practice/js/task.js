@@ -224,10 +224,10 @@ angular.module('pws.task', [])
       link: function(scope, element, attrs) {
         var hasBuiltInPdf = !("ActiveXObject" in window) && !/iPhone|iPod|Android|BlackBerry|Opera Mini|Phone|Mobile/i.test(navigator.userAgent);
         if (hasBuiltInPdf)
-          element.replaceWith('<object data="' + attrs.src + '" type="application/pdf" class="' + attrs.class + 
+          element.replaceWith('<object data="' + attrs.ngSrc + '" type="application/pdf" class="' + attrs.class + 
             '">Update your browser!</object>');
         else
-          element.replaceWith('<iframe seamless src="assets/pdfjs/web/viewer.html?file=' + attrs.src +
+          element.replaceWith('<iframe seamless src="assets/pdfjs/web/viewer.html?file=' + attrs.ngSrc +
             '" class="' + attrs.class +'"/>');
       }
     };
