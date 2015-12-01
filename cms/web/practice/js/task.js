@@ -106,31 +106,23 @@ angular.module('pws.task', [])
         notificationHub.serverError(status);
       });
     };
-    $scope.loadTask = function() {
-      $http.post('task', {
+    $scope.loadTask = $http.post('task', {
         'name': $stateParams.taskName,
         'username': userManager.getUser().username,
         'token': userManager.getUser().token,
         'action': 'get'
       })
-      .success(function(data, status, headers, config) {
-        $rootScope.task = data;
-      })
-      .error(function(data, status, headers, config) {
-        notificationHub.serverError(status);
-      });
-    };
-    $scope.loadTask();
+      .then(
+        function(result) {
+          $rootScope.task = result.data;
+        },
+        function(result) {
+          notificationHub.serverError(result.status);
+        }
+      );
   })
   .controller('StatementCtrl', function($scope, $window, taskbarManager) {
     taskbarManager.setActiveTab(1);
-    $scope.goodBrowser = !!$window.Worker;
-    $scope.getPDFURL = function(hash) {
-      return 'assets/pdfjs/web/viewer.html?file=' + location.pathname.replace(/[^\/]*$/, '') + 'files/' + hash + '/testo.pdf';
-    };
-    $scope.getPDFURLforIE8 = function(hash) {
-      return 'files/' + hash + '/testo.pdf';
-    };
   })
   .controller('AttachmentsCtrl', function(taskbarManager) {
     taskbarManager.setActiveTab(2);
@@ -219,5 +211,26 @@ angular.module('pws.task', [])
     };
     $scope.showDetails = function(id) {
       subsDatabase.subDetails(id);
+    };
+  })
+  .directive('pdf', function() {
+    return {
+      restrict: 'E',
+      link: function(scope, element, attrs) {
+        scope.loadTask.then(function() {
+          var goodBrowser = !!window.Worker;
+          var hasBuiltInPdf = !("ActiveXObject" in window) && !/iPhone|iPod|Android|BlackBerry|Opera Mini|Phone|Mobile/i.test(navigator.userAgent);
+          var pdfURL = location.pathname.replace(/[^\/]*$/, '') + 'files/' + scope.task.statements.it + '/testo.pdf';
+          var downloadButton = '<a href="' + pdfURL + '" class="btn btn-lg btn-success">Download</a>';
+          if (goodBrowser && hasBuiltInPdf)
+            element.replaceWith('<object data="' + pdfURL + '" type="application/pdf" class="' + attrs.class + 
+              '">Update your browser!' + downloadButton + '</object>');
+          else if (goodBrowser)
+            element.replaceWith('<iframe seamless src="assets/pdfjs/web/viewer.html?file=' + pdfURL +
+              '" class="' + attrs.class +'"/>');
+          else
+            element.raplaceWith(downloadButton);
+        });
+      }
     };
   });
