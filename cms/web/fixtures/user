@@ -1,0 +1,113 @@
+{
+    "num": 4,
+    "users": [
+        {
+            "username": "gabrfarina",
+            "first_name": "Gabriele",
+            "last_name": "Farina",
+            "tasks_solved": 79,
+            "mail_hash": "c19a99493ac8185baa01174378f37b54",
+            "post_count": 12,
+            "access_level": 5,
+            "join_date": 1387637721.98562,
+            "score": 42553,
+            "institute": {
+                "province": "Verona",
+                "city": "Verona",
+                "region": "Veneto",
+                "id": 5617,
+                "name": "Galilei"
+            }
+        },
+        {
+            "username": "wil93",
+            "first_name": "William",
+            "last_name": "Di Luigi",
+            "tasks_solved": 68,
+            "mail_hash": "3ac73c99a3aa3ec0c423849fae6c0b26",
+            "post_count": 64,
+            "access_level": 5,
+            "join_date": 1396542418.596289,
+            "score": 39523,
+            "institute": {
+                "province": "Pordenone",
+                "city": "Pordenone",
+                "region": "Friuli-Venezia Giulia",
+                "id": 1260,
+                "name": "Ls M. Grigoletti"
+            }
+        },
+        {
+            "username": "veluca",
+            "first_name": "Luca",
+            "last_name": "Versari",
+            "tasks_solved": 79,
+            "mail_hash": "0d458d930c7587a320754ae69f170b51",
+            "post_count": 56,
+            "access_level": 5,
+            "join_date": 1387044829.31029,
+            "score": 38924,
+            "institute": {
+                "province": "Bergamo",
+                "city": "Bergamo",
+                "region": "Lombardia",
+                "id": 6964,
+                "name": "Filippo Lussana"
+            }
+        },
+        {
+            "username": "ellat",
+            "first_name": "Ella",
+            "last_name": "Turner",
+            "tasks_solved": 75,
+            "mail_hash": "2dd1894ea9d19bf5479992da95713a3a",
+            "post_count": 23,
+            "access_level": 5,
+            "join_date": 1387044828.31029,
+            "score": 38753,
+            "institute": {
+                "province": "Bergamo",
+                "city": "Bergamo",
+                "region": "Lombardia",
+                "id": 6964,
+                "name": "Filippo Lussana"
+            }
+        },
+        {
+            "username": "dany89",
+            "first_name": "Daniel",
+            "last_name": "Williamson",
+            "tasks_solved": 68,
+            "mail_hash": "2dd1894ea9d19bf5479992da95713a3a",
+            "post_count": 23,
+            "access_level": 5,
+            "join_date": 1387044828.31029,
+            "score": 36012,
+            "institute": {
+                "province": "Bergamo",
+                "city": "Bergamo",
+                "region": "Lombardia",
+                "id": 6964,
+                "name": "Filippo Lussana"
+            }
+        },
+        {
+            "username": "martuccia",
+            "first_name": "Marta",
+            "last_name": "Rossi",
+            "tasks_solved": 63,
+            "mail_hash": "2dd1894ea9d19bf5479992da95713a3a",
+            "post_count": 23,
+            "access_level": 5,
+            "join_date": 1387044828.31029,
+            "score": 35212,
+            "institute": {
+                "province": "Bergamo",
+                "city": "Bergamo",
+                "region": "Lombardia",
+                "id": 6964,
+                "name": "Filippo Lussana"
+            }
+        }],
+    "success": 1
+}
