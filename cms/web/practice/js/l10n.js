@@ -88,6 +88,8 @@ angular.module('pws.l10n', [])
     {it: 'La quantità di tempo, in secondi, disponibile per l\'esecuzione di un testcase.'},
     'Tags are useful to classify tasks by a common characteristic or technique, such as: <i>greedy</i>, <i>graphs</i>, and so on.':
     {it: 'I tag servono per classificare e raggruppare i problemi in base ad una caratteristica comune, ad esempio: <i>greedy</i>, <i>grafi</i>, e così via.'},
+    'Your browser is outdated or your PDF plugin is deactivated':
+    {it: 'Il tuo browser non è aggiornato, oppure hai disattivato il plugin per i PDF'},
 
     // Submissions page
     'Submit a solution':

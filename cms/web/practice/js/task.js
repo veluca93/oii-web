@@ -121,7 +121,7 @@ angular.module('pws.task', [])
         }
       );
   })
-  .controller('StatementCtrl', function($scope, $window, taskbarManager) {
+  .controller('StatementCtrl', function(taskbarManager) {
     taskbarManager.setActiveTab(1);
   })
   .controller('AttachmentsCtrl', function(taskbarManager) {
@@ -213,18 +213,18 @@ angular.module('pws.task', [])
       subsDatabase.subDetails(id);
     };
   })
-  .directive('pdf', function() {
+  .directive('pdf', function($window, l10n) {
     return {
       restrict: 'E',
       link: function(scope, element, attrs) {
         scope.loadTask.then(function() {
-          var goodBrowser = !!window.Worker;
+          var goodBrowser = !!$window.Worker;
           var hasBuiltInPdf = !("ActiveXObject" in window) && !/iPhone|iPod|Android|BlackBerry|Opera Mini|Phone|Mobile/i.test(navigator.userAgent);
           var pdfURL = location.pathname.replace(/[^\/]*$/, '') + 'files/' + scope.task.statements.it + '/testo.pdf';
-          var downloadButton = '<a href="' + pdfURL + '" class="btn btn-lg btn-success">Download</a>';
+          var downloadButton = '<a href="' + pdfURL + '" class="btn btn-success" style="margin-top:5px;">Download PDF</a>';
           if (goodBrowser && hasBuiltInPdf)
-            element.replaceWith('<object data="' + pdfURL + '" type="application/pdf" class="' + attrs.class + 
-              '">Update your browser!' + downloadButton + '</object>');
+            element.replaceWith('<object data="' + pdfURL + '" type="application/pdf" class="' + attrs.class +
+              '">' + l10n.get('Your browser is outdated or your PDF plugin is deactivated') + '<br>' + downloadButton + '</object>');
           else if (goodBrowser)
             element.replaceWith('<iframe seamless src="assets/pdfjs/web/viewer.html?file=' + pdfURL +
               '" class="' + attrs.class +'"/>');
